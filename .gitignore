@@ -1,0 +1,35 @@
+# macOS / editor / tooling
+.DS_Store
+.vscode/
+.playwright-mcp/
+.repo-history-backups/
+
+# Python caches
+**/__pycache__/
+**/.pytest_cache/
+**/.ipynb_checkpoints/
+*.pyc
+*.pyo
+*.pyd
+
+# Local Python / conda environments
+eeg-data-processing/.venv/
+eeg-data-processing/.venv_debug/
+eeg-data-processing/.venv_jupyter/
+EEG-Conformer/.conda-envs/
+EEG-Conformer/.conda-pkgs/
+
+# Training / inference outputs
+EEG-Conformer/outputs/
+eeg-data-processing/data_to_list/npy_dataset/
+eeg-data-processing/data_to_list/npy_dataset*/
+eeg-data-processing/data_to_list/global_activity_dataset/
+eeg-data-processing/data_to_list/global_activity_dataset*/
+*.crdownload
+
+# Raw / intermediate EEG data not intended for GitHub
+eeg-data-processing/data_to_list/data/
+eeg-data-processing/data_to_list/list/
+eeg-data-processing/data_to_list/list_cut_fixed_duration/
+eeg-data-processing/data_to_list/list_normalization_fixed_duration/
+eeg-data-processing/videos/

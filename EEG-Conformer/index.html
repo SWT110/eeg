@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EEG 三分类判定</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: #141b33;
+      --card-2: #1b2444;
+      --text: #eef3ff;
+      --muted: #a9b5d1;
+      --primary: #6ea8fe;
+      --success: #4fd1a5;
+      --danger: #ff7a7a;
+      --border: rgba(255, 255, 255, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #09101f 0%, #0f1730 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 40px 20px 64px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      line-height: 1.2;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .grid {
+      margin-top: 24px;
+      display: grid;
+      gap: 20px;
+      grid-template-columns: 1.2fr 0.8fr;
+    }
+
+    .card {
+      background: rgba(20, 27, 51, 0.96);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+    }
+
+    .card h2 {
+      margin: 0 0 14px;
+      font-size: 18px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      background: var(--card-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    button {
+      appearance: none;
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-size: 15px;
+      font-weight: 600;
+      background: var(--primary);
+      color: #081224;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .status {
+      min-height: 24px;
+      font-size: 14px;
+    }
+
+    .status.error { color: var(--danger); }
+    .status.success { color: var(--success); }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(110, 168, 254, 0.12);
+      color: var(--primary);
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+
+    .result-main {
+      display: grid;
+      gap: 10px;
+    }
+
+    .result-value {
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .prob-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .prob-row {
+      display: grid;
+      gap: 6px;
+    }
+
+    .prob-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .prob-bar {
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+    }
+
+    .prob-bar > div {
+      height: 100%;
+      background: linear-gradient(90deg, #6ea8fe 0%, #4fd1a5 100%);
+    }
+
+    pre {
+      margin: 0;
+      padding: 14px;
+      border-radius: 14px;
+      background: #0b1124;
+      color: #d7e2ff;
+      overflow: auto;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .meta-list {
+      display: grid;
+      gap: 10px;
+      font-size: 14px;
+    }
+
+    .meta-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    .meta-item:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .meta-item span:first-child {
+      color: var(--muted);
+    }
+
+    @media (max-width: 860px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <h1>EEG 信号三分类判定</h1>
+    <p>上传单个 <code>.xlsx</code> EEG 文件，后端会自动使用当前输出目录里准确率最高的三分类模型进行推理。</p>
+
+    <section class="grid">
+      <div class="card stack">
+        <div>
+          <div class="pill">输入格式：Time + EEG 通道列的 .xlsx 文件</div>
+          <h2>上传并判定</h2>
+        </div>
+
+        <div>
+          <label class="label" for="fileInput">选择 EEG 文件</label>
+          <input id="fileInput" type="file" accept=".xlsx" />
+        </div>
+
+        <div>
+          <button id="predictBtn" type="button">开始判定</button>
+        </div>
+
+        <div id="status" class="status"></div>
+
+        <div class="card" style="padding:18px;">
+          <h2>判定结果</h2>
+          <div id="resultBox" class="result-main">
+            <div class="result-value">等待上传</div>
+            <div style="color: var(--muted);">上传后将在这里显示预测类别、窗口数和各类概率。</div>
+          </div>
+        </div>
+
+        <div class="card" style="padding:18px;">
+          <h2>原始响应</h2>
+          <pre id="rawResponse">{}</pre>
+        </div>
+      </div>
+
+      <div class="card stack">
+        <div>
+          <h2>当前模型信息</h2>
+        </div>
+        <div id="modelInfo" class="meta-list">
+          <div class="meta-item"><span>加载状态</span><span>读取中...</span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const predictBtn = document.getElementById("predictBtn");
+    const fileInput = document.getElementById("fileInput");
+    const statusEl = document.getElementById("status");
+    const resultBox = document.getElementById("resultBox");
+    const rawResponseEl = document.getElementById("rawResponse");
+    const modelInfoEl = document.getElementById("modelInfo");
+
+    function setStatus(text, type = "") {
+      statusEl.textContent = text;
+      statusEl.className = `status ${type}`.trim();
+    }
+
+    function renderModelInfo(data) {
+      modelInfoEl.innerHTML = `
+        <div class="meta-item"><span>模型模式</span><span>LOSO 集成</span></div>
+        <div class="meta-item"><span>窗口级 macro_f1</span><span>${(data.summary_macro_f1 * 100).toFixed(2)}%</span></div>
+        <div class="meta-item"><span>均值 best_acc</span><span>${(data.mean_best_test_acc * 100).toFixed(2)}%</span></div>
+        <div class="meta-item"><span>窗口长度</span><span>${data.window_seconds}s</span></div>
+        <div class="meta-item"><span>步长</span><span>${data.stride_seconds}s</span></div>
+        <div class="meta-item"><span>集成模型数</span><span>${data.ensemble_size}</span></div>
+        <div class="meta-item"><span>输入形状</span><span>${data.n_channels} × ${data.n_times}</span></div>
+        <div class="meta-item"><span>设备</span><span>${data.device}</span></div>
+      `;
+    }
+
+    function renderPrediction(data) {
+      const probs = Object.entries(data.probabilities_by_activity || {});
+      const rows = probs.map(([label, value]) => `
+        <div class="prob-row">
+          <div class="prob-header">
+            <span>${label}</span>
+            <span>${(value * 100).toFixed(2)}%</span>
+          </div>
+          <div class="prob-bar">
+            <div style="width:${Math.max(0, Math.min(100, value * 100))}%"></div>
+          </div>
+        </div>
+      `).join("");
+
+      resultBox.innerHTML = `
+        <div class="result-value">${data.predicted_activity}</div>
+        <div style="color: var(--muted);">
+          预测标签：${data.predicted_label} ｜ 窗口数：${data.n_windows}
+        </div>
+        <div class="prob-list">${rows}</div>
+      `;
+      rawResponseEl.textContent = JSON.stringify(data, null, 2);
+    }
+
+    async function loadModelInfo() {
+      try {
+        const response = await fetch("/model-info");
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.detail || "读取模型信息失败");
+        }
+        renderModelInfo(data);
+      } catch (error) {
+        modelInfoEl.innerHTML = `<div class="meta-item"><span>加载失败</span><span>${String(error)}</span></div>`;
+      }
+    }
+
+    async function runPrediction() {
+      const file = fileInput.files[0];
+      if (!file) {
+        setStatus("请先选择一个 .xlsx 文件。", "error");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      predictBtn.disabled = true;
+      setStatus("正在上传并判定，请稍候...");
+
+      try {
+        const response = await fetch("/predict/xlsx", {
+          method: "POST",
+          body: formData,
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.detail || "请求失败");
+        }
+        setStatus("判定完成。", "success");
+        renderPrediction(data);
+      } catch (error) {
+        setStatus(`判定失败：${String(error)}`, "error");
+      } finally {
+        predictBtn.disabled = false;
+      }
+    }
+
+    predictBtn.addEventListener("click", runPrediction);
+    loadModelInfo();
+  </script>
+</body>
+</html>
