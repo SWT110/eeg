@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -9,8 +10,14 @@ import pandas as pd
 
 
 BASE_DIR = Path(__file__).resolve().parent
-DEFAULT_INPUT_ROOT = BASE_DIR / "list_normalization_fixed_duration"
-DEFAULT_OUTPUT_ROOT = BASE_DIR / "npy_dataset"
+EEG_ROOT = BASE_DIR.parents[1]
+if str(EEG_ROOT) not in sys.path:
+    sys.path.insert(0, str(EEG_ROOT))
+
+from eeg_project_paths import LIST_NORMALIZED_DIR, NPY_DATASET_DIR
+
+DEFAULT_INPUT_ROOT = LIST_NORMALIZED_DIR
+DEFAULT_OUTPUT_ROOT = NPY_DATASET_DIR
 EEG_FILE_PATTERN = re.compile(r"^(?P<subject>\d+)_e_(?P<label>[123])\.xlsx$")
 TIME_COLUMN = "Time"
 COMMON_EEG_CHANNELS = (

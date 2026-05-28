@@ -108,6 +108,11 @@ class BuildActivityGlobalIndexTests(unittest.TestCase):
     def tearDown(self) -> None:
         shutil.rmtree(self.temp_dir)
 
+    def test_default_paths_use_local_artifacts(self) -> None:
+        expected_root = MODULE_PATH.resolve().parents[2] / "local_artifacts" / "data_to_list"
+        self.assertEqual(self.module.DEFAULT_INPUT_ROOT, expected_root / "list_normalization_fixed_duration")
+        self.assertEqual(self.module.DEFAULT_OUTPUT_ROOT, expected_root / "global_activity_dataset")
+
     # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------

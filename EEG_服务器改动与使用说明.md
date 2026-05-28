@@ -1,5 +1,25 @@
 # EEG 服务器改动与使用说明
 
+## 本地数据与输出同步约定
+
+代码、测试、配置和说明文档通过 GitHub 同步；原始数据、中间产物、训练输出、API 缓存和视频统一放在项目根目录的 `local_artifacts/`，不进入 Git。训练服务器如果把该目录解压到项目根目录，脚本会自动使用默认路径；如果解压到其他位置，先设置：
+
+```bash
+export EEG_LOCAL_ARTIFACTS_ROOT=/path/to/local_artifacts
+```
+
+默认关键路径如下：
+
+```text
+local_artifacts/data_to_list/list_normalization_fixed_duration/
+local_artifacts/data_to_list/global_activity_dataset/
+local_artifacts/outputs/activity_loso/
+local_artifacts/outputs/activity_final/
+local_artifacts/outputs/activity_api_cache/
+```
+
+旧的 `EEG-Conformer/outputs/`、`eeg-data-processing/data_to_list/global_activity_dataset/` 和 `eeg-data-processing/data_to_list/list_normalization_fixed_duration/` 只作为迁移前历史路径理解；新的默认路径以 `local_artifacts/` 为准。
+
 ## 一图看懂：从数据处理到训练完成
 
 ```mermaid
@@ -79,7 +99,7 @@ flowchart TD
 **主要使用的文件：**
 
 ```text
-eeg-data-processing/data_to_list/list_normalization_fixed_duration/
+local_artifacts/data_to_list/list_normalization_fixed_duration/
   <subject>/
     <subject>_e_1.xlsx
     <subject>_e_2.xlsx
@@ -229,7 +249,7 @@ train.log
 
 ```text
 eeg-data-processing/data_to_list/window_stride_configs.json
-eeg-data-processing/data_to_list/global_activity_dataset/
+local_artifacts/data_to_list/global_activity_dataset/
 └── window_<...>_stride_<...>/
     ├── X.npy
     ├── y.npy
@@ -240,7 +260,7 @@ eeg-data-processing/data_to_list/global_activity_dataset/
 **主要产生的文件：**
 
 ```text
-EEG-Conformer/outputs/activity_loso/
+local_artifacts/outputs/activity_loso/
 └── window_<...>_stride_<...>/
     ├── fold_subject_1/
     ├── fold_subject_2/
@@ -403,7 +423,7 @@ predict_activity_result.json
 
 - **服务器工作目录：** `/public/home/gd_110413/SWT/EEG`
 - **项目环境 Python：** `/public/home/gd_110413/SWT/EEG/EEG-Conformer/.conda-envs/eegconformer310/bin/python`
-- **原始活动数据目录：** `/public/home/gd_110413/SWT/EEG/eeg-data-processing/data_to_list/list_normalization_fixed_duration`
+- **原始活动数据目录：** `/public/home/gd_110413/SWT/EEG/local_artifacts/data_to_list/list_normalization_fixed_duration`
 
 ### 1.2 新增或同步到服务器的脚本文件
 
@@ -459,7 +479,7 @@ predict_activity_result.json
 这些文件来自更早阶段的单 subject smoke run，用来验证 CUDA、数据读取和训练链路是否正常；对应脚本现在已经从当前仓库中移除：
 
 ```text
-/public/home/gd_110413/SWT/EEG/EEG-Conformer/outputs/custom_npy/
+/public/home/gd_110413/SWT/EEG/local_artifacts/outputs/custom_npy/
 ├── subject_1_holdout_0.pt
 ├── subject_1_holdout_1.pt
 ├── subject_1_holdout_2.pt
@@ -508,7 +528,7 @@ predict_activity_result.json
 这部分文件来自 `build_activity_global_index.py` 对真实 3 个受试者子集的构建结果：
 
 ```text
-/public/home/gd_110413/SWT/EEG/eeg-data-processing/data_to_list/global_activity_dataset_smoke/
+/public/home/gd_110413/SWT/EEG/local_artifacts/data_to_list/global_activity_dataset_smoke/
 ├── X.npy
 ├── y.npy
 ├── subject_ids.npy
@@ -543,7 +563,7 @@ X = (954, 21, 640)
 ## 2.3 本次正式流程：单 fold LOSO smoke 产物
 
 ```text
-/public/home/gd_110413/SWT/EEG/EEG-Conformer/outputs/activity_loso_smoke/
+/public/home/gd_110413/SWT/EEG/local_artifacts/outputs/activity_loso_smoke/
 └── fold_subject_1/
     ├── best_model.pt
     ├── metrics.json
@@ -561,7 +581,7 @@ X = (954, 21, 640)
 ## 2.4 本次正式流程：3 fold batch LOSO smoke 产物
 
 ```text
-/public/home/gd_110413/SWT/EEG/EEG-Conformer/outputs/activity_loso_smoke_batch/
+/public/home/gd_110413/SWT/EEG/local_artifacts/outputs/activity_loso_smoke_batch/
 ├── fold_subject_1/
 │   ├── best_model.pt
 │   ├── metrics.json
@@ -587,7 +607,7 @@ X = (954, 21, 640)
 ## 2.5 本次正式流程：最终模型 smoke 产物
 
 ```text
-/public/home/gd_110413/SWT/EEG/EEG-Conformer/outputs/activity_final_smoke/
+/public/home/gd_110413/SWT/EEG/local_artifacts/outputs/activity_final_smoke/
 ├── final_model.pt
 ├── train_config.json
 ├── normalization_stats.json
@@ -608,7 +628,7 @@ X = (954, 21, 640)
 ## 2.6 本次正式流程：预测结果文件
 
 ```text
-/public/home/gd_110413/SWT/EEG/EEG-Conformer/outputs/predict_activity_smoke.json
+/public/home/gd_110413/SWT/EEG/local_artifacts/outputs/predict_activity_smoke.json
 ```
 
 这个 JSON 文件保存一次完整的整段信号预测结果，包括：
@@ -672,8 +692,8 @@ cd /public/home/gd_110413/SWT/EEG
 
 ```bash
 ./EEG-Conformer/.conda-envs/eegconformer310/bin/python ./eeg-data-processing/data_to_list/build_activity_global_index.py \
-  --input-root ./eeg-data-processing/data_to_list/list_normalization_fixed_duration \
-  --output-root ./eeg-data-processing/data_to_list/global_activity_dataset \
+  --input-root ./local_artifacts/data_to_list/list_normalization_fixed_duration \
+  --output-root ./local_artifacts/data_to_list/global_activity_dataset \
   --window-seconds 5 \
   --stride-seconds 5
 ```
@@ -718,12 +738,12 @@ stride = 2.5
 
 ```bash
 ./EEG-Conformer/.conda-envs/eegconformer310/bin/python ./EEG-Conformer/train_activity_loso.py \
-  --dataset-root ./eeg-data-processing/data_to_list/global_activity_dataset \
+  --dataset-root ./local_artifacts/data_to_list/global_activity_dataset \
   --test-subject-id 1 \
   --epochs 200 \
   --batch-size 72 \
   --device cuda:0 \
-  --output-dir ./EEG-Conformer/outputs/activity_loso
+  --output-dir ./local_artifacts/outputs/activity_loso
 ```
 
 这一步的作用是：
@@ -771,11 +791,11 @@ fold_subject_<id>/
 
 ```bash
 ./EEG-Conformer/.conda-envs/eegconformer310/bin/python ./EEG-Conformer/train_activity_loso_batch.py \
-  --dataset-root ./eeg-data-processing/data_to_list/global_activity_dataset \
+  --dataset-root ./local_artifacts/data_to_list/global_activity_dataset \
   --epochs 200 \
   --batch-size 72 \
   --device cuda:0 \
-  --output-dir ./EEG-Conformer/outputs/activity_loso
+  --output-dir ./local_artifacts/outputs/activity_loso
 ```
 
 如果只想跑部分受试者，可以加：
@@ -800,7 +820,7 @@ fold_subject_<id>/
 如果你先用 `generate_datasets.py` 按 `window_stride_configs.json` 生成了多套数据集，例如：
 
 ```text
-eeg-data-processing/data_to_list/global_activity_dataset/
+local_artifacts/data_to_list/global_activity_dataset/
 ├── window_1_stride_1/
 ├── window_3_stride_3/
 ├── window_5_stride_5/
@@ -812,8 +832,8 @@ eeg-data-processing/data_to_list/global_activity_dataset/
 ```bash
 ./EEG-Conformer/.conda-envs/eegconformer310/bin/python ./EEG-Conformer/train_activity_loso_generated_batch.py \
   --config ./eeg-data-processing/data_to_list/window_stride_configs.json \
-  --dataset-base ./eeg-data-processing/data_to_list/global_activity_dataset \
-  --output-base ./EEG-Conformer/outputs/activity_loso \
+  --dataset-base ./local_artifacts/data_to_list/global_activity_dataset \
+  --output-base ./local_artifacts/outputs/activity_loso \
   --epochs 200 \
   --batch-size 72 \
   --device cuda:0
@@ -828,7 +848,7 @@ eeg-data-processing/data_to_list/global_activity_dataset/
 5. 把结果写到：
 
 ```text
-EEG-Conformer/outputs/activity_loso/window_<...>_stride_<...>/
+local_artifacts/outputs/activity_loso/window_<...>_stride_<...>/
 ```
 
 它默认会跳过已经完整训练过的数据集；如果你想强制重跑，可以加：
@@ -843,7 +863,7 @@ EEG-Conformer/outputs/activity_loso/window_<...>_stride_<...>/
 
 ```bash
 ./EEG-Conformer/.conda-envs/eegconformer310/bin/python ./EEG-Conformer/summarize_loso_results.py \
-  --output-dir ./EEG-Conformer/outputs/activity_loso
+  --output-dir ./local_artifacts/outputs/activity_loso
 ```
 
 这一步的作用是：
@@ -862,11 +882,11 @@ EEG-Conformer/outputs/activity_loso/window_<...>_stride_<...>/
 
 ```bash
 ./EEG-Conformer/.conda-envs/eegconformer310/bin/python ./EEG-Conformer/train_activity_final.py \
-  --dataset-root ./eeg-data-processing/data_to_list/global_activity_dataset \
+  --dataset-root ./local_artifacts/data_to_list/global_activity_dataset \
   --epochs 200 \
   --batch-size 72 \
   --device cuda:0 \
-  --output-dir ./EEG-Conformer/outputs/activity_final
+  --output-dir ./local_artifacts/outputs/activity_final
 ```
 
 这一步的作用是：
@@ -899,15 +919,15 @@ EEG-Conformer/outputs/activity_loso/window_<...>_stride_<...>/
 
 ```bash
 ./EEG-Conformer/.conda-envs/eegconformer310/bin/python ./EEG-Conformer/predict_activity_signal.py \
-  --input ./eeg-data-processing/data_to_list/list_normalization_fixed_duration/1/1_e_3.xlsx \
-  --model-dir ./EEG-Conformer/outputs/activity_final \
+  --input ./local_artifacts/data_to_list/list_normalization_fixed_duration/1/1_e_3.xlsx \
+  --model-dir ./local_artifacts/outputs/activity_final \
   --device cuda:0
 ```
 
 如果希望保存预测结果 JSON，可以加：
 
 ```bash
---output-json ./EEG-Conformer/outputs/predict_activity_result.json
+--output-json ./local_artifacts/outputs/predict_activity_result.json
 ```
 
 这一步的作用是：
@@ -1082,31 +1102,31 @@ EEG-Conformer/outputs/activity_loso/window_<...>_stride_<...>/
 cd /public/home/gd_110413/SWT/EEG
 
 ./EEG-Conformer/.conda-envs/eegconformer310/bin/python ./eeg-data-processing/data_to_list/build_activity_global_index.py \
-  --input-root ./eeg-data-processing/data_to_list/list_normalization_fixed_duration \
-  --output-root ./eeg-data-processing/data_to_list/global_activity_dataset \
+  --input-root ./local_artifacts/data_to_list/list_normalization_fixed_duration \
+  --output-root ./local_artifacts/data_to_list/global_activity_dataset \
   --window-seconds 5 \
   --stride-seconds 5
 
 ./EEG-Conformer/.conda-envs/eegconformer310/bin/python ./EEG-Conformer/train_activity_loso_batch.py \
-  --dataset-root ./eeg-data-processing/data_to_list/global_activity_dataset \
+  --dataset-root ./local_artifacts/data_to_list/global_activity_dataset \
   --epochs 200 \
   --batch-size 72 \
   --device cuda:0 \
-  --output-dir ./EEG-Conformer/outputs/activity_loso
+  --output-dir ./local_artifacts/outputs/activity_loso
 
 ./EEG-Conformer/.conda-envs/eegconformer310/bin/python ./EEG-Conformer/summarize_loso_results.py \
-  --output-dir ./EEG-Conformer/outputs/activity_loso
+  --output-dir ./local_artifacts/outputs/activity_loso
 
 ./EEG-Conformer/.conda-envs/eegconformer310/bin/python ./EEG-Conformer/train_activity_final.py \
-  --dataset-root ./eeg-data-processing/data_to_list/global_activity_dataset \
+  --dataset-root ./local_artifacts/data_to_list/global_activity_dataset \
   --epochs 200 \
   --batch-size 72 \
   --device cuda:0 \
-  --output-dir ./EEG-Conformer/outputs/activity_final
+  --output-dir ./local_artifacts/outputs/activity_final
 
 ./EEG-Conformer/.conda-envs/eegconformer310/bin/python ./EEG-Conformer/predict_activity_signal.py \
-  --input ./eeg-data-processing/data_to_list/list_normalization_fixed_duration/1/1_e_3.xlsx \
-  --model-dir ./EEG-Conformer/outputs/activity_final \
+  --input ./local_artifacts/data_to_list/list_normalization_fixed_duration/1/1_e_3.xlsx \
+  --model-dir ./local_artifacts/outputs/activity_final \
   --device cuda:0
 ```
 
@@ -1119,13 +1139,13 @@ cd /public/home/gd_110413/SWT/EEG
 
 ./EEG-Conformer/.conda-envs/eegconformer310/bin/python ./eeg-data-processing/data_to_list/generate_datasets.py \
   --config ./eeg-data-processing/data_to_list/window_stride_configs.json \
-  --input-root ./eeg-data-processing/data_to_list/list_normalization_fixed_duration \
-  --output-base ./eeg-data-processing/data_to_list/global_activity_dataset
+  --input-root ./local_artifacts/data_to_list/list_normalization_fixed_duration \
+  --output-base ./local_artifacts/data_to_list/global_activity_dataset
 
 ./EEG-Conformer/.conda-envs/eegconformer310/bin/python ./EEG-Conformer/train_activity_loso_generated_batch.py \
   --config ./eeg-data-processing/data_to_list/window_stride_configs.json \
-  --dataset-base ./eeg-data-processing/data_to_list/global_activity_dataset \
-  --output-base ./EEG-Conformer/outputs/activity_loso \
+  --dataset-base ./local_artifacts/data_to_list/global_activity_dataset \
+  --output-base ./local_artifacts/outputs/activity_loso \
   --epochs 200 \
   --batch-size 72 \
   --device cuda:0
@@ -1134,7 +1154,7 @@ cd /public/home/gd_110413/SWT/EEG
 这样每套数据集都会生成各自独立的目录，例如：
 
 ```text
-EEG-Conformer/outputs/activity_loso/
+local_artifacts/outputs/activity_loso/
 ├── window_1_stride_1/
 ├── window_3_stride_3/
 ├── window_5_stride_5/

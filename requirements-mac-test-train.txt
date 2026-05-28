@@ -1,0 +1,22 @@
+# Mac ARM test/training environment for this EEG project.
+# Install inside a Python 3.10 project-local conda environment.
+numpy==1.26.4
+pandas==2.3.3
+openpyxl==3.1.5
+scipy==1.15.3
+scikit-learn==1.7.2
+torch==2.12.0
+torchvision==0.27.0
+torchaudio==2.11.0
+einops==0.8.2
+torchsummary==1.5.1
+matplotlib==3.10.9
+pillow==12.2.0
+mne==1.12.1
+plotly==6.7.0
+fastapi==0.136.1
+uvicorn[standard]==0.47.0
+python-multipart==0.0.29
+httpx==0.28.1
+pytest==9.0.3
+ipykernel==7.2.0

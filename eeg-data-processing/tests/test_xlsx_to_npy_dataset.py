@@ -57,6 +57,11 @@ class XlsxToNpyDatasetTests(unittest.TestCase):
     def tearDown(self) -> None:
         shutil.rmtree(self.temp_dir)
 
+    def test_default_paths_use_local_artifacts(self) -> None:
+        expected_root = MODULE_PATH.resolve().parents[2] / "local_artifacts" / "data_to_list"
+        self.assertEqual(self.module.DEFAULT_INPUT_ROOT, expected_root / "list_normalization_fixed_duration")
+        self.assertEqual(self.module.DEFAULT_OUTPUT_ROOT, expected_root / "npy_dataset")
+
     def _write_test_xlsx(self, subject_id: str, label: str, num_samples: int, 
                          has_nan: bool = False, has_inf: bool = False, invalid_time: bool = False) -> None:
         """Write a test xlsx file with EEG columns and Time column."""

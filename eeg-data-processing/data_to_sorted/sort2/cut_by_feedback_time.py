@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 import shutil
 import subprocess
+import sys
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -13,10 +14,16 @@ import pandas as pd
 
 
 BASE_DIR = Path(__file__).resolve().parent
+EEG_ROOT = BASE_DIR.parents[2]
+if str(EEG_ROOT) not in sys.path:
+    sys.path.insert(0, str(EEG_ROOT))
+
+from eeg_project_paths import LIST_CUT_DIR, SORT2_TIME_DATA_DIR, VIDEOS_DIR, sort2_data_cut_dir
+
 PROJECT_ROOT = BASE_DIR.parent.parent
-TIME_DATA_DIR = BASE_DIR / "time_data"
-INPUT_ROOT = PROJECT_ROOT / "data_to_list" / "list_cut_fixed_duration"
-VIDEOS_ROOT = PROJECT_ROOT / "videos"
+TIME_DATA_DIR = SORT2_TIME_DATA_DIR
+INPUT_ROOT = LIST_CUT_DIR
+VIDEOS_ROOT = VIDEOS_DIR
 TIME_COLUMN = "Time"
 EXPERIMENT_IDS = ("1", "2", "3")
 SIGNAL_TYPES = ("ppg", "eeg")
@@ -593,7 +600,7 @@ def process_all(
     output_root: Path | None = None,
 ) -> RunSummary:
     if output_root is None:
-        output_root = BASE_DIR / f"data_cut_{format_seconds_label(segment_seconds)}s"
+        output_root = sort2_data_cut_dir(f"data_cut_{format_seconds_label(segment_seconds)}s")
 
     if not input_root.exists():
         raise FileNotFoundError(f"Input directory does not exist: {input_root}")
@@ -661,7 +668,7 @@ def main() -> None:
     video_mode: str | None = None
     if cut_video:
         video_mode = prompt_video_mode()
-    output_root = BASE_DIR / f"data_cut_{seconds_label}s"
+    output_root = sort2_data_cut_dir(f"data_cut_{seconds_label}s")
     process_all(
         segment_seconds=segment_seconds,
         cut_video=cut_video,

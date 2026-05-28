@@ -212,6 +212,26 @@ class TestRunLosoBatch(unittest.TestCase):
                 )
         self.assertIn("failed folds", str(ctx.exception))
 
+    def test_passes_class_weights_to_fold_runner(self) -> None:
+        with patch.object(
+            self.module,
+            "train_loso_fold",
+            return_value=self.output_dir / "fold_subject_1" / "metrics.json",
+        ) as mock_train:
+            self.module.run_loso_batch(
+                subject_ids=[1],
+                dataset_root=self.dataset_root,
+                epochs=1,
+                batch_size=8,
+                lr=2e-4,
+                device="cpu",
+                output_dir=self.output_dir,
+                skip_existing=False,
+                class_weights=[3.0, 3.0, 1.0],
+            )
+
+        self.assertEqual(mock_train.call_args.kwargs["class_weights"], [3.0, 3.0, 1.0])
+
 
 class TestParseArgs(unittest.TestCase):
     def setUp(self) -> None:
@@ -219,12 +239,12 @@ class TestParseArgs(unittest.TestCase):
 
     def test_default_dataset_root_points_to_global_activity_dataset(self) -> None:
         args = self.module.parse_args([])
-        expected = MODULE_PATH.resolve().parents[1] / "eeg-data-processing" / "data_to_list" / "global_activity_dataset"
+        expected = MODULE_PATH.resolve().parents[1] / "local_artifacts" / "data_to_list" / "global_activity_dataset"
         self.assertEqual(args.dataset_root, expected)
 
     def test_default_output_dir_is_activity_loso(self) -> None:
         args = self.module.parse_args([])
-        expected = MODULE_PATH.resolve().parent / "outputs" / "activity_loso"
+        expected = MODULE_PATH.resolve().parents[1] / "local_artifacts" / "outputs" / "activity_loso"
         self.assertEqual(args.output_dir, expected)
 
     def test_default_device_is_cuda0(self) -> None:
@@ -242,6 +262,10 @@ class TestParseArgs(unittest.TestCase):
     def test_subject_ids_defaults_to_none(self) -> None:
         args = self.module.parse_args([])
         self.assertIsNone(args.subject_ids)
+
+    def test_accepts_class_weights_argument(self) -> None:
+        args = self.module.parse_args(["--class-weights", "3,3,1"])
+        self.assertEqual(args.class_weights, "3,3,1")
 
 
 class TestParseSubjectIdList(unittest.TestCase):

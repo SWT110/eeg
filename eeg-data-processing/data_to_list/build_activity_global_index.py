@@ -4,15 +4,23 @@ import argparse
 import importlib.util
 import json
 import re
+import sys
 from pathlib import Path
 
 import numpy as np
+
+BASE_DIR = Path(__file__).resolve().parent
+EEG_ROOT = BASE_DIR.parents[1]
+if str(EEG_ROOT) not in sys.path:
+    sys.path.insert(0, str(EEG_ROOT))
+
+from eeg_project_paths import GLOBAL_ACTIVITY_DATASET_DIR, LIST_NORMALIZED_DIR
 
 # ---------------------------------------------------------------------------
 # Reuse helper functions from the sibling script (8.xlsx_to_npy_dataset.py)
 # ---------------------------------------------------------------------------
 
-_SIBLING = Path(__file__).resolve().parent / "8.xlsx_to_npy_dataset.py"
+_SIBLING = BASE_DIR / "8.xlsx_to_npy_dataset.py"
 _spec = importlib.util.spec_from_file_location("_xlsx_to_npy", _SIBLING)
 assert _spec is not None and _spec.loader is not None
 _xlsx_mod = importlib.util.module_from_spec(_spec)
@@ -28,9 +36,8 @@ prompt_positive_float = _xlsx_mod.prompt_positive_float  # type: ignore[attr-def
 # Module-level constants
 # ---------------------------------------------------------------------------
 
-BASE_DIR = Path(__file__).resolve().parent
-DEFAULT_INPUT_ROOT = BASE_DIR / "list_normalization_fixed_duration"
-DEFAULT_OUTPUT_ROOT = BASE_DIR / "global_activity_dataset"
+DEFAULT_INPUT_ROOT = LIST_NORMALIZED_DIR
+DEFAULT_OUTPUT_ROOT = GLOBAL_ACTIVITY_DATASET_DIR
 SAMPLING_INTERVAL_RTOL = 1e-4
 SAMPLING_INTERVAL_ATOL = 1e-8
 

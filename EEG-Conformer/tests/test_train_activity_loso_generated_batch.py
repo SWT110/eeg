@@ -195,6 +195,38 @@ class TestRunGeneratedDatasetBatch(unittest.TestCase):
 
         self.assertIn("window_3_stride_3", str(ctx.exception))
 
+    def test_passes_class_weights_to_inner_batch_runner(self) -> None:
+        captured_kwargs: dict[str, object] = {}
+
+        def fake_run_loso_batch(**kwargs):
+            captured_kwargs.update(kwargs)
+            return [kwargs]
+
+        fake_train = SimpleNamespace(
+            discover_subject_ids_from_global_dataset=lambda _: [1, 2],
+            fold_is_complete=lambda output_dir, subject_id: False,
+            run_loso_batch=fake_run_loso_batch,
+        )
+        fake_summary = SimpleNamespace(
+            summarize=lambda output_dir: {"n_folds": 2},
+            write_summary=lambda summary, output_dir: (Path(output_dir) / "summary.json", Path(output_dir) / "summary.csv"),
+        )
+
+        with patch.object(self.module, "_load_train_batch_module", return_value=fake_train):
+            with patch.object(self.module, "_load_summary_module", return_value=fake_summary):
+                self.module.run_generated_dataset_batch(
+                    jobs=[self.job],
+                    epochs=5,
+                    batch_size=8,
+                    lr=2e-4,
+                    device="cpu",
+                    skip_existing=True,
+                    seed=7,
+                    class_weights=[3.0, 3.0, 1.0],
+                )
+
+        self.assertEqual(captured_kwargs["class_weights"], [3.0, 3.0, 1.0])
+
 
 class TestParseArgs(unittest.TestCase):
     def setUp(self) -> None:
@@ -209,14 +241,18 @@ class TestParseArgs(unittest.TestCase):
         )
         self.assertEqual(
             args.dataset_base,
-            expected_eeg_root / "eeg-data-processing" / "data_to_list" / "global_activity_dataset",
+            expected_eeg_root / "local_artifacts" / "data_to_list" / "global_activity_dataset",
         )
         self.assertEqual(
             args.output_base,
-            expected_eeg_root / "EEG-Conformer" / "outputs" / "activity_loso",
+            expected_eeg_root / "local_artifacts" / "outputs" / "activity_loso",
         )
         self.assertTrue(args.skip_existing)
         self.assertEqual(args.device, "cuda:0")
+
+    def test_accepts_class_weights_argument(self) -> None:
+        args = self.module.parse_args(["--class-weights", "3,3,1"])
+        self.assertEqual(args.class_weights, "3,3,1")
 
 
 if __name__ == "__main__":

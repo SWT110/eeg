@@ -4,6 +4,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
@@ -13,11 +14,17 @@ import pandas as pd
 
 
 BASE_DIR = Path(__file__).resolve().parent
+EEG_ROOT = BASE_DIR.parents[2]
+if str(EEG_ROOT) not in sys.path:
+    sys.path.insert(0, str(EEG_ROOT))
+
+from eeg_project_paths import LIST_CUT_DIR, SORT2_TIME_DATA_DIR, VIDEOS_DIR, sort2_data_cut_dir
+
 PROJECT_ROOT = BASE_DIR.parent.parent
-TIME_DATA_DIR = BASE_DIR / "time_data"
-INPUT_ROOT = PROJECT_ROOT / "data_to_list" / "list_cut_fixed_duration"
-VIDEOS_ROOT = PROJECT_ROOT / "videos"
-OUTPUT_ROOT = BASE_DIR / "data_cut"
+TIME_DATA_DIR = SORT2_TIME_DATA_DIR
+INPUT_ROOT = LIST_CUT_DIR
+VIDEOS_ROOT = VIDEOS_DIR
+OUTPUT_ROOT = sort2_data_cut_dir("data_cut")
 
 TIME_COLUMN = "Time"
 EXPERIMENT_IDS = ("1", "2", "3")

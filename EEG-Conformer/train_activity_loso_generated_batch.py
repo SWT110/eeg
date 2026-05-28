@@ -10,10 +10,10 @@ them to generated dataset directories, trains each dataset with the existing
 Directory convention
 --------------------
 Datasets:
-    eeg-data-processing/data_to_list/global_activity_dataset/<window_...>
+    local_artifacts/data_to_list/global_activity_dataset/<window_...>
 
 Training outputs:
-    EEG-Conformer/outputs/activity_loso/<window_...>
+    local_artifacts/outputs/activity_loso/<window_...>
 """
 
 from __future__ import annotations
@@ -32,10 +32,18 @@ from typing import NamedTuple
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 EEG_ROOT = PROJECT_ROOT.parent
+if str(EEG_ROOT) not in sys.path:
+    sys.path.insert(0, str(EEG_ROOT))
 
-DEFAULT_CONFIG = EEG_ROOT / "eeg-data-processing" / "data_to_list" / "window_stride_configs.json"
-DEFAULT_DATASET_BASE = EEG_ROOT / "eeg-data-processing" / "data_to_list" / "global_activity_dataset"
-DEFAULT_OUTPUT_BASE = PROJECT_ROOT / "outputs" / "activity_loso"
+from eeg_project_paths import (
+    ACTIVITY_LOSO_OUTPUT_DIR,
+    GLOBAL_ACTIVITY_DATASET_DIR,
+    WINDOW_STRIDE_CONFIG,
+)
+
+DEFAULT_CONFIG = WINDOW_STRIDE_CONFIG
+DEFAULT_DATASET_BASE = GLOBAL_ACTIVITY_DATASET_DIR
+DEFAULT_OUTPUT_BASE = ACTIVITY_LOSO_OUTPUT_DIR
 DEFAULT_EPOCHS = 200
 DEFAULT_BATCH_SIZE = 72
 DEFAULT_LR = 0.0002
@@ -241,6 +249,7 @@ def run_generated_dataset_batch(
     device: str,
     skip_existing: bool,
     seed: int = 42,
+    class_weights: list[float] | None = None,
 ) -> list[DatasetRunResult]:
     train_batch = _load_train_batch_module()
     results: list[DatasetRunResult] = []
@@ -279,6 +288,7 @@ def run_generated_dataset_batch(
                 output_dir=job.output_dir,
                 skip_existing=skip_existing,
                 seed=seed,
+                class_weights=class_weights,
             )
             summary_json = summarize_output_dir(job.output_dir)
             print(f"[DONE] dataset={job.dataset_name} summary={summary_json}")
@@ -339,6 +349,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--lr", type=float, default=DEFAULT_LR)
     parser.add_argument("--device", type=str, default=DEFAULT_DEVICE)
     parser.add_argument(
+        "--class-weights",
+        type=str,
+        default=None,
+        help="Optional comma-separated class weights for CrossEntropyLoss, e.g. 3,3,1",
+    )
+    parser.add_argument(
         "--skip-existing",
         action=argparse.BooleanOptionalAction,
         default=True,
@@ -368,6 +384,8 @@ def main(argv: list[str] | None = None) -> None:
     if args.lr <= 0:
         raise ValueError("lr must be > 0")
 
+    class_weights = _load_train_batch_module().parse_class_weights(args.class_weights)
+
     jobs = load_config_jobs(
         config_path=config_path,
         dataset_base=dataset_base,
@@ -381,6 +399,7 @@ def main(argv: list[str] | None = None) -> None:
         device=str(args.device),
         skip_existing=bool(args.skip_existing),
         seed=args.seed,
+        class_weights=class_weights,
     )
 
 

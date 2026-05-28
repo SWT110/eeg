@@ -47,11 +47,13 @@ from torch.utils.data import DataLoader, TensorDataset
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 EEG_ROOT = PROJECT_ROOT.parent
+if str(EEG_ROOT) not in sys.path:
+    sys.path.insert(0, str(EEG_ROOT))
 
-DEFAULT_DATASET_ROOT = (
-    EEG_ROOT / "eeg-data-processing" / "data_to_list" / "global_activity_dataset"
-)
-DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "outputs" / "activity_loso"
+from eeg_project_paths import ACTIVITY_LOSO_OUTPUT_DIR, GLOBAL_ACTIVITY_DATASET_DIR
+
+DEFAULT_DATASET_ROOT = GLOBAL_ACTIVITY_DATASET_DIR
+DEFAULT_OUTPUT_DIR = ACTIVITY_LOSO_OUTPUT_DIR
 DEFAULT_TEST_SUBJECT_ID = 1
 DEFAULT_EPOCHS = 200
 DEFAULT_BATCH_SIZE = 72
@@ -79,6 +81,7 @@ class RuntimeConfig(NamedTuple):
     device: str
     output_dir: Path
     seed: int
+    class_weights: list[float] | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -514,6 +517,33 @@ def append_training_log(log_path: str | Path, message: str) -> None:
         fh.write("\n")
 
 
+def parse_class_weights(raw: str | list[float] | tuple[float, ...] | None) -> list[float] | None:
+    if raw is None:
+        return None
+
+    if isinstance(raw, str):
+        pieces = [piece.strip() for piece in raw.split(",")]
+    else:
+        pieces = [str(item).strip() for item in raw]
+
+    if not pieces or any(piece == "" for piece in pieces):
+        raise ValueError("class weights must be a comma-separated list like '3,3,1'")
+
+    weights: list[float] = []
+    for piece in pieces:
+        try:
+            value = float(piece)
+        except ValueError as exc:
+            raise ValueError("class weights must be numeric, e.g. '3,3,1'") from exc
+        if value < 0:
+            raise ValueError("class weights must be >= 0")
+        weights.append(value)
+
+    if not any(value > 0 for value in weights):
+        raise ValueError("class weights must contain at least one value > 0")
+    return weights
+
+
 # ---------------------------------------------------------------------------
 # Main training routine
 # ---------------------------------------------------------------------------
@@ -531,6 +561,7 @@ def train_loso_fold(
     depth: int = DEFAULT_DEPTH,
     num_heads: int = DEFAULT_NUM_HEADS,
     dropout: float = DEFAULT_DROPOUT,
+    class_weights: list[float] | None = None,
 ) -> Path:
     """Train one LOSO fold and return path to metrics.json."""
 
@@ -563,7 +594,16 @@ def train_loso_fold(
 
     # Adam + CrossEntropyLoss – identical hyper-parameters to original
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, betas=DEFAULT_BETAS)
-    criterion = nn.CrossEntropyLoss().to(device_obj)
+    if class_weights is not None and len(class_weights) != n_classes:
+        raise ValueError(
+            f"class_weights length ({len(class_weights)}) must match n_classes ({n_classes})"
+        )
+    class_weight_tensor = (
+        torch.tensor(class_weights, dtype=torch.float32, device=device_obj)
+        if class_weights is not None
+        else None
+    )
+    criterion = nn.CrossEntropyLoss(weight=class_weight_tensor).to(device_obj)
 
     fold_dir = Path(output_dir) / f"fold_subject_{test_subject_id}"
     fold_dir.mkdir(parents=True, exist_ok=True)
@@ -583,6 +623,7 @@ def train_loso_fold(
         "batch_size": batch_size,
         "lr": lr,
         "seed": seed,
+        "class_weights": class_weights,
         "n_train_samples": n_train_samples,
         "n_test_samples": n_test_samples,
         "n_channels": n_channels,
@@ -686,6 +727,7 @@ def train_loso_fold(
         "batch_size": batch_size,
         "lr": lr,
         "seed": seed,
+        "class_weights": class_weights,
         "best_epoch": best_epoch,
         "epoch_history_csv": str(history_csv_path),
         "epoch_history_json": str(history_json_path),
@@ -899,6 +941,7 @@ def resolve_runtime_config(
     device: str | None,
     output_dir: Path | str | None,
     seed: int | None,
+    class_weights: str | list[float] | tuple[float, ...] | None = None,
 ) -> RuntimeConfig:
     missing_flags: list[str] = []
     if dataset_root is None:
@@ -972,6 +1015,7 @@ def resolve_runtime_config(
     )
 
     resolved_seed = 42 if seed is None else int(seed)
+    resolved_class_weights = parse_class_weights(class_weights)
 
     return RuntimeConfig(
         dataset_root=resolved_dataset_root,
@@ -982,6 +1026,7 @@ def resolve_runtime_config(
         device=resolved_device,
         output_dir=resolved_output_dir,
         seed=resolved_seed,
+        class_weights=resolved_class_weights,
     )
 
 
@@ -1006,6 +1051,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--lr", type=float, default=DEFAULT_LR)
     parser.add_argument("--device", type=str, default=DEFAULT_DEVICE)
     parser.add_argument(
+        "--class-weights",
+        type=str,
+        default=None,
+        help="Optional comma-separated class weights for CrossEntropyLoss, e.g. 3,3,1",
+    )
+    parser.add_argument(
         "--output-dir",
         type=Path,
         default=DEFAULT_OUTPUT_DIR,
@@ -1029,6 +1080,7 @@ def main(argv: list[str] | None = None) -> None:
             device=args.device,
             output_dir=args.output_dir,
             seed=args.seed,
+            class_weights=args.class_weights,
         )
     else:
         maybe_rerun_in_project_env([], DEFAULT_DEVICE)
@@ -1041,6 +1093,7 @@ def main(argv: list[str] | None = None) -> None:
             device=None,
             output_dir=None,
             seed=None,
+            class_weights=None,
         )
 
     train_loso_fold(
@@ -1052,6 +1105,7 @@ def main(argv: list[str] | None = None) -> None:
         device=config.device,
         output_dir=config.output_dir,
         seed=config.seed,
+        class_weights=config.class_weights,
     )
 
 

@@ -95,6 +95,11 @@ class TestHelpers(unittest.TestCase):
     def setUp(self) -> None:
         self.module = load_module()
 
+    def test_default_output_dir_uses_local_artifacts(self) -> None:
+        args = self.module.parse_args([])
+        expected = MODULE_PATH.resolve().parents[1] / "local_artifacts" / "outputs" / "activity_loso"
+        self.assertEqual(args.output_dir, expected)
+
     def test_confusion_matrix_from_arrays_shape(self) -> None:
         y_true = np.array([0, 1, 2, 0, 1, 2], dtype=np.int64)
         y_pred = np.array([0, 1, 2, 1, 2, 0], dtype=np.int64)

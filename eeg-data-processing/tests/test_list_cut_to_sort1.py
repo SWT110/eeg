@@ -91,10 +91,28 @@ class ListCutToSort1Tests(unittest.TestCase):
 
         self.assertTrue((self.output_root / "data_cut_2s" / "1" / "ppg" / "1_1_seg001.xlsx").exists())
         self.assertTrue((self.output_root / "data_cut_2s" / "1" / "eeg" / "1_e_1_seg001.xlsx").exists())
+        self.assertTrue((self.output_root / "data_cut_2s" / "1" / "ppg" / "1_1_seg002.xlsx").exists())
+        self.assertFalse((self.output_root / "data_cut_2s" / "1" / "ppg" / "1_1_seg003.xlsx").exists())
         self.assertTrue(
             (self.output_root / "data_cut_2s_normalization" / "1" / "eeg" / "1_e_1_seg001.xlsx").exists()
         )
         self.assertFalse((self.output_root / "data_cut_2s_normalization" / "1" / "ppg").exists())
+
+    def test_missing_input_root_raises(self) -> None:
+        sources = [
+            {
+                "input_root": self.temp_dir / "missing",
+                "output_suffix": "",
+                "signals": ("ppg", "eeg"),
+            }
+        ]
+
+        with self.assertRaises(FileNotFoundError):
+            self.module.process_all_sources(
+                segment_seconds=2,
+                output_base=self.output_root,
+                sources=sources,
+            )
 
 
 if __name__ == "__main__":

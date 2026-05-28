@@ -275,12 +275,12 @@ class TestParseArgsDefaults(unittest.TestCase):
         expected_eeg_root = MODULE_PATH.resolve().parents[1]
         self.assertEqual(
             args.dataset_root,
-            expected_eeg_root / "eeg-data-processing" / "data_to_list" / "global_activity_dataset",
+            expected_eeg_root / "local_artifacts" / "data_to_list" / "global_activity_dataset",
         )
 
     def test_default_output_dir_is_activity_final(self) -> None:
         args = self.module.parse_args([])
-        expected = MODULE_PATH.resolve().parent / "outputs" / "activity_final"
+        expected = MODULE_PATH.resolve().parents[1] / "local_artifacts" / "outputs" / "activity_final"
         self.assertEqual(args.output_dir, expected)
 
     def test_default_device_is_cuda0(self) -> None:
@@ -404,6 +404,48 @@ class TestResolveRuntimeConfig(unittest.TestCase):
         self.assertEqual(config.epochs, 3)
         self.assertAlmostEqual(config.val_fraction, 0.2)
         self.assertEqual(config.seed, 7)
+
+
+class TestTrainFinalModelSaving(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temp_dir = Path(tempfile.mkdtemp(prefix="activity-final-save-"))
+        self.dataset_root = self.temp_dir / "dataset"
+        _make_fake_dataset(self.dataset_root, n_records=2, n_per_record=3, n_channels=2, n_times=8)
+        self.output_dir = self.temp_dir / "out"
+        self.module = load_module()
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.temp_dir)
+
+    def test_saves_model_when_first_val_accuracy_is_zero(self) -> None:
+        class TinyActivityModel(torch.nn.Module):
+            def __init__(self, *args, n_classes: int = 3, **kwargs) -> None:
+                super().__init__()
+                self.classifier = torch.nn.Linear(1, n_classes)
+
+            def forward(self, inputs: torch.Tensor):
+                features = inputs.mean(dim=(1, 2, 3), keepdim=False).unsqueeze(1)
+                return features, self.classifier(features)
+
+        with patch.object(self.module, "ActivityConformer", TinyActivityModel):
+            with patch.object(self.module, "evaluate", return_value=(1.0, 0.0)):
+                with patch.object(
+                    self.module,
+                    "collect_predictions",
+                    return_value=(np.array([0, 1]), np.array([1, 1])),
+                ):
+                    self.module.train_final_model(
+                        dataset_root=self.dataset_root,
+                        epochs=1,
+                        batch_size=2,
+                        lr=2e-4,
+                        device="cpu",
+                        output_dir=self.output_dir,
+                        seed=42,
+                        val_fraction=0.5,
+                    )
+
+        self.assertTrue((self.output_dir / "final_model.pt").exists())
 
 
 class TestMainWiring(unittest.TestCase):

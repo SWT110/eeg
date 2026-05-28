@@ -49,7 +49,7 @@ eeg-data-processing/data_to_list/build_activity_global_index.py
 正式 LOSO 和最终模型流程都依赖由外部脚本构建好的全局数据集目录，例如：
 
 ```text
-eeg-data-processing/data_to_list/global_activity_dataset/
+../local_artifacts/data_to_list/global_activity_dataset/
 ├── X.npy
 ├── y.npy
 ├── subject_ids.npy
@@ -71,7 +71,7 @@ eeg-data-processing/data_to_list/global_activity_dataset/
 
 ```bash
 python train_activity_loso_batch.py \
-  --dataset-root ../eeg-data-processing/data_to_list/global_activity_dataset \
+  --dataset-root ../local_artifacts/data_to_list/global_activity_dataset \
   --device cuda:0
 ```
 
@@ -86,7 +86,7 @@ python train_activity_loso_generated_batch.py \
 
 ```bash
 python train_activity_final.py \
-  --dataset-root ../eeg-data-processing/data_to_list/global_activity_dataset \
+  --dataset-root ../local_artifacts/data_to_list/global_activity_dataset \
   --device cuda:0
 ```
 
@@ -95,9 +95,11 @@ python train_activity_final.py \
 ```bash
 python predict_activity_signal.py \
   --input /path/to/sample.xlsx \
-  --model-dir ./outputs/activity_final \
+  --model-dir ../local_artifacts/outputs/activity_final \
   --device cpu
 ```
+
+默认情况下，数据集、训练输出和 API 缓存都会解析到项目根目录的 `local_artifacts/`。如需在服务器使用其他 artifact 根目录，可设置 `EEG_LOCAL_ARTIFACTS_ROOT`。
 
 启动本地 API：
 

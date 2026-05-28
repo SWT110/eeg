@@ -234,16 +234,16 @@ class TestParseArgsDefaults(unittest.TestCase):
         expected_eeg_root = MODULE_PATH.resolve().parents[1]
         self.assertEqual(
             args.dataset_root,
-            expected_eeg_root / "eeg-data-processing" / "data_to_list" / "global_activity_dataset",
+            expected_eeg_root / "local_artifacts" / "data_to_list" / "global_activity_dataset",
         )
 
     def test_default_output_dir_is_eeg_conformer_relative(self) -> None:
         args = self.module.parse_args([])
 
-        expected_project_root = MODULE_PATH.resolve().parent
+        expected_eeg_root = MODULE_PATH.resolve().parents[1]
         self.assertEqual(
             args.output_dir,
-            expected_project_root / "outputs" / "activity_loso",
+            expected_eeg_root / "local_artifacts" / "outputs" / "activity_loso",
         )
 
     def test_default_device_is_cuda0(self) -> None:
@@ -263,6 +263,10 @@ class TestParseArgsDefaults(unittest.TestCase):
         self.assertEqual(args.test_subject_id, 3)
         self.assertEqual(args.epochs, 10)
         self.assertEqual(args.device, "cpu")
+
+    def test_accepts_class_weights_argument(self) -> None:
+        args = self.module.parse_args(["--class-weights", "3,3,1"])
+        self.assertEqual(args.class_weights, "3,3,1")
 
 
 class TestMaybeRerunInProjectEnv(unittest.TestCase):
@@ -465,6 +469,7 @@ class TestMainWiring(unittest.TestCase):
             device=None,
             output_dir=None,
             seed=None,
+            class_weights=None,
         )
 
 

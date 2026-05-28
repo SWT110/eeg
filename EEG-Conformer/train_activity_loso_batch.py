@@ -51,6 +51,7 @@ from train_activity_loso import (  # noqa: E402
     DEFAULT_OUTPUT_DIR,
     cuda_is_usable,
     normalize_device_name,
+    parse_class_weights,
     project_env_prefix,
     running_inside_project_env,
     train_loso_fold,
@@ -117,6 +118,7 @@ def run_loso_batch(
     output_dir: str | Path,
     skip_existing: bool,
     seed: int = 42,
+    class_weights: list[float] | None = None,
 ) -> list[LosoFoldResult]:
     resolved_device = validate_device(device)
     results: list[LosoFoldResult] = []
@@ -146,6 +148,7 @@ def run_loso_batch(
                 device=resolved_device,
                 output_dir=output_dir,
                 seed=seed,
+                class_weights=class_weights,
             )
         except Exception as exc:
             print(f"[FAIL] subject={subject_id}  error={exc}")
@@ -251,6 +254,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--lr", type=float, default=DEFAULT_LR)
     parser.add_argument("--device", type=str, default=DEFAULT_DEVICE)
     parser.add_argument(
+        "--class-weights",
+        type=str,
+        default=None,
+        help="Optional comma-separated class weights for CrossEntropyLoss, e.g. 3,3,1",
+    )
+    parser.add_argument(
         "--output-dir",
         type=Path,
         default=DEFAULT_OUTPUT_DIR,
@@ -276,6 +285,7 @@ def main(argv: list[str] | None = None) -> None:
 
     all_subject_ids = discover_subject_ids_from_global_dataset(dataset_root)
     requested = parse_subject_id_list(args.subject_ids)
+    class_weights = parse_class_weights(args.class_weights)
     if requested is not None:
         missing = [sid for sid in requested if sid not in all_subject_ids]
         if missing:
@@ -297,6 +307,7 @@ def main(argv: list[str] | None = None) -> None:
         output_dir=Path(args.output_dir).expanduser(),
         skip_existing=bool(args.skip_existing),
         seed=args.seed,
+        class_weights=class_weights,
     )
 
 

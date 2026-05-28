@@ -473,7 +473,7 @@ class TestParseArgs(unittest.TestCase):
 
     def test_model_dir_default_is_activity_final(self) -> None:
         args = self.module.parse_args(["--input", "/some/file.xlsx"])
-        expected = MODULE_PATH.resolve().parent / "outputs" / "activity_final"
+        expected = MODULE_PATH.resolve().parents[1] / "local_artifacts" / "outputs" / "activity_final"
         self.assertEqual(args.model_dir, expected)
 
     def test_device_defaults_to_cpu(self) -> None:

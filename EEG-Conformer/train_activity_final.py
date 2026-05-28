@@ -22,7 +22,7 @@ Usage
 -----
     python train_activity_final.py \\
         --dataset-root /path/to/global_activity_dataset \\
-        --output-dir   /path/to/outputs/activity_final \\
+        --output-dir   /path/to/local_artifacts/outputs/activity_final \
         --epochs 200   \\
         --device cuda:0
 """
@@ -52,11 +52,13 @@ from torch.utils.data import DataLoader, TensorDataset
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 EEG_ROOT = PROJECT_ROOT.parent
+if str(EEG_ROOT) not in sys.path:
+    sys.path.insert(0, str(EEG_ROOT))
 
-DEFAULT_DATASET_ROOT = (
-    EEG_ROOT / "eeg-data-processing" / "data_to_list" / "global_activity_dataset"
-)
-DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "outputs" / "activity_final"
+from eeg_project_paths import ACTIVITY_FINAL_OUTPUT_DIR, GLOBAL_ACTIVITY_DATASET_DIR
+
+DEFAULT_DATASET_ROOT = GLOBAL_ACTIVITY_DATASET_DIR
+DEFAULT_OUTPUT_DIR = ACTIVITY_FINAL_OUTPUT_DIR
 DEFAULT_EPOCHS = 200
 DEFAULT_BATCH_SIZE = 72
 DEFAULT_LR = 0.0002
@@ -284,7 +286,7 @@ def train_final_model(
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, betas=DEFAULT_BETAS)
     criterion = nn.CrossEntropyLoss().to(device_obj)
 
-    best_val_acc = 0.0
+    best_val_acc = -1.0
     best_y_true: np.ndarray | None = None
     best_y_pred: np.ndarray | None = None
 

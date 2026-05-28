@@ -6,6 +6,7 @@ import math
 import os
 import re
 import shutil
+import sys
 import tempfile
 from pathlib import Path
 from typing import NamedTuple
@@ -20,10 +21,19 @@ from fastapi.responses import FileResponse
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 EEG_ROOT = PROJECT_ROOT.parent
-OUTPUTS_ROOT = PROJECT_ROOT / "outputs" / "activity_loso"
-INPUT_ROOT = EEG_ROOT / "eeg-data-processing" / "data_to_list" / "list_normalization_fixed_duration"
+if str(EEG_ROOT) not in sys.path:
+    sys.path.insert(0, str(EEG_ROOT))
+
+from eeg_project_paths import (
+    ACTIVITY_API_CACHE_DIR,
+    ACTIVITY_LOSO_OUTPUT_DIR,
+    LIST_NORMALIZED_DIR,
+)
+
+OUTPUTS_ROOT = ACTIVITY_LOSO_OUTPUT_DIR
+INPUT_ROOT = LIST_NORMALIZED_DIR
 INDEX_HTML_PATH = PROJECT_ROOT / "index.html"
-CACHE_DIR = PROJECT_ROOT / "outputs" / "activity_api_cache"
+CACHE_DIR = ACTIVITY_API_CACHE_DIR
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 DEFAULT_DEVICE = os.environ.get("EEG_API_DEVICE", "cpu").strip() or "cpu"

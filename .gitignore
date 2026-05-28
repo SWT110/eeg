@@ -13,6 +13,10 @@
 *.pyd
 
 # Local Python / conda environments
+.venv/
+.venv*/
+.conda-envs/
+.conda-pkgs/
 eeg-data-processing/.venv/
 eeg-data-processing/.venv_debug/
 eeg-data-processing/.venv_jupyter/
@@ -20,6 +24,8 @@ EEG-Conformer/.conda-envs/
 EEG-Conformer/.conda-pkgs/
 
 # Training / inference outputs
+local_artifacts/
+local_artifacts*.zip
 EEG-Conformer/outputs/
 eeg-data-processing/data_to_list/npy_dataset/
 eeg-data-processing/data_to_list/npy_dataset*/
@@ -32,4 +38,6 @@ eeg-data-processing/data_to_list/data/
 eeg-data-processing/data_to_list/list/
 eeg-data-processing/data_to_list/list_cut_fixed_duration/
 eeg-data-processing/data_to_list/list_normalization_fixed_duration/
+eeg-data-processing/data_to_sorted/sort2/time_data/
+eeg-data-processing/data_to_sorted/sort2/data_cut*/
 eeg-data-processing/videos/

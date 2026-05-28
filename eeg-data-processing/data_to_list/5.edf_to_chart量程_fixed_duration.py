@@ -1,4 +1,5 @@
 import re
+import sys
 from html import escape
 from pathlib import Path
 
@@ -8,7 +9,13 @@ import plotly.io as pio
 from plotly.subplots import make_subplots
 
 BASE_DIR = Path(__file__).resolve().parent
-DATA_DIR = BASE_DIR / "list_cut_fixed_duration"
+EEG_ROOT = BASE_DIR.parents[1]
+if str(EEG_ROOT) not in sys.path:
+    sys.path.insert(0, str(EEG_ROOT))
+
+from eeg_project_paths import LIST_CUT_DIR
+
+DATA_DIR = LIST_CUT_DIR
 TIME_COL = "Time"
 TRACE_COLOR = "#1f77b4"
 TARGET_NAME_RE = re.compile(r"^\d+_e_\d+\.xlsx$", re.IGNORECASE)

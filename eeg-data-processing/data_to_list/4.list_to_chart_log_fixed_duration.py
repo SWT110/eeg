@@ -1,11 +1,18 @@
 from pathlib import Path
+import sys
 
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 BASE_DIR = Path(__file__).resolve().parent
-DATA_DIR = BASE_DIR / "list_cut_fixed_duration"
+EEG_ROOT = BASE_DIR.parents[1]
+if str(EEG_ROOT) not in sys.path:
+    sys.path.insert(0, str(EEG_ROOT))
+
+from eeg_project_paths import LIST_CUT_DIR
+
+DATA_DIR = LIST_CUT_DIR
 TIME_COL = "Time"
 GSR_COL = "GSR(V)"
 PPG_COL = "PPG(BPM)"

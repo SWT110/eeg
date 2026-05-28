@@ -25,7 +25,7 @@ Usage
 -----
     python predict_activity_signal.py \\
         --input /path/to/new_signal.xlsx \\
-        --model-dir /path/to/outputs/activity_final \\
+        --model-dir /path/to/local_artifacts/outputs/activity_final \
         [--output-json /path/to/result.json] \\
         [--window-seconds 5.0] \\
         [--device cpu]
@@ -50,8 +50,12 @@ import torch.nn.functional as F
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 EEG_ROOT = PROJECT_ROOT.parent
+if str(EEG_ROOT) not in sys.path:
+    sys.path.insert(0, str(EEG_ROOT))
 
-DEFAULT_MODEL_DIR = PROJECT_ROOT / "outputs" / "activity_final"
+from eeg_project_paths import ACTIVITY_FINAL_OUTPUT_DIR
+
+DEFAULT_MODEL_DIR = ACTIVITY_FINAL_OUTPUT_DIR
 DEFAULT_DEVICE = "cpu"
 
 _XLSX_MOD_PATH = (

@@ -67,14 +67,16 @@ EDF / 原始记录
 脚本默认读取：
 
 ```text
-data_to_list/list_normalization_fixed_duration
+local_artifacts/data_to_list/list_normalization_fixed_duration
 ```
 
-也就是当前脚本所在目录下的：
+也就是项目根目录下的：
 
 ```text
-eeg-data-processing/data_to_list/list_normalization_fixed_duration
+local_artifacts/data_to_list/list_normalization_fixed_duration
 ```
+
+如果服务器上的本地数据目录不在项目根目录下，可以设置 `EEG_LOCAL_ARTIFACTS_ROOT`，或继续通过 `--input-root`、`--output-root` 显式指定路径。
 
 ### 3.2 目录结构要求
 
@@ -618,7 +620,7 @@ python3 data_to_list/8.xlsx_to_npy_dataset.py
 例如：
 
 ```text
-Input directory [/Users/swt/Desktop/eeg/eeg-data-processing/data_to_list/list_normalization_fixed_duration]:
+Input directory [/Users/swt/Desktop/eeg/local_artifacts/data_to_list/list_normalization_fixed_duration]:
 Output directory [/tmp/eeg-npy-interactive]:
 Window seconds: 1
 Stride seconds (press Enter to use window seconds) [1.0]:

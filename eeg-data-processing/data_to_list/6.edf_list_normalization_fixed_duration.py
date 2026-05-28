@@ -1,12 +1,19 @@
 import re
+import sys
 from pathlib import Path
 
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
 BASE_DIR = Path(__file__).resolve().parent
-SOURCE_DIR = BASE_DIR / "list_cut_fixed_duration"
-TARGET_DIR = BASE_DIR / "list_normalization_fixed_duration"
+EEG_ROOT = BASE_DIR.parents[1]
+if str(EEG_ROOT) not in sys.path:
+    sys.path.insert(0, str(EEG_ROOT))
+
+from eeg_project_paths import LIST_CUT_DIR, LIST_NORMALIZED_DIR
+
+SOURCE_DIR = LIST_CUT_DIR
+TARGET_DIR = LIST_NORMALIZED_DIR
 TARGET_NAME_RE = re.compile(r"^\d+_e_\d+\.xlsx$", re.IGNORECASE)
 NORMALIZE_PREFIXES = ("EEG", "ECG", "EMG", "SaO2")
 

@@ -4,15 +4,22 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
+BASE_DIR = Path(__file__).resolve().parent
+EEG_ROOT = BASE_DIR.parents[1]
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+if str(EEG_ROOT) not in sys.path:
+    sys.path.insert(0, str(EEG_ROOT))
+
+from eeg_project_paths import GLOBAL_ACTIVITY_DATASET_DIR, LIST_NORMALIZED_DIR, WINDOW_STRIDE_CONFIG
 from build_activity_global_index import build_global_dataset
 
-# ---- 默认路径（都在 data_to_list 目录下） ----
-BASE_DIR = Path(__file__).resolve().parent
-DEFAULT_CONFIG      = BASE_DIR / "window_stride_configs.json"
-DEFAULT_INPUT_ROOT  = BASE_DIR / "list_normalization_fixed_duration"
-DEFAULT_OUTPUT_BASE = BASE_DIR / "global_activity_dataset"
+DEFAULT_CONFIG = WINDOW_STRIDE_CONFIG
+DEFAULT_INPUT_ROOT = LIST_NORMALIZED_DIR
+DEFAULT_OUTPUT_BASE = GLOBAL_ACTIVITY_DATASET_DIR
 
 
 def subdir_name(window_seconds: float, stride_seconds: float) -> str:

@@ -23,7 +23,7 @@
 当前原始数据位于：
 
 ```text
-eeg-data-processing/data_to_list/list_normalization_fixed_duration/
+local_artifacts/data_to_list/list_normalization_fixed_duration/
   1/
     1_e_1.xlsx
     1_e_2.xlsx
@@ -43,6 +43,8 @@ eeg-data-processing/data_to_list/list_normalization_fixed_duration/
 
 - `1..11`：受试者编号
 - `e_1 / e_2 / e_3`：三类活动
+
+代码、测试和窗口配置仍保留在 Git 同步区；原始数据、归一化 Excel、全局数据集和训练输出统一放在 `local_artifacts/`，便于压缩或定时同步到训练服务器。
 - 每个 xlsx 是一段连续 EEG 信号
 
 这意味着训练样本不是整份 xlsx，而是：

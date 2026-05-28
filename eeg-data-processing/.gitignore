@@ -1,0 +1,29 @@
+# Python caches
+__pycache__/
+.pytest_cache/
+.ipynb_checkpoints/
+*.pyc
+*.pyo
+*.pyd
+
+# Local environments
+.venv/
+.venv_debug/
+.venv_jupyter/
+
+# Raw and intermediate EEG data
+data_to_list/data/
+data_to_list/list/
+data_to_list/list_cut_fixed_duration/
+data_to_list/list_normalization_fixed_duration/
+data_to_list/npy_dataset/
+data_to_list/npy_dataset*/
+data_to_list/global_activity_dataset/
+data_to_list/global_activity_dataset*/
+
+# Sorted/cut artifacts
+data_to_sorted/sort2/time_data/
+data_to_sorted/sort2/data_cut*/
+
+# Media
+videos/

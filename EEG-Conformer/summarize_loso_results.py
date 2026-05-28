@@ -1,7 +1,7 @@
 """
 EEG-Conformer – LOSO Result Summarizer
 =======================================
-Reads per-fold outputs from ``outputs/activity_loso/fold_subject_<id>/``
+Reads per-fold outputs from ``local_artifacts/outputs/activity_loso/fold_subject_<id>/``
 and produces:
 
 * ``summary.json``  – full stats including confusion matrix and per-class metrics
@@ -18,12 +18,19 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import sys
 from pathlib import Path
 
 import numpy as np
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "outputs" / "activity_loso"
+EEG_ROOT = PROJECT_ROOT.parent
+if str(EEG_ROOT) not in sys.path:
+    sys.path.insert(0, str(EEG_ROOT))
+
+from eeg_project_paths import ACTIVITY_LOSO_OUTPUT_DIR
+
+DEFAULT_OUTPUT_DIR = ACTIVITY_LOSO_OUTPUT_DIR
 
 
 # ---------------------------------------------------------------------------
