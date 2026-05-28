@@ -48,6 +48,7 @@ DEFAULT_EPOCHS = 200
 DEFAULT_BATCH_SIZE = 72
 DEFAULT_LR = 0.0002
 DEFAULT_DEVICE = "cuda:0"
+DEFAULT_INPUT_DOMAIN = "time"
 DEFAULT_ENV_NAME = "eegconformer310"
 AUTO_RERUN_ENV_VAR = "TRAIN_ACTIVITY_LOSO_GENERATED_BATCH_PROJECT_ENV_ACTIVE"
 
@@ -116,6 +117,18 @@ def normalize_device_name(device: str) -> str:
         if index.isdigit():
             return f"cuda:{index}"
     return normalized
+
+
+def validate_input_domain(raw: str | None) -> str:
+    train_batch = _load_train_batch_module()
+    validator = getattr(train_batch, "validate_input_domain", None)
+    if validator is not None:
+        return validator(raw)
+
+    value = DEFAULT_INPUT_DOMAIN if raw is None else str(raw).strip().lower()
+    if value not in {DEFAULT_INPUT_DOMAIN, "fft"}:
+        raise ValueError("input_domain must be one of: time, fft")
+    return value
 
 
 def cuda_is_usable() -> bool:
@@ -220,7 +233,24 @@ def missing_dataset_files(dataset_root: str | Path) -> list[str]:
     return [name for name in REQUIRED_DATASET_FILES if not (root / name).exists()]
 
 
-def dataset_output_is_complete(dataset_root: str | Path, output_dir: str | Path) -> bool:
+def fold_is_complete_for_input_domain(
+    train_batch: ModuleType | object,
+    output_dir: str | Path,
+    subject_id: int,
+    input_domain: str,
+) -> bool:
+    checker = getattr(train_batch, "fold_is_complete")
+    try:
+        return checker(output_dir, subject_id, input_domain)
+    except TypeError:
+        return checker(output_dir, subject_id)
+
+
+def dataset_output_is_complete(
+    dataset_root: str | Path,
+    output_dir: str | Path,
+    input_domain: str = DEFAULT_INPUT_DOMAIN,
+) -> bool:
     missing = missing_dataset_files(dataset_root)
     if missing:
         return False
@@ -231,7 +261,10 @@ def dataset_output_is_complete(dataset_root: str | Path, output_dir: str | Path)
 
     train_batch = _load_train_batch_module()
     subject_ids = train_batch.discover_subject_ids_from_global_dataset(dataset_root)
-    return all(train_batch.fold_is_complete(root, subject_id) for subject_id in subject_ids)
+    return all(
+        fold_is_complete_for_input_domain(train_batch, root, subject_id, input_domain)
+        for subject_id in subject_ids
+    )
 
 
 def summarize_output_dir(output_dir: str | Path) -> Path:
@@ -249,9 +282,11 @@ def run_generated_dataset_batch(
     device: str,
     skip_existing: bool,
     seed: int = 42,
+    input_domain: str = DEFAULT_INPUT_DOMAIN,
     class_weights: list[float] | None = None,
 ) -> list[DatasetRunResult]:
     train_batch = _load_train_batch_module()
+    resolved_input_domain = validate_input_domain(input_domain)
     results: list[DatasetRunResult] = []
 
     print(f"Planned datasets: {len(jobs)}")
@@ -263,7 +298,11 @@ def run_generated_dataset_batch(
                     f"Dataset {job.dataset_name} is missing required files in {job.dataset_root}: {missing}"
                 )
 
-            if skip_existing and dataset_output_is_complete(job.dataset_root, job.output_dir):
+            if skip_existing and dataset_output_is_complete(
+                job.dataset_root,
+                job.output_dir,
+                resolved_input_domain,
+            ):
                 summary_json = job.output_dir / "summary.json"
                 print(f"[SKIP] dataset={job.dataset_name} output_dir={job.output_dir}")
                 results.append(
@@ -288,6 +327,7 @@ def run_generated_dataset_batch(
                 output_dir=job.output_dir,
                 skip_existing=skip_existing,
                 seed=seed,
+                input_domain=resolved_input_domain,
                 class_weights=class_weights,
             )
             summary_json = summarize_output_dir(job.output_dir)
@@ -349,6 +389,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--lr", type=float, default=DEFAULT_LR)
     parser.add_argument("--device", type=str, default=DEFAULT_DEVICE)
     parser.add_argument(
+        "--input-domain",
+        type=str,
+        default=DEFAULT_INPUT_DOMAIN,
+        help="Input representation: time or fft (default: time)",
+    )
+    parser.add_argument(
         "--class-weights",
         type=str,
         default=None,
@@ -384,7 +430,9 @@ def main(argv: list[str] | None = None) -> None:
     if args.lr <= 0:
         raise ValueError("lr must be > 0")
 
-    class_weights = _load_train_batch_module().parse_class_weights(args.class_weights)
+    train_batch = _load_train_batch_module()
+    class_weights = train_batch.parse_class_weights(args.class_weights)
+    input_domain = validate_input_domain(args.input_domain)
 
     jobs = load_config_jobs(
         config_path=config_path,
@@ -399,6 +447,7 @@ def main(argv: list[str] | None = None) -> None:
         device=str(args.device),
         skip_existing=bool(args.skip_existing),
         seed=args.seed,
+        input_domain=input_domain,
         class_weights=class_weights,
     )
 

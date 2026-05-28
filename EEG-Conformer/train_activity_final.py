@@ -97,6 +97,9 @@ collect_predictions = _loso.collect_predictions
 confusion_matrix_from_arrays = _loso.confusion_matrix_from_arrays
 per_class_metrics_from_cm = _loso.per_class_metrics_from_cm
 macro_f1_from_per_class = _loso.macro_f1_from_per_class
+DEFAULT_INPUT_DOMAIN = _loso.DEFAULT_INPUT_DOMAIN
+transform_windows_for_input_domain = _loso.transform_windows_for_input_domain
+validate_input_domain = _loso.validate_input_domain
 
 
 # ---------------------------------------------------------------------------
@@ -112,6 +115,7 @@ class RuntimeConfig(NamedTuple):
     output_dir: Path
     seed: int
     val_fraction: float
+    input_domain: str = DEFAULT_INPUT_DOMAIN
 
 
 # ---------------------------------------------------------------------------
@@ -227,6 +231,7 @@ def train_final_model(
     depth: int = DEFAULT_DEPTH,
     num_heads: int = DEFAULT_NUM_HEADS,
     dropout: float = DEFAULT_DROPOUT,
+    input_domain: str = DEFAULT_INPUT_DOMAIN,
 ) -> Path:
     """Train final deployment model and save all artifacts.
 
@@ -240,6 +245,7 @@ def train_final_model(
         torch.cuda.manual_seed_all(seed)
 
     device_obj = torch.device(device)
+    resolved_input_domain = validate_input_domain(input_domain)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -247,6 +253,8 @@ def train_final_model(
     train_X, train_y, val_X, val_y = final_train_val_split(
         X, y, record_ids, window_indices, val_fraction
     )
+    train_X = transform_windows_for_input_domain(train_X, resolved_input_domain)
+    val_X = transform_windows_for_input_domain(val_X, resolved_input_domain)
     train_X, val_X, mean_val, std_val = standardize_for_deployment(train_X, val_X)
 
     n_channels = train_X.shape[2]
@@ -387,6 +395,7 @@ def train_final_model(
         "val_fraction": val_fraction,
         "window_seconds": metadata.get("window_seconds"),
         "stride_seconds": metadata.get("stride_seconds"),
+        "input_domain": resolved_input_domain,
     }
     with open(output_dir / "train_config.json", "w", encoding="ascii") as fh:
         json.dump(train_config, fh, indent=2)
@@ -600,6 +609,7 @@ def resolve_runtime_config(
     output_dir: Path | str | None,
     seed: int | None,
     val_fraction: float | None,
+    input_domain: str | None = None,
 ) -> RuntimeConfig:
     missing_flags: list[str] = []
     if dataset_root is None:
@@ -669,6 +679,7 @@ def resolve_runtime_config(
     resolved_val_fraction = (
         DEFAULT_VAL_FRACTION if val_fraction is None else float(val_fraction)
     )
+    resolved_input_domain = validate_input_domain(input_domain)
 
     return RuntimeConfig(
         dataset_root=resolved_dataset_root,
@@ -679,6 +690,7 @@ def resolve_runtime_config(
         output_dir=resolved_output_dir,
         seed=resolved_seed,
         val_fraction=resolved_val_fraction,
+        input_domain=resolved_input_domain,
     )
 
 
@@ -696,6 +708,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--batch-size", type=int, default=DEFAULT_BATCH_SIZE)
     parser.add_argument("--lr", type=float, default=DEFAULT_LR)
     parser.add_argument("--device", type=str, default=DEFAULT_DEVICE)
+    parser.add_argument(
+        "--input-domain",
+        type=str,
+        default=DEFAULT_INPUT_DOMAIN,
+        help="Input representation: time or fft (default: time)",
+    )
     parser.add_argument(
         "--output-dir",
         type=Path,
@@ -726,6 +744,7 @@ def main(argv: list[str] | None = None) -> None:
             output_dir=args.output_dir,
             seed=args.seed,
             val_fraction=args.val_fraction,
+            input_domain=args.input_domain,
         )
     else:
         maybe_rerun_in_project_env([], DEFAULT_DEVICE)
@@ -738,6 +757,7 @@ def main(argv: list[str] | None = None) -> None:
             output_dir=None,
             seed=None,
             val_fraction=None,
+            input_domain=None,
         )
 
     train_final_model(
@@ -749,6 +769,7 @@ def main(argv: list[str] | None = None) -> None:
         output_dir=config.output_dir,
         seed=config.seed,
         val_fraction=config.val_fraction,
+        input_domain=config.input_domain,
     )
 
 

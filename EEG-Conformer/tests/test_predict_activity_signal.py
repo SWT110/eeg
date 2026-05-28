@@ -70,6 +70,7 @@ def _make_fake_artifacts(
     n_classes: int = 3,
     window_seconds: float = 1.0,
     stride_seconds: float = 1.0,
+    input_domain: str = "time",
 ) -> None:
     """Write minimal final-model artifact files to *root*.
 
@@ -93,6 +94,7 @@ def _make_fake_artifacts(
         "val_fraction": 0.2,
         "window_seconds": window_seconds,
         "stride_seconds": stride_seconds,
+        "input_domain": input_domain,
     }
     with open(root / "train_config.json", "w") as fh:
         json.dump(train_config, fh)
@@ -233,6 +235,32 @@ class TestSoftmaxAverageProbabilities(unittest.TestCase):
         p1 = F.softmax(torch.tensor([0.0, 2.0, 0.0]), dim=0).numpy()
         expected = (p0 + p1) / 2.0
         np.testing.assert_allclose(avg, expected, atol=1e-5)
+
+    def test_fft_input_domain_transforms_to_frequency_axis(self) -> None:
+        class CaptureInputModel(nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.received: list[torch.Tensor] = []
+
+            def forward(self, x):
+                self.received.append(x.detach().clone())
+                return x, torch.zeros(x.shape[0], 3)
+
+        spy = CaptureInputModel()
+        raw_windows = np.ones((1, 2, 8), dtype=np.float32)
+
+        self.module.softmax_average_probabilities(
+            spy,
+            raw_windows,
+            mean=0.0,
+            std=1.0,
+            device="cpu",
+            input_domain="fft",
+        )
+
+        seen = spy.received[0]
+        self.assertEqual(tuple(seen.shape), (1, 1, 2, 5))
+        self.assertAlmostEqual(float(seen[0, 0, 0, 0]), np.log1p(64.0), places=5)
 
 
 # ---------------------------------------------------------------------------
@@ -457,6 +485,34 @@ class TestPredictSignal(unittest.TestCase):
                     model_dir=self.model_dir,
                     device="cpu",
                 )
+
+    def test_uses_input_domain_from_train_config(self) -> None:
+        fft_model_dir = self.temp_dir / "model_fft"
+        _make_fake_artifacts(
+            fft_model_dir,
+            n_channels=5,
+            n_times=101,
+            n_classes=3,
+            window_seconds=1.0,
+            stride_seconds=1.0,
+            input_domain="fft",
+        )
+        (fft_model_dir / "final_model.pt").write_bytes(b"dummy")
+
+        with self._patch_load():
+            with patch.object(self.module, "build_model_from_artifacts", return_value=MagicMock()):
+                with patch.object(
+                    self.module,
+                    "softmax_average_probabilities",
+                    return_value=np.array([1.0, 0.0, 0.0]),
+                ) as mock_probs:
+                    self.module.predict_signal(
+                        xlsx_path="dummy.xlsx",
+                        model_dir=fft_model_dir,
+                        device="cpu",
+                    )
+
+        self.assertEqual(mock_probs.call_args.kwargs["input_domain"], "fft")
 
 
 # ---------------------------------------------------------------------------

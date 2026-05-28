@@ -227,6 +227,38 @@ class TestRunGeneratedDatasetBatch(unittest.TestCase):
 
         self.assertEqual(captured_kwargs["class_weights"], [3.0, 3.0, 1.0])
 
+    def test_passes_input_domain_to_inner_batch_runner(self) -> None:
+        captured_kwargs: dict[str, object] = {}
+
+        def fake_run_loso_batch(**kwargs):
+            captured_kwargs.update(kwargs)
+            return [kwargs]
+
+        fake_train = SimpleNamespace(
+            discover_subject_ids_from_global_dataset=lambda _: [1, 2],
+            fold_is_complete=lambda output_dir, subject_id: False,
+            run_loso_batch=fake_run_loso_batch,
+        )
+        fake_summary = SimpleNamespace(
+            summarize=lambda output_dir: {"n_folds": 2},
+            write_summary=lambda summary, output_dir: (Path(output_dir) / "summary.json", Path(output_dir) / "summary.csv"),
+        )
+
+        with patch.object(self.module, "_load_train_batch_module", return_value=fake_train):
+            with patch.object(self.module, "_load_summary_module", return_value=fake_summary):
+                self.module.run_generated_dataset_batch(
+                    jobs=[self.job],
+                    epochs=5,
+                    batch_size=8,
+                    lr=2e-4,
+                    device="cpu",
+                    skip_existing=True,
+                    seed=7,
+                    input_domain="fft",
+                )
+
+        self.assertEqual(captured_kwargs["input_domain"], "fft")
+
 
 class TestParseArgs(unittest.TestCase):
     def setUp(self) -> None:
@@ -253,6 +285,10 @@ class TestParseArgs(unittest.TestCase):
     def test_accepts_class_weights_argument(self) -> None:
         args = self.module.parse_args(["--class-weights", "3,3,1"])
         self.assertEqual(args.class_weights, "3,3,1")
+
+    def test_accepts_input_domain_argument(self) -> None:
+        args = self.module.parse_args(["--input-domain", "fft"])
+        self.assertEqual(args.input_domain, "fft")
 
 
 if __name__ == "__main__":

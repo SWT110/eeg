@@ -23,6 +23,7 @@ Usage
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import subprocess
 import sys
@@ -47,6 +48,7 @@ from train_activity_loso import (  # noqa: E402
     DEFAULT_DEVICE,
     DEFAULT_ENV_NAME,
     DEFAULT_EPOCHS,
+    DEFAULT_INPUT_DOMAIN,
     DEFAULT_LR,
     DEFAULT_OUTPUT_DIR,
     cuda_is_usable,
@@ -55,6 +57,7 @@ from train_activity_loso import (  # noqa: E402
     project_env_prefix,
     running_inside_project_env,
     train_loso_fold,
+    validate_input_domain,
     validate_device,
 )
 
@@ -98,10 +101,21 @@ def fold_output_dir(output_dir: str | Path, subject_id: int) -> Path:
     return Path(output_dir) / f"fold_subject_{subject_id}"
 
 
-def fold_is_complete(output_dir: str | Path, subject_id: int) -> bool:
+def fold_is_complete(
+    output_dir: str | Path,
+    subject_id: int,
+    input_domain: str = DEFAULT_INPUT_DOMAIN,
+) -> bool:
     """Return True if the fold directory already contains a result artifact."""
     fold_dir = fold_output_dir(output_dir, subject_id)
-    return (fold_dir / "metrics.json").exists() or (fold_dir / "best_model.pt").exists()
+    metrics_path = fold_dir / "metrics.json"
+    if metrics_path.exists():
+        expected_input_domain = validate_input_domain(input_domain)
+        with open(metrics_path, encoding="utf-8") as fh:
+            metrics = json.load(fh)
+        actual_input_domain = validate_input_domain(metrics.get("input_domain"))
+        return actual_input_domain == expected_input_domain
+    return (fold_dir / "best_model.pt").exists()
 
 
 # ---------------------------------------------------------------------------
@@ -118,14 +132,16 @@ def run_loso_batch(
     output_dir: str | Path,
     skip_existing: bool,
     seed: int = 42,
+    input_domain: str = DEFAULT_INPUT_DOMAIN,
     class_weights: list[float] | None = None,
 ) -> list[LosoFoldResult]:
     resolved_device = validate_device(device)
+    resolved_input_domain = validate_input_domain(input_domain)
     results: list[LosoFoldResult] = []
 
     print(f"Planned LOSO folds: {len(subject_ids)}")
     for subject_id in subject_ids:
-        if skip_existing and fold_is_complete(output_dir, subject_id):
+        if skip_existing and fold_is_complete(output_dir, subject_id, resolved_input_domain):
             fold_dir = fold_output_dir(output_dir, subject_id)
             print(f"[SKIP] subject={subject_id}  fold_dir={fold_dir}")
             results.append(
@@ -148,6 +164,7 @@ def run_loso_batch(
                 device=resolved_device,
                 output_dir=output_dir,
                 seed=seed,
+                input_domain=resolved_input_domain,
                 class_weights=class_weights,
             )
         except Exception as exc:
@@ -254,6 +271,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--lr", type=float, default=DEFAULT_LR)
     parser.add_argument("--device", type=str, default=DEFAULT_DEVICE)
     parser.add_argument(
+        "--input-domain",
+        type=str,
+        default=DEFAULT_INPUT_DOMAIN,
+        help="Input representation: time or fft (default: time)",
+    )
+    parser.add_argument(
         "--class-weights",
         type=str,
         default=None,
@@ -286,6 +309,7 @@ def main(argv: list[str] | None = None) -> None:
     all_subject_ids = discover_subject_ids_from_global_dataset(dataset_root)
     requested = parse_subject_id_list(args.subject_ids)
     class_weights = parse_class_weights(args.class_weights)
+    input_domain = validate_input_domain(args.input_domain)
     if requested is not None:
         missing = [sid for sid in requested if sid not in all_subject_ids]
         if missing:
@@ -307,6 +331,7 @@ def main(argv: list[str] | None = None) -> None:
         output_dir=Path(args.output_dir).expanduser(),
         skip_existing=bool(args.skip_existing),
         seed=args.seed,
+        input_domain=input_domain,
         class_weights=class_weights,
     )
 

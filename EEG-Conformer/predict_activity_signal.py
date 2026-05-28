@@ -83,6 +83,9 @@ _loso_mod = _load_module_from_path("_train_activity_loso", _LOSO_PATH)
 load_xlsx_file = _xlsx_mod.load_xlsx_file
 extract_windows = _xlsx_mod.extract_windows
 ActivityConformer = _loso_mod.ActivityConformer
+DEFAULT_INPUT_DOMAIN = _loso_mod.DEFAULT_INPUT_DOMAIN
+transform_windows_for_input_domain = _loso_mod.transform_windows_for_input_domain
+validate_input_domain = _loso_mod.validate_input_domain
 
 
 # ---------------------------------------------------------------------------
@@ -181,6 +184,7 @@ def softmax_average_probabilities(
     std: float,
     device: str,
     batch_size: int = 64,
+    input_domain: str = DEFAULT_INPUT_DOMAIN,
 ) -> np.ndarray:
     """Run windows through model; return mean softmax probability vector.
 
@@ -195,7 +199,8 @@ def softmax_average_probabilities(
     -------
     (n_classes,) float64 array of mean probabilities
     """
-    X = (windows_nct - mean) / std
+    X = transform_windows_for_input_domain(windows_nct, input_domain)
+    X = (X - mean) / std
     X = np.expand_dims(X, axis=1)          # (N, 1, C, T)
 
     device_obj = torch.device(device)
@@ -258,6 +263,8 @@ def predict_signal(
     if stride_sec is None:
         stride_sec = win_sec
 
+    input_domain = validate_input_domain(cfg.get("input_domain"))
+
     windows_nct = extract_windows_from_xlsx(xlsx_path, win_sec, stride_sec)
     if windows_nct is None or len(windows_nct) == 0:
         raise ValueError(f"No valid EEG windows extracted from: {xlsx_path}")
@@ -265,7 +272,12 @@ def predict_signal(
     model = build_model_from_artifacts(artifacts, device)
     norm = artifacts["norm_stats"]
     avg_probs = softmax_average_probabilities(
-        model, windows_nct, norm["mean"], norm["std"], device
+        model,
+        windows_nct,
+        norm["mean"],
+        norm["std"],
+        device,
+        input_domain=input_domain,
     )
 
     predicted_label = int(np.argmax(avg_probs))

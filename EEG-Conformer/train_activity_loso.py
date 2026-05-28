@@ -65,6 +65,8 @@ DEFAULT_DEPTH = 6
 DEFAULT_NUM_HEADS = 5
 DEFAULT_DROPOUT = 0.5
 DEFAULT_ENV_NAME = "eegconformer310"
+DEFAULT_INPUT_DOMAIN = "time"
+VALID_INPUT_DOMAINS = ("time", "fft")
 AUTO_RERUN_ENV_VAR = "TRAIN_ACTIVITY_LOSO_PROJECT_ENV_ACTIVE"
 
 
@@ -81,6 +83,7 @@ class RuntimeConfig(NamedTuple):
     device: str
     output_dir: Path
     seed: int
+    input_domain: str = DEFAULT_INPUT_DOMAIN
     class_weights: list[float] | None = None
 
 
@@ -290,6 +293,28 @@ def compute_n_patches(n_times: int) -> int:
     return (t_after_temporal - 75) // 15 + 1
 
 
+def validate_input_domain(raw: str | None) -> str:
+    value = DEFAULT_INPUT_DOMAIN if raw is None else str(raw).strip().lower()
+    if value not in VALID_INPUT_DOMAINS:
+        allowed = ", ".join(VALID_INPUT_DOMAINS)
+        raise ValueError(f"input_domain must be one of: {allowed}")
+    return value
+
+
+def transform_windows_for_input_domain(
+    windows: np.ndarray,
+    input_domain: str,
+) -> np.ndarray:
+    resolved_input_domain = validate_input_domain(input_domain)
+    array = np.asarray(windows, dtype=np.float32)
+    if resolved_input_domain == "time":
+        return array.astype(np.float32, copy=False)
+
+    spectrum = np.fft.rfft(array, axis=-1)
+    power = np.abs(spectrum) ** 2
+    return np.log1p(power).astype(np.float32, copy=False)
+
+
 # ---------------------------------------------------------------------------
 # Data loading
 # ---------------------------------------------------------------------------
@@ -353,6 +378,7 @@ def build_dataloaders(
     dataset_root: str | Path,
     test_subject_id: int,
     batch_size: int,
+    input_domain: str = DEFAULT_INPUT_DOMAIN,
 ) -> tuple[DataLoader, DataLoader, int, int, int, int, int]:
     """Load dataset, split LOSO, standardise, return loaders and shape info.
 
@@ -363,6 +389,8 @@ def build_dataloaders(
     """
     X, y, subject_ids = load_global_dataset(dataset_root)
     train_X, train_y, test_X, test_y = loso_split(X, y, subject_ids, test_subject_id)
+    train_X = transform_windows_for_input_domain(train_X, input_domain)
+    test_X = transform_windows_for_input_domain(test_X, input_domain)
     train_X, test_X = standardize_by_train(train_X, test_X)
 
     n_channels = train_X.shape[2]
@@ -561,6 +589,7 @@ def train_loso_fold(
     depth: int = DEFAULT_DEPTH,
     num_heads: int = DEFAULT_NUM_HEADS,
     dropout: float = DEFAULT_DROPOUT,
+    input_domain: str = DEFAULT_INPUT_DOMAIN,
     class_weights: list[float] | None = None,
 ) -> Path:
     """Train one LOSO fold and return path to metrics.json."""
@@ -575,12 +604,18 @@ def train_loso_fold(
         torch.cuda.manual_seed_all(seed)
 
     device_obj = torch.device(device)
+    resolved_input_domain = validate_input_domain(input_domain)
 
     (
         train_loader, test_loader,
         n_channels, n_times, n_classes,
         n_train_samples, n_test_samples,
-    ) = build_dataloaders(dataset_root, test_subject_id, batch_size)
+    ) = build_dataloaders(
+        dataset_root,
+        test_subject_id,
+        batch_size,
+        input_domain=resolved_input_domain,
+    )
 
     model = ActivityConformer(
         n_channels=n_channels,
@@ -623,6 +658,7 @@ def train_loso_fold(
         "batch_size": batch_size,
         "lr": lr,
         "seed": seed,
+        "input_domain": resolved_input_domain,
         "class_weights": class_weights,
         "n_train_samples": n_train_samples,
         "n_test_samples": n_test_samples,
@@ -685,6 +721,7 @@ def train_loso_fold(
                     "emb_size": emb_size,
                     "depth": depth,
                     "num_heads": num_heads,
+                    "input_domain": resolved_input_domain,
                 },
                 fold_dir / "best_model.pt",
             )
@@ -727,6 +764,7 @@ def train_loso_fold(
         "batch_size": batch_size,
         "lr": lr,
         "seed": seed,
+        "input_domain": resolved_input_domain,
         "class_weights": class_weights,
         "best_epoch": best_epoch,
         "epoch_history_csv": str(history_csv_path),
@@ -941,6 +979,7 @@ def resolve_runtime_config(
     device: str | None,
     output_dir: Path | str | None,
     seed: int | None,
+    input_domain: str | None = None,
     class_weights: str | list[float] | tuple[float, ...] | None = None,
 ) -> RuntimeConfig:
     missing_flags: list[str] = []
@@ -1015,6 +1054,7 @@ def resolve_runtime_config(
     )
 
     resolved_seed = 42 if seed is None else int(seed)
+    resolved_input_domain = validate_input_domain(input_domain)
     resolved_class_weights = parse_class_weights(class_weights)
 
     return RuntimeConfig(
@@ -1026,6 +1066,7 @@ def resolve_runtime_config(
         device=resolved_device,
         output_dir=resolved_output_dir,
         seed=resolved_seed,
+        input_domain=resolved_input_domain,
         class_weights=resolved_class_weights,
     )
 
@@ -1050,6 +1091,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--batch-size", type=int, default=DEFAULT_BATCH_SIZE)
     parser.add_argument("--lr", type=float, default=DEFAULT_LR)
     parser.add_argument("--device", type=str, default=DEFAULT_DEVICE)
+    parser.add_argument(
+        "--input-domain",
+        type=str,
+        default=DEFAULT_INPUT_DOMAIN,
+        help="Input representation: time or fft (default: time)",
+    )
     parser.add_argument(
         "--class-weights",
         type=str,
@@ -1080,6 +1127,7 @@ def main(argv: list[str] | None = None) -> None:
             device=args.device,
             output_dir=args.output_dir,
             seed=args.seed,
+            input_domain=args.input_domain,
             class_weights=args.class_weights,
         )
     else:
@@ -1093,6 +1141,7 @@ def main(argv: list[str] | None = None) -> None:
             device=None,
             output_dir=None,
             seed=None,
+            input_domain=None,
             class_weights=None,
         )
 
@@ -1105,6 +1154,7 @@ def main(argv: list[str] | None = None) -> None:
         device=config.device,
         output_dir=config.output_dir,
         seed=config.seed,
+        input_domain=config.input_domain,
         class_weights=config.class_weights,
     )
 

@@ -232,6 +232,26 @@ class TestRunLosoBatch(unittest.TestCase):
 
         self.assertEqual(mock_train.call_args.kwargs["class_weights"], [3.0, 3.0, 1.0])
 
+    def test_passes_input_domain_to_fold_runner(self) -> None:
+        with patch.object(
+            self.module,
+            "train_loso_fold",
+            return_value=self.output_dir / "fold_subject_1" / "metrics.json",
+        ) as mock_train:
+            self.module.run_loso_batch(
+                subject_ids=[1],
+                dataset_root=self.dataset_root,
+                epochs=1,
+                batch_size=8,
+                lr=2e-4,
+                device="cpu",
+                output_dir=self.output_dir,
+                skip_existing=False,
+                input_domain="fft",
+            )
+
+        self.assertEqual(mock_train.call_args.kwargs["input_domain"], "fft")
+
 
 class TestParseArgs(unittest.TestCase):
     def setUp(self) -> None:
@@ -266,6 +286,10 @@ class TestParseArgs(unittest.TestCase):
     def test_accepts_class_weights_argument(self) -> None:
         args = self.module.parse_args(["--class-weights", "3,3,1"])
         self.assertEqual(args.class_weights, "3,3,1")
+
+    def test_accepts_input_domain_argument(self) -> None:
+        args = self.module.parse_args(["--input-domain", "fft"])
+        self.assertEqual(args.input_domain, "fft")
 
 
 class TestParseSubjectIdList(unittest.TestCase):

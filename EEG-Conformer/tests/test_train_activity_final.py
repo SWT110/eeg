@@ -305,6 +305,10 @@ class TestParseArgsDefaults(unittest.TestCase):
         self.assertEqual(args.device, "cpu")
         self.assertAlmostEqual(args.val_fraction, 0.3)
 
+    def test_accepts_input_domain_argument(self) -> None:
+        args = self.module.parse_args(["--input-domain", "fft"])
+        self.assertEqual(args.input_domain, "fft")
+
 
 class TestMaybeRerunInProjectEnv(unittest.TestCase):
     def setUp(self) -> None:
@@ -447,6 +451,41 @@ class TestTrainFinalModelSaving(unittest.TestCase):
 
         self.assertTrue((self.output_dir / "final_model.pt").exists())
 
+    def test_saves_input_domain_and_frequency_length_to_train_config(self) -> None:
+        class TinyActivityModel(torch.nn.Module):
+            def __init__(self, *args, n_classes: int = 3, **kwargs) -> None:
+                super().__init__()
+                self.classifier = torch.nn.Linear(1, n_classes)
+
+            def forward(self, inputs: torch.Tensor):
+                features = inputs.mean(dim=(1, 2, 3), keepdim=False).unsqueeze(1)
+                return features, self.classifier(features)
+
+        with patch.object(self.module, "ActivityConformer", TinyActivityModel):
+            with patch.object(self.module, "evaluate", return_value=(1.0, 0.0)):
+                with patch.object(
+                    self.module,
+                    "collect_predictions",
+                    return_value=(np.array([0, 1]), np.array([1, 1])),
+                ):
+                    self.module.train_final_model(
+                        dataset_root=self.dataset_root,
+                        epochs=1,
+                        batch_size=2,
+                        lr=2e-4,
+                        device="cpu",
+                        output_dir=self.output_dir,
+                        seed=42,
+                        val_fraction=0.5,
+                        input_domain="fft",
+                    )
+
+        with open(self.output_dir / "train_config.json", encoding="utf-8") as fh:
+            train_config = json.load(fh)
+
+        self.assertEqual(train_config["input_domain"], "fft")
+        self.assertEqual(train_config["n_times"], 5)
+
 
 class TestMainWiring(unittest.TestCase):
     def setUp(self) -> None:
@@ -471,6 +510,7 @@ class TestMainWiring(unittest.TestCase):
             output_dir=self.temp_dir / "out",
             seed=42,
             val_fraction=0.2,
+            input_domain="time",
         )
 
         with patch.object(self.module, "parse_args", return_value=fake_args):
@@ -499,6 +539,7 @@ class TestMainWiring(unittest.TestCase):
             output_dir=self.temp_dir / "out",
             seed=42,
             val_fraction=0.2,
+            input_domain="time",
         )
 
         with patch.object(self.module, "maybe_rerun_in_project_env", return_value=None):
@@ -521,6 +562,7 @@ class TestMainWiring(unittest.TestCase):
             output_dir=None,
             seed=None,
             val_fraction=None,
+            input_domain=None,
         )
 
 

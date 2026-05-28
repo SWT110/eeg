@@ -178,6 +178,44 @@ class TestStandardizeByTrain(unittest.TestCase):
         self.assertAlmostEqual(float(test_std.mean()), 100.0 / train_std_val, delta=0.1)
 
 
+class TestInputDomainTransforms(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temp_dir = Path(tempfile.mkdtemp(prefix="activity-loso-"))
+        self.dataset_root = self.temp_dir / "dataset"
+        _make_fake_dataset(self.dataset_root, n_subjects=4, n_per_subject=6)
+        self.module = load_module()
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.temp_dir)
+
+    def test_fft_transform_returns_log_power_rfft_shape(self) -> None:
+        windows = np.ones((2, 1, 3, 8), dtype=np.float32)
+
+        transformed = self.module.transform_windows_for_input_domain(windows, "fft")
+
+        self.assertEqual(transformed.shape, (2, 1, 3, 5))
+        self.assertEqual(transformed.dtype, np.float32)
+        self.assertAlmostEqual(float(transformed[0, 0, 0, 0]), np.log1p(64.0), places=5)
+
+    def test_build_dataloaders_fft_uses_frequency_axis(self) -> None:
+        (
+            _train_loader,
+            _test_loader,
+            _n_channels,
+            n_times,
+            _n_classes,
+            _n_train_samples,
+            _n_test_samples,
+        ) = self.module.build_dataloaders(
+            self.dataset_root,
+            test_subject_id=1,
+            batch_size=4,
+            input_domain="fft",
+        )
+
+        self.assertEqual(n_times, 321)
+
+
 class TestActivityConformerForward(unittest.TestCase):
     def setUp(self) -> None:
         self.temp_dir = Path(tempfile.mkdtemp(prefix="activity-loso-"))
@@ -267,6 +305,10 @@ class TestParseArgsDefaults(unittest.TestCase):
     def test_accepts_class_weights_argument(self) -> None:
         args = self.module.parse_args(["--class-weights", "3,3,1"])
         self.assertEqual(args.class_weights, "3,3,1")
+
+    def test_accepts_input_domain_argument(self) -> None:
+        args = self.module.parse_args(["--input-domain", "fft"])
+        self.assertEqual(args.input_domain, "fft")
 
 
 class TestMaybeRerunInProjectEnv(unittest.TestCase):
@@ -421,6 +463,7 @@ class TestMainWiring(unittest.TestCase):
             device="cuda:0",
             output_dir=self.temp_dir / "out",
             seed=42,
+            input_domain="time",
         )
 
         with patch.object(self.module, "parse_args", return_value=fake_args):
@@ -448,6 +491,8 @@ class TestMainWiring(unittest.TestCase):
             device="cpu",
             output_dir=self.temp_dir / "out",
             seed=42,
+            input_domain="time",
+            class_weights=None,
         )
 
         with patch.object(self.module, "maybe_rerun_in_project_env", return_value=None):
@@ -469,6 +514,7 @@ class TestMainWiring(unittest.TestCase):
             device=None,
             output_dir=None,
             seed=None,
+            input_domain=None,
             class_weights=None,
         )
 
