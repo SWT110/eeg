@@ -140,6 +140,8 @@ class TestRunGeneratedDatasetBatch(unittest.TestCase):
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].status, "trained")
         self.assertEqual(results[0].summary_json, self.output_dir / "summary.json")
+        self.assertTrue((self.output_dir / "experiment_manifest.json").exists())
+        self.assertTrue((self.output_dir / "experiment_manifest.md").exists())
 
     def test_skips_fully_complete_dataset(self) -> None:
         self.output_dir.mkdir(parents=True, exist_ok=True)

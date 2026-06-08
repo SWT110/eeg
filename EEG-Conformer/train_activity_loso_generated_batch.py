@@ -4,8 +4,9 @@ EEG-Conformer – Batch LOSO training for config-generated activity datasets
 
 Reads window/stride combinations from ``window_stride_configs.json``, maps
 them to generated dataset directories, trains each dataset with the existing
-``train_activity_loso_batch.py`` logic, and writes per-dataset summaries via
-``summarize_loso_results.py``.
+``train_activity_loso_batch.py`` logic, and writes per-dataset summaries plus
+experiment manifests via ``summarize_loso_results.py`` and
+``experiment_manifest.py``.
 
 Directory convention
 --------------------
@@ -32,6 +33,8 @@ from typing import NamedTuple
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 EEG_ROOT = PROJECT_ROOT.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 if str(EEG_ROOT) not in sys.path:
     sys.path.insert(0, str(EEG_ROOT))
 
@@ -40,6 +43,7 @@ from eeg_project_paths import (
     GLOBAL_ACTIVITY_DATASET_DIR,
     WINDOW_STRIDE_CONFIG,
 )
+from experiment_manifest import utc_now_iso, write_loso_experiment_manifest
 
 DEFAULT_CONFIG = WINDOW_STRIDE_CONFIG
 DEFAULT_DATASET_BASE = GLOBAL_ACTIVITY_DATASET_DIR
@@ -274,6 +278,79 @@ def summarize_output_dir(output_dir: str | Path) -> Path:
     return json_path
 
 
+def build_manifest_training_config(
+    train_batch: ModuleType | object,
+    epochs: int,
+    lr: float,
+    seed: int,
+    input_domain: str,
+    class_weights: list[float] | None,
+) -> dict:
+    return {
+        "input_domain": input_domain,
+        "epochs": epochs,
+        "lr": lr,
+        "seed": seed,
+        "class_weights": class_weights,
+        "optimizer": "Adam",
+        "optimizer_betas": list(getattr(train_batch, "DEFAULT_BETAS", (0.5, 0.999))),
+        "loss": "CrossEntropyLoss",
+        "emb_size": getattr(train_batch, "DEFAULT_EMB_SIZE", 40),
+        "depth": getattr(train_batch, "DEFAULT_DEPTH", 6),
+        "num_heads": getattr(train_batch, "DEFAULT_NUM_HEADS", 5),
+        "dropout": getattr(train_batch, "DEFAULT_DROPOUT", 0.5),
+    }
+
+
+def write_dataset_manifest(
+    job: DatasetJob,
+    train_batch: ModuleType | object,
+    epochs: int,
+    batch_size: int,
+    lr: float,
+    device: str,
+    skip_existing: bool,
+    seed: int,
+    input_domain: str,
+    class_weights: list[float] | None,
+    config_path: str | Path | None,
+    command_line: list[str] | None,
+    run_status: str,
+    run_started_at: str | None,
+    run_ended_at: str | None,
+    note: str | None = None,
+) -> tuple[Path, Path]:
+    return write_loso_experiment_manifest(
+        dataset_root=job.dataset_root,
+        output_dir=job.output_dir,
+        dataset_name=job.dataset_name,
+        input_domain=input_domain,
+        training_config=build_manifest_training_config(
+            train_batch=train_batch,
+            epochs=epochs,
+            lr=lr,
+            seed=seed,
+            input_domain=input_domain,
+            class_weights=class_weights,
+        ),
+        runtime_config={
+            "device": device,
+            "batch_size": batch_size,
+            "skip_existing": skip_existing,
+            "output_dir": str(job.output_dir),
+            "output_base": str(job.output_dir.parent),
+        },
+        config_path=config_path,
+        script_path=Path(__file__).resolve(),
+        command_line=command_line,
+        run_status=run_status,
+        run_started_at=run_started_at,
+        run_ended_at=run_ended_at,
+        project_root=EEG_ROOT,
+        note=note,
+    )
+
+
 def run_generated_dataset_batch(
     jobs: list[DatasetJob],
     epochs: int,
@@ -284,6 +361,8 @@ def run_generated_dataset_batch(
     seed: int = 42,
     input_domain: str = DEFAULT_INPUT_DOMAIN,
     class_weights: list[float] | None = None,
+    config_path: str | Path | None = None,
+    command_line: list[str] | None = None,
 ) -> list[DatasetRunResult]:
     train_batch = _load_train_batch_module()
     resolved_input_domain = validate_input_domain(input_domain)
@@ -292,6 +371,7 @@ def run_generated_dataset_batch(
     print(f"Planned datasets: {len(jobs)}")
     for job in jobs:
         try:
+            run_started_at = utc_now_iso()
             missing = missing_dataset_files(job.dataset_root)
             if missing:
                 raise FileNotFoundError(
@@ -304,6 +384,30 @@ def run_generated_dataset_batch(
                 resolved_input_domain,
             ):
                 summary_json = job.output_dir / "summary.json"
+                manifest_json = job.output_dir / "experiment_manifest.json"
+                if not manifest_json.exists():
+                    written_manifest_json, written_manifest_md = write_dataset_manifest(
+                        job=job,
+                        train_batch=train_batch,
+                        epochs=epochs,
+                        batch_size=batch_size,
+                        lr=lr,
+                        device=device,
+                        skip_existing=skip_existing,
+                        seed=seed,
+                        input_domain=resolved_input_domain,
+                        class_weights=class_weights,
+                        config_path=config_path,
+                        command_line=command_line,
+                        run_status="skipped_existing",
+                        run_started_at=run_started_at,
+                        run_ended_at=utc_now_iso(),
+                        note=(
+                            "Output directory was complete before this invocation; "
+                            "fold metrics are used where available, runtime fields reflect the current command."
+                        ),
+                    )
+                    print(f"[MANIFEST] {written_manifest_json}  {written_manifest_md}")
                 print(f"[SKIP] dataset={job.dataset_name} output_dir={job.output_dir}")
                 results.append(
                     DatasetRunResult(
@@ -331,7 +435,25 @@ def run_generated_dataset_batch(
                 class_weights=class_weights,
             )
             summary_json = summarize_output_dir(job.output_dir)
+            manifest_json, manifest_md = write_dataset_manifest(
+                job=job,
+                train_batch=train_batch,
+                epochs=epochs,
+                batch_size=batch_size,
+                lr=lr,
+                device=device,
+                skip_existing=skip_existing,
+                seed=seed,
+                input_domain=resolved_input_domain,
+                class_weights=class_weights,
+                config_path=config_path,
+                command_line=command_line,
+                run_status="trained",
+                run_started_at=run_started_at,
+                run_ended_at=utc_now_iso(),
+            )
             print(f"[DONE] dataset={job.dataset_name} summary={summary_json}")
+            print(f"[MANIFEST] {manifest_json}  {manifest_md}")
             results.append(
                 DatasetRunResult(
                     dataset_name=job.dataset_name,
@@ -449,6 +571,8 @@ def main(argv: list[str] | None = None) -> None:
         seed=args.seed,
         input_domain=input_domain,
         class_weights=class_weights,
+        config_path=config_path,
+        command_line=[sys.executable, str(Path(__file__).resolve()), *runtime_argv],
     )
 
 
