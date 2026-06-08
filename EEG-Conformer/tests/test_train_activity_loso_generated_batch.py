@@ -290,6 +290,10 @@ class TestParseArgs(unittest.TestCase):
         args = self.module.parse_args(["--input-domain", "fft"])
         self.assertEqual(args.input_domain, "fft")
 
+    def test_accepts_time_fft_input_domain_argument(self) -> None:
+        args = self.module.parse_args(["--input-domain", "time_fft"])
+        self.assertEqual(args.input_domain, "time_fft")
+
 
 if __name__ == "__main__":
     unittest.main()

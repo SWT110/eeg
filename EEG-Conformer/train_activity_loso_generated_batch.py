@@ -126,8 +126,8 @@ def validate_input_domain(raw: str | None) -> str:
         return validator(raw)
 
     value = DEFAULT_INPUT_DOMAIN if raw is None else str(raw).strip().lower()
-    if value not in {DEFAULT_INPUT_DOMAIN, "fft"}:
-        raise ValueError("input_domain must be one of: time, fft")
+    if value not in {DEFAULT_INPUT_DOMAIN, "fft", "time_fft"}:
+        raise ValueError("input_domain must be one of: time, fft, time_fft")
     return value
 
 
@@ -392,7 +392,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--input-domain",
         type=str,
         default=DEFAULT_INPUT_DOMAIN,
-        help="Input representation: time or fft (default: time)",
+        help="Input representation: time, fft, or time_fft dual branch (default: time)",
     )
     parser.add_argument(
         "--class-weights",

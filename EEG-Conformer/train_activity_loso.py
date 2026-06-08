@@ -66,7 +66,9 @@ DEFAULT_NUM_HEADS = 5
 DEFAULT_DROPOUT = 0.5
 DEFAULT_ENV_NAME = "eegconformer310"
 DEFAULT_INPUT_DOMAIN = "time"
-VALID_INPUT_DOMAINS = ("time", "fft")
+FFT_INPUT_DOMAIN = "fft"
+DUAL_INPUT_DOMAIN = "time_fft"
+VALID_INPUT_DOMAINS = (DEFAULT_INPUT_DOMAIN, FFT_INPUT_DOMAIN, DUAL_INPUT_DOMAIN)
 AUTO_RERUN_ENV_VAR = "TRAIN_ACTIVITY_LOSO_PROJECT_ENV_ACTIVE"
 
 
@@ -247,6 +249,102 @@ class ClassificationHead(nn.Module):
         return x, out
 
 
+class ConformerFeatureBranch(nn.Module):
+    """EEG-Conformer feature extractor used by the dual-branch model.
+
+    It mirrors the single-branch stem (PatchEmbedding + TransformerEncoder),
+    but returns the flattened token features instead of applying a classifier.
+    """
+
+    def __init__(
+        self,
+        n_channels: int,
+        n_times: int,
+        emb_size: int = 40,
+        depth: int = 6,
+        num_heads: int = 5,
+        dropout: float = 0.5,
+    ) -> None:
+        super().__init__()
+        n_patches = compute_n_patches(n_times)
+        self.flat_size = emb_size * n_patches
+        self.patch_embedding = PatchEmbedding(n_channels, emb_size, dropout)
+        self.encoder = TransformerEncoder(depth, emb_size, num_heads)
+
+    def forward(self, x: Tensor) -> Tensor:
+        x = self.patch_embedding(x)
+        x = self.encoder(x)
+        return x.contiguous().view(x.size(0), -1)
+
+
+class FusionClassificationHead(nn.Module):
+    """MLP classifier for already-flattened single or fused features."""
+
+    def __init__(self, in_features: int, n_classes: int) -> None:
+        super().__init__()
+        self.fc = nn.Sequential(
+            nn.Linear(in_features, 256),
+            nn.ELU(),
+            nn.Dropout(0.5),
+            nn.Linear(256, 32),
+            nn.ELU(),
+            nn.Dropout(0.3),
+            nn.Linear(32, n_classes),
+        )
+
+    def forward(self, x: Tensor) -> tuple[Tensor, Tensor]:
+        return x, self.fc(x)
+
+
+class DualBranchActivityConformer(nn.Module):
+    """Dual-branch EEG-Conformer using both time-domain and FFT features.
+
+    The two branches have independent CNN + Transformer stacks because the
+    time-domain waveform and log-power spectrum have different distributions
+    and usually different sequence lengths.  Their flattened features are
+    concatenated before the final MLP classifier.
+    """
+
+    def __init__(
+        self,
+        n_channels: int,
+        time_n_times: int,
+        fft_n_times: int,
+        n_classes: int = 3,
+        emb_size: int = 40,
+        depth: int = 6,
+        num_heads: int = 5,
+        dropout: float = 0.5,
+    ) -> None:
+        super().__init__()
+        self.time_branch = ConformerFeatureBranch(
+            n_channels=n_channels,
+            n_times=time_n_times,
+            emb_size=emb_size,
+            depth=depth,
+            num_heads=num_heads,
+            dropout=dropout,
+        )
+        self.fft_branch = ConformerFeatureBranch(
+            n_channels=n_channels,
+            n_times=fft_n_times,
+            emb_size=emb_size,
+            depth=depth,
+            num_heads=num_heads,
+            dropout=dropout,
+        )
+        self.cls_head = FusionClassificationHead(
+            self.time_branch.flat_size + self.fft_branch.flat_size,
+            n_classes,
+        )
+
+    def forward(self, x_time: Tensor, x_fft: Tensor) -> tuple[Tensor, Tensor]:
+        time_features = self.time_branch(x_time)
+        fft_features = self.fft_branch(x_fft)
+        fused_features = torch.cat([time_features, fft_features], dim=1)
+        return self.cls_head(fused_features)
+
+
 class ActivityConformer(nn.Module):
     """EEG-Conformer for activity three-class LOSO classification.
 
@@ -301,18 +399,37 @@ def validate_input_domain(raw: str | None) -> str:
     return value
 
 
+def is_dual_input_domain(input_domain: str | None) -> bool:
+    return validate_input_domain(input_domain) == DUAL_INPUT_DOMAIN
+
+
+def transform_windows_to_fft(windows: np.ndarray) -> np.ndarray:
+    """Convert windows to log-power rFFT representation along the time axis."""
+    array = np.asarray(windows, dtype=np.float32)
+    spectrum = np.fft.rfft(array, axis=-1)
+    power = np.abs(spectrum) ** 2
+    return np.log1p(power).astype(np.float32, copy=False)
+
+
 def transform_windows_for_input_domain(
     windows: np.ndarray,
     input_domain: str,
 ) -> np.ndarray:
+    """Return a single-domain representation for ``time`` or ``fft`` modes.
+
+    The dual-domain ``time_fft`` mode intentionally uses
+    ``prepare_split_inputs_for_input_domain`` because it needs two separately
+    standardised tensors instead of one array.
+    """
     resolved_input_domain = validate_input_domain(input_domain)
     array = np.asarray(windows, dtype=np.float32)
-    if resolved_input_domain == "time":
+    if resolved_input_domain == DEFAULT_INPUT_DOMAIN:
         return array.astype(np.float32, copy=False)
-
-    spectrum = np.fft.rfft(array, axis=-1)
-    power = np.abs(spectrum) ** 2
-    return np.log1p(power).astype(np.float32, copy=False)
+    if resolved_input_domain == FFT_INPUT_DOMAIN:
+        return transform_windows_to_fft(array)
+    raise ValueError(
+        "time_fft is a dual-input mode; use prepare_split_inputs_for_input_domain"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -374,6 +491,55 @@ def standardize_by_train(
     return (train_X - mean) / std, (test_X - mean) / std
 
 
+def prepare_split_inputs_for_input_domain(
+    train_X: np.ndarray,
+    test_X: np.ndarray,
+    input_domain: str = DEFAULT_INPUT_DOMAIN,
+) -> tuple[np.ndarray | tuple[np.ndarray, np.ndarray], np.ndarray | tuple[np.ndarray, np.ndarray]]:
+    """Transform and standardise train/test arrays for the requested domain.
+
+    ``time`` and ``fft`` return one train/test array each.  ``time_fft`` returns
+    ``(time_array, fft_array)`` for each split and standardises the two domains
+    independently with statistics computed from the training split only.
+    """
+    resolved_input_domain = validate_input_domain(input_domain)
+
+    if resolved_input_domain == DUAL_INPUT_DOMAIN:
+        train_time = transform_windows_for_input_domain(train_X, DEFAULT_INPUT_DOMAIN)
+        test_time = transform_windows_for_input_domain(test_X, DEFAULT_INPUT_DOMAIN)
+        train_fft = transform_windows_for_input_domain(train_X, FFT_INPUT_DOMAIN)
+        test_fft = transform_windows_for_input_domain(test_X, FFT_INPUT_DOMAIN)
+
+        train_time, test_time = standardize_by_train(train_time, test_time)
+        train_fft, test_fft = standardize_by_train(train_fft, test_fft)
+        return (train_time, train_fft), (test_time, test_fft)
+
+    train_single = transform_windows_for_input_domain(train_X, resolved_input_domain)
+    test_single = transform_windows_for_input_domain(test_X, resolved_input_domain)
+    return standardize_by_train(train_single, test_single)
+
+
+def tensor_dataset_from_inputs(
+    inputs: np.ndarray | tuple[np.ndarray, np.ndarray],
+    labels: np.ndarray,
+) -> TensorDataset:
+    label_tensor = torch.from_numpy(labels).long()
+    if isinstance(inputs, tuple):
+        time_X, fft_X = inputs
+        return TensorDataset(
+            torch.from_numpy(time_X).float(),
+            torch.from_numpy(fft_X).float(),
+            label_tensor,
+        )
+    return TensorDataset(torch.from_numpy(inputs).float(), label_tensor)
+
+
+def primary_input_array(
+    inputs: np.ndarray | tuple[np.ndarray, np.ndarray],
+) -> np.ndarray:
+    return inputs[0] if isinstance(inputs, tuple) else inputs
+
+
 def build_dataloaders(
     dataset_root: str | Path,
     test_subject_id: int,
@@ -389,40 +555,60 @@ def build_dataloaders(
     """
     X, y, subject_ids = load_global_dataset(dataset_root)
     train_X, train_y, test_X, test_y = loso_split(X, y, subject_ids, test_subject_id)
-    train_X = transform_windows_for_input_domain(train_X, input_domain)
-    test_X = transform_windows_for_input_domain(test_X, input_domain)
-    train_X, test_X = standardize_by_train(train_X, test_X)
+    train_inputs, test_inputs = prepare_split_inputs_for_input_domain(
+        train_X,
+        test_X,
+        input_domain,
+    )
 
-    n_channels = train_X.shape[2]
-    n_times = train_X.shape[3]
+    primary_train_X = primary_input_array(train_inputs)
+    primary_test_X = primary_input_array(test_inputs)
+    n_channels = primary_train_X.shape[2]
+    n_times = primary_train_X.shape[3]
     n_classes = int(y.max()) + 1
 
     train_loader = DataLoader(
-        TensorDataset(
-            torch.from_numpy(train_X).float(),
-            torch.from_numpy(train_y).long(),
-        ),
+        tensor_dataset_from_inputs(train_inputs, train_y),
         batch_size=batch_size,
         shuffle=True,
     )
     test_loader = DataLoader(
-        TensorDataset(
-            torch.from_numpy(test_X).float(),
-            torch.from_numpy(test_y).long(),
-        ),
+        tensor_dataset_from_inputs(test_inputs, test_y),
         batch_size=batch_size,
         shuffle=False,
     )
     return (
         train_loader, test_loader,
         n_channels, n_times, n_classes,
-        len(train_X), len(test_X),
+        len(primary_train_X), len(primary_test_X),
     )
 
 
 # ---------------------------------------------------------------------------
 # Evaluation
 # ---------------------------------------------------------------------------
+
+def forward_model_batch(
+    model: nn.Module,
+    batch: list[Tensor] | tuple[Tensor, ...],
+    device: torch.device,
+) -> tuple[Tensor, Tensor]:
+    """Move a single- or dual-input batch to device and return logits + labels."""
+    if len(batch) == 3:
+        batch_X_time, batch_X_fft, batch_y = batch
+        batch_X_time = batch_X_time.to(device)
+        batch_X_fft = batch_X_fft.to(device)
+        batch_y = batch_y.to(device)
+        _, logits = model(batch_X_time, batch_X_fft)
+        return logits, batch_y
+    if len(batch) == 2:
+        batch_X, batch_y = batch
+        batch_X = batch_X.to(device)
+        batch_y = batch_y.to(device)
+        _, logits = model(batch_X)
+        return logits, batch_y
+    raise ValueError(f"Expected batch with 2 or 3 tensors, got {len(batch)}")
+
 
 def evaluate(
     model: nn.Module,
@@ -437,14 +623,13 @@ def evaluate(
     total_samples = 0
 
     with torch.no_grad():
-        for batch_X, batch_y in dataloader:
-            batch_X = batch_X.to(device)
-            batch_y = batch_y.to(device)
-            _, logits = model(batch_X)
+        for batch in dataloader:
+            logits, batch_y = forward_model_batch(model, batch, device)
             loss = criterion(logits, batch_y)
-            total_loss += float(loss.item()) * len(batch_X)
+            batch_size = len(batch_y)
+            total_loss += float(loss.item()) * batch_size
             total_correct += int((logits.argmax(dim=1) == batch_y).sum().item())
-            total_samples += len(batch_X)
+            total_samples += batch_size
 
     return total_loss / total_samples, total_correct / total_samples
 
@@ -459,11 +644,10 @@ def collect_predictions(
     all_true: list[int] = []
     all_pred: list[int] = []
     with torch.no_grad():
-        for batch_X, batch_y in dataloader:
-            batch_X = batch_X.to(device)
-            _, logits = model(batch_X)
+        for batch in dataloader:
+            logits, batch_y = forward_model_batch(model, batch, device)
             all_pred.extend(logits.argmax(dim=1).cpu().tolist())
-            all_true.extend(batch_y.tolist())
+            all_true.extend(batch_y.cpu().tolist())
     return np.array(all_true, dtype=np.int64), np.array(all_pred, dtype=np.int64)
 
 
@@ -617,15 +801,38 @@ def train_loso_fold(
         input_domain=resolved_input_domain,
     )
 
-    model = ActivityConformer(
-        n_channels=n_channels,
-        n_times=n_times,
-        n_classes=n_classes,
-        emb_size=emb_size,
-        depth=depth,
-        num_heads=num_heads,
-        dropout=dropout,
-    ).to(device_obj)
+    model_type = "dual_branch" if resolved_input_domain == DUAL_INPUT_DOMAIN else "single_branch"
+    branch_shape_metadata: dict[str, int] = {"n_times": int(n_times)}
+    if resolved_input_domain == DUAL_INPUT_DOMAIN:
+        dataset_tensors = train_loader.dataset.tensors  # type: ignore[attr-defined]
+        time_n_times = int(dataset_tensors[0].shape[3])
+        fft_n_times = int(dataset_tensors[1].shape[3])
+        branch_shape_metadata.update(
+            {
+                "time_n_times": time_n_times,
+                "fft_n_times": fft_n_times,
+            }
+        )
+        model = DualBranchActivityConformer(
+            n_channels=n_channels,
+            time_n_times=time_n_times,
+            fft_n_times=fft_n_times,
+            n_classes=n_classes,
+            emb_size=emb_size,
+            depth=depth,
+            num_heads=num_heads,
+            dropout=dropout,
+        ).to(device_obj)
+    else:
+        model = ActivityConformer(
+            n_channels=n_channels,
+            n_times=n_times,
+            n_classes=n_classes,
+            emb_size=emb_size,
+            depth=depth,
+            num_heads=num_heads,
+            dropout=dropout,
+        ).to(device_obj)
 
     # Adam + CrossEntropyLoss – identical hyper-parameters to original
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, betas=DEFAULT_BETAS)
@@ -659,22 +866,32 @@ def train_loso_fold(
         "lr": lr,
         "seed": seed,
         "input_domain": resolved_input_domain,
+        "model_type": model_type,
         "class_weights": class_weights,
         "n_train_samples": n_train_samples,
         "n_test_samples": n_test_samples,
         "n_channels": n_channels,
         "n_times": n_times,
         "n_classes": n_classes,
+        **branch_shape_metadata,
     }
 
     def log(message: str) -> None:
         print(message)
         append_training_log(log_path, message)
 
+    if resolved_input_domain == DUAL_INPUT_DOMAIN:
+        shape_text = (
+            f"time_shape=(1,{n_channels},{branch_shape_metadata['time_n_times']})  "
+            f"fft_shape=(1,{n_channels},{branch_shape_metadata['fft_n_times']})"
+        )
+    else:
+        shape_text = f"shape=(1,{n_channels},{n_times})"
+
     log(
         f"\n[LOSO fold subject={test_subject_id}] "
         f"train={n_train_samples}  test={n_test_samples}  "
-        f"shape=(1,{n_channels},{n_times})  classes={n_classes}"
+        f"{shape_text}  classes={n_classes}  model={model_type}"
     )
 
     for epoch in range(epochs):
@@ -684,19 +901,17 @@ def train_loso_fold(
         running_correct = 0
         running_samples = 0
 
-        for batch_X, batch_y in train_loader:
-            batch_X = batch_X.to(device_obj)
-            batch_y = batch_y.to(device_obj)
-
+        for batch in train_loader:
             optimizer.zero_grad()
-            _, logits = model(batch_X)
+            logits, batch_y = forward_model_batch(model, batch, device_obj)
             loss = criterion(logits, batch_y)
             loss.backward()
             optimizer.step()
 
-            running_loss += float(loss.item()) * len(batch_X)
+            batch_size_actual = len(batch_y)
+            running_loss += float(loss.item()) * batch_size_actual
             running_correct += int((logits.argmax(dim=1) == batch_y).sum().item())
-            running_samples += len(batch_X)
+            running_samples += batch_size_actual
 
         train_loss = running_loss / running_samples
         train_acc = running_correct / running_samples
@@ -722,6 +937,8 @@ def train_loso_fold(
                     "depth": depth,
                     "num_heads": num_heads,
                     "input_domain": resolved_input_domain,
+                    "model_type": model_type,
+                    **branch_shape_metadata,
                 },
                 fold_dir / "best_model.pt",
             )
@@ -765,8 +982,10 @@ def train_loso_fold(
         "lr": lr,
         "seed": seed,
         "input_domain": resolved_input_domain,
+        "model_type": model_type,
         "class_weights": class_weights,
         "best_epoch": best_epoch,
+        **branch_shape_metadata,
         "epoch_history_csv": str(history_csv_path),
         "epoch_history_json": str(history_json_path),
         "train_log": str(log_path),
@@ -1095,7 +1314,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--input-domain",
         type=str,
         default=DEFAULT_INPUT_DOMAIN,
-        help="Input representation: time or fft (default: time)",
+        help="Input representation: time, fft, or time_fft dual branch (default: time)",
     )
     parser.add_argument(
         "--class-weights",

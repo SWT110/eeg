@@ -215,6 +215,44 @@ class TestInputDomainTransforms(unittest.TestCase):
 
         self.assertEqual(n_times, 321)
 
+    def test_prepare_time_fft_returns_separately_standardized_inputs(self) -> None:
+        rng = np.random.default_rng(11)
+        train_raw = rng.random((8, 1, 3, 200), dtype=np.float32) * 4 + 3
+        test_raw = rng.random((3, 1, 3, 200), dtype=np.float32) * 4 + 3
+
+        train_inputs, test_inputs = self.module.prepare_split_inputs_for_input_domain(
+            train_raw,
+            test_raw,
+            "time_fft",
+        )
+
+        train_time, train_fft = train_inputs
+        test_time, test_fft = test_inputs
+        self.assertEqual(train_time.shape, (8, 1, 3, 200))
+        self.assertEqual(test_time.shape, (3, 1, 3, 200))
+        self.assertEqual(train_fft.shape, (8, 1, 3, 101))
+        self.assertEqual(test_fft.shape, (3, 1, 3, 101))
+        self.assertAlmostEqual(float(train_time.mean()), 0.0, places=4)
+        self.assertAlmostEqual(float(train_time.std()), 1.0, places=4)
+        self.assertAlmostEqual(float(train_fft.mean()), 0.0, places=4)
+        self.assertAlmostEqual(float(train_fft.std()), 1.0, places=4)
+
+    def test_build_dataloaders_time_fft_returns_dual_batches(self) -> None:
+        train_loader, _test_loader, _n_channels, n_times, _n_classes, *_ = self.module.build_dataloaders(
+            self.dataset_root,
+            test_subject_id=1,
+            batch_size=4,
+            input_domain="time_fft",
+        )
+
+        batch = next(iter(train_loader))
+        self.assertEqual(len(batch), 3)
+        batch_time, batch_fft, batch_y = batch
+        self.assertEqual(n_times, 640)
+        self.assertEqual(batch_time.shape[1:], (1, 21, 640))
+        self.assertEqual(batch_fft.shape[1:], (1, 21, 321))
+        self.assertEqual(batch_y.ndim, 1)
+
 
 class TestActivityConformerForward(unittest.TestCase):
     def setUp(self) -> None:
@@ -260,6 +298,21 @@ class TestActivityConformerForward(unittest.TestCase):
             batch = torch.randn(2, 1, n_ch, 640)
             _, logits = model(batch)
             self.assertEqual(tuple(logits.shape), (2, 3), msg=f"n_channels={n_ch}")
+
+    def test_dual_branch_forward_time_and_fft_inputs(self) -> None:
+        model = self.module.DualBranchActivityConformer(
+            n_channels=21,
+            time_n_times=200,
+            fft_n_times=101,
+            n_classes=3,
+            depth=1,
+        )
+        batch_time = torch.randn(2, 1, 21, 200)
+        batch_fft = torch.randn(2, 1, 21, 101)
+        features, logits = model(batch_time, batch_fft)
+
+        self.assertEqual(features.shape[0], 2)
+        self.assertEqual(tuple(logits.shape), (2, 3))
 
 
 class TestParseArgsDefaults(unittest.TestCase):
@@ -309,6 +362,11 @@ class TestParseArgsDefaults(unittest.TestCase):
     def test_accepts_input_domain_argument(self) -> None:
         args = self.module.parse_args(["--input-domain", "fft"])
         self.assertEqual(args.input_domain, "fft")
+
+    def test_accepts_time_fft_input_domain_argument(self) -> None:
+        args = self.module.parse_args(["--input-domain", "time_fft"])
+        self.assertEqual(args.input_domain, "time_fft")
+        self.assertEqual(self.module.validate_input_domain(args.input_domain), "time_fft")
 
 
 class TestMaybeRerunInProjectEnv(unittest.TestCase):

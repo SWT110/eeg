@@ -274,7 +274,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--input-domain",
         type=str,
         default=DEFAULT_INPUT_DOMAIN,
-        help="Input representation: time or fft (default: time)",
+        help="Input representation: time, fft, or time_fft dual branch (default: time)",
     )
     parser.add_argument(
         "--class-weights",
