@@ -254,6 +254,74 @@ class TestInputDomainTransforms(unittest.TestCase):
         self.assertEqual(batch_y.ndim, 1)
 
 
+class TestCumulativeQueryAttention(unittest.TestCase):
+    def setUp(self) -> None:
+        self.module = load_module()
+
+    @staticmethod
+    def _make_identity_attention(module):
+        attention = module.MultiHeadAttention(emb_size=4, num_heads=1, dropout=0.0)
+        with torch.no_grad():
+            for linear in (attention.queries, attention.keys, attention.values, attention.projection):
+                linear.weight.copy_(torch.eye(4))
+                linear.bias.zero_()
+        attention.eval()
+        return attention
+
+    def test_attention_uses_sum_of_previous_and_current_queries(self) -> None:
+        attention = self._make_identity_attention(self.module)
+        x1 = torch.tensor([[[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0]]])
+        x2 = torch.tensor([[[0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]])
+
+        _, q1 = attention(
+            x1,
+            cumulative_query_attention=True,
+            return_cumulative_queries=True,
+        )
+        output, q12 = attention(
+            x2,
+            cumulative_queries=q1,
+            cumulative_query_attention=True,
+            return_cumulative_queries=True,
+        )
+
+        expected_q12 = x1.unsqueeze(1) + x2.unsqueeze(1)
+        expected_energy = torch.einsum("bhqd,bhkd->bhqk", expected_q12, x2.unsqueeze(1))
+        expected_attention = torch.softmax(expected_energy / (4 ** 0.5), dim=-1)
+        expected_output = torch.einsum("bhal,bhlv->bhav", expected_attention, x2.unsqueeze(1))
+        expected_output = expected_output.transpose(1, 2).contiguous().view(1, 2, 4)
+
+        torch.testing.assert_close(q12, expected_q12)
+        torch.testing.assert_close(output, expected_output)
+
+    def test_disabled_mode_matches_original_block_sequence(self) -> None:
+        encoder = self.module.TransformerEncoder(
+            depth=3,
+            emb_size=40,
+            num_heads=5,
+            cumulative_query_attention=False,
+        ).eval()
+        x = torch.randn(2, 7, 40)
+        expected = x
+        for block in encoder:
+            expected = block(expected)
+
+        torch.testing.assert_close(encoder(x), expected)
+
+    def test_cumulative_state_resets_for_each_encoder_forward(self) -> None:
+        encoder = self.module.TransformerEncoder(
+            depth=3,
+            emb_size=40,
+            num_heads=5,
+            cumulative_query_attention=True,
+        ).eval()
+        x = torch.randn(2, 7, 40)
+        first = encoder(x)
+        second = encoder(x)
+
+        torch.testing.assert_close(first, second)
+
+
 class TestActivityConformerForward(unittest.TestCase):
     def setUp(self) -> None:
         self.temp_dir = Path(tempfile.mkdtemp(prefix="activity-loso-"))
@@ -314,6 +382,140 @@ class TestActivityConformerForward(unittest.TestCase):
         self.assertEqual(features.shape[0], 2)
         self.assertEqual(tuple(logits.shape), (2, 3))
 
+    def test_parallel_transformer_depths_are_symmetric_and_equal_weighted(self) -> None:
+        model = self.module.DualBranchActivityConformer(
+            n_channels=3,
+            time_n_times=120,
+            fft_n_times=101,
+            n_classes=3,
+            emb_size=10,
+            num_heads=5,
+            dropout=0.0,
+            transformer_depths=[2, 1, 3],
+        ).eval()
+
+        self.assertEqual(model.transformer_branch_depths, (2, 1, 3))
+        self.assertEqual([len(encoder) for encoder in model.time_branch.depth_encoders], [2, 1, 3])
+        self.assertEqual([len(encoder) for encoder in model.fft_branch.depth_encoders], [2, 1, 3])
+        self.assertIsNot(
+            model.time_branch.depth_weight_logits,
+            model.fft_branch.depth_weight_logits,
+        )
+        expected = torch.full((3,), 1.0 / 3.0)
+        torch.testing.assert_close(
+            model.time_branch.normalized_transformer_weights(), expected
+        )
+        torch.testing.assert_close(
+            model.fft_branch.normalized_transformer_weights(), expected
+        )
+
+        features, logits = model(
+            torch.randn(2, 1, 3, 120),
+            torch.randn(2, 1, 3, 101),
+        )
+        self.assertEqual(features.shape[0], 2)
+        self.assertEqual(tuple(logits.shape), (2, 3))
+
+    def test_parallel_transformer_weights_receive_gradients(self) -> None:
+        model = self.module.DualBranchActivityConformer(
+            n_channels=3,
+            time_n_times=120,
+            fft_n_times=101,
+            n_classes=3,
+            emb_size=10,
+            num_heads=5,
+            dropout=0.0,
+            transformer_depths=[1, 2],
+        )
+        _, logits = model(
+            torch.randn(2, 1, 3, 120),
+            torch.randn(2, 1, 3, 101),
+        )
+        logits.sum().backward()
+
+        self.assertIsNotNone(model.time_branch.depth_weight_logits.grad)
+        self.assertIsNotNone(model.fft_branch.depth_weight_logits.grad)
+
+    def test_default_dual_branch_keeps_legacy_encoder_state_dict_layout(self) -> None:
+        model = self.module.DualBranchActivityConformer(
+            n_channels=3,
+            time_n_times=120,
+            fft_n_times=101,
+            n_classes=3,
+            emb_size=10,
+            depth=1,
+            num_heads=5,
+        )
+        keys = list(model.state_dict())
+
+        self.assertTrue(any(key.startswith("time_branch.encoder.0") for key in keys))
+        self.assertTrue(any(key.startswith("fft_branch.encoder.0") for key in keys))
+        self.assertFalse(any("depth_weight_logits" in key for key in keys))
+
+    def test_patch_embedding_conv_type_controls_spatial_groups(self) -> None:
+        standard = self.module.PatchEmbedding(n_channels=21, conv_type="standard")
+        dwconv = self.module.PatchEmbedding(n_channels=21, conv_type="dw")
+
+        self.assertEqual(standard.shallownet[1].groups, 1)
+        self.assertEqual(dwconv.shallownet[1].groups, 40)
+        self.assertEqual(dwconv.conv_type, "dwconv")
+
+    def test_dual_branch_dwconv_uses_depthwise_spatial_conv(self) -> None:
+        model = self.module.DualBranchActivityConformer(
+            n_channels=21,
+            time_n_times=200,
+            fft_n_times=101,
+            n_classes=3,
+            depth=1,
+            conv_type="dwconv",
+        )
+
+        self.assertEqual(model.time_branch.patch_embedding.shallownet[1].groups, 40)
+        self.assertEqual(model.fft_branch.patch_embedding.shallownet[1].groups, 40)
+
+    def test_fft_global_mlp_preserves_shape(self) -> None:
+        layer = self.module.FFTGlobalMLP(n_times=101)
+        batch = torch.randn(2, 1, 21, 101)
+
+        out = layer(batch)
+
+        self.assertEqual(tuple(out.shape), (2, 1, 21, 101))
+        self.assertEqual(layer.hidden_size, 25)
+
+    def test_fft_single_branch_global_mlp_forward(self) -> None:
+        model = self.module.ActivityConformer(
+            n_channels=21,
+            n_times=101,
+            n_classes=3,
+            depth=1,
+            fft_global="mlp",
+        )
+        batch = torch.randn(2, 1, 21, 101)
+
+        features, logits = model(batch)
+
+        self.assertEqual(features.shape[0], 2)
+        self.assertEqual(tuple(logits.shape), (2, 3))
+        self.assertEqual(model.fft_global, "mlp")
+
+    def test_dual_branch_fft_global_mlp_forward(self) -> None:
+        model = self.module.DualBranchActivityConformer(
+            n_channels=21,
+            time_n_times=200,
+            fft_n_times=101,
+            n_classes=3,
+            depth=1,
+            fft_global="mlp",
+        )
+        batch_time = torch.randn(2, 1, 21, 200)
+        batch_fft = torch.randn(2, 1, 21, 101)
+
+        features, logits = model(batch_time, batch_fft)
+
+        self.assertEqual(features.shape[0], 2)
+        self.assertEqual(tuple(logits.shape), (2, 3))
+        self.assertEqual(model.fft_global, "mlp")
+
 
 class TestParseArgsDefaults(unittest.TestCase):
     def setUp(self) -> None:
@@ -359,6 +561,42 @@ class TestParseArgsDefaults(unittest.TestCase):
         args = self.module.parse_args(["--class-weights", "3,3,1"])
         self.assertEqual(args.class_weights, "3,3,1")
 
+    def test_accepts_parallel_transformer_arguments(self) -> None:
+        args = self.module.parse_args(
+            ["--transformer-branches", "3", "--transformer-depths", "11", "10", "8"]
+        )
+        self.assertEqual(args.transformer_branches, 3)
+        self.assertEqual(args.transformer_depths, [11, 10, 8])
+        self.assertEqual(
+            self.module.resolve_transformer_branch_depths(
+                depth=args.depth,
+                transformer_branches=args.transformer_branches,
+                transformer_depths=args.transformer_depths,
+                input_domain="time_fft",
+            ),
+            (11, 10, 8),
+        )
+
+    def test_parallel_transformer_arguments_require_matching_count_and_dual_input(self) -> None:
+        with self.assertRaisesRegex(ValueError, "must equal"):
+            self.module.resolve_transformer_branch_depths(
+                transformer_branches=3,
+                transformer_depths=[11, 10],
+                input_domain="time_fft",
+            )
+        with self.assertRaisesRegex(ValueError, "time_fft"):
+            self.module.resolve_transformer_branch_depths(
+                transformer_branches=3,
+                transformer_depths=[11, 10, 8],
+                input_domain="time",
+            )
+
+    def test_cumulative_query_attention_is_opt_in(self) -> None:
+        self.assertFalse(self.module.parse_args([]).cumulative_query_attention)
+        self.assertTrue(
+            self.module.parse_args(["--cumulative-query-attention"]).cumulative_query_attention
+        )
+
     def test_accepts_input_domain_argument(self) -> None:
         args = self.module.parse_args(["--input-domain", "fft"])
         self.assertEqual(args.input_domain, "fft")
@@ -367,6 +605,20 @@ class TestParseArgsDefaults(unittest.TestCase):
         args = self.module.parse_args(["--input-domain", "time_fft"])
         self.assertEqual(args.input_domain, "time_fft")
         self.assertEqual(self.module.validate_input_domain(args.input_domain), "time_fft")
+
+    def test_accepts_conv_type_argument(self) -> None:
+        args = self.module.parse_args(["--conv-type", "dwconv"])
+        self.assertEqual(args.conv_type, "dwconv")
+        self.assertEqual(self.module.validate_conv_type(args.conv_type), "dwconv")
+
+    def test_accepts_fft_global_argument(self) -> None:
+        args = self.module.parse_args(["--fft-global", "mlp"])
+        self.assertEqual(args.fft_global, "mlp")
+        self.assertEqual(self.module.validate_fft_global(args.fft_global), "mlp")
+
+    def test_rejects_fft_global_mlp_for_time_domain(self) -> None:
+        with self.assertRaisesRegex(ValueError, "fft or time_fft"):
+            self.module.validate_fft_global_for_input_domain("time", "mlp")
 
 
 class TestMaybeRerunInProjectEnv(unittest.TestCase):

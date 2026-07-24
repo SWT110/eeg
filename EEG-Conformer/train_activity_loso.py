@@ -69,7 +69,145 @@ DEFAULT_INPUT_DOMAIN = "time"
 FFT_INPUT_DOMAIN = "fft"
 DUAL_INPUT_DOMAIN = "time_fft"
 VALID_INPUT_DOMAINS = (DEFAULT_INPUT_DOMAIN, FFT_INPUT_DOMAIN, DUAL_INPUT_DOMAIN)
+DEFAULT_CONV_TYPE = "standard"
+DWCONV_CONV_TYPE = "dwconv"
+VALID_CONV_TYPES = (DEFAULT_CONV_TYPE, DWCONV_CONV_TYPE)
+CONV_TYPE_ALIASES = {
+    "standard": DEFAULT_CONV_TYPE,
+    "conv": DEFAULT_CONV_TYPE,
+    "normal": DEFAULT_CONV_TYPE,
+    "dw": DWCONV_CONV_TYPE,
+    "dwconv": DWCONV_CONV_TYPE,
+    "depthwise": DWCONV_CONV_TYPE,
+    "depthwise_conv": DWCONV_CONV_TYPE,
+}
+DEFAULT_FFT_GLOBAL = "none"
+FFT_GLOBAL_MLP = "mlp"
+VALID_FFT_GLOBALS = (DEFAULT_FFT_GLOBAL, FFT_GLOBAL_MLP)
+FFT_GLOBAL_ALIASES = {
+    "none": DEFAULT_FFT_GLOBAL,
+    "off": DEFAULT_FFT_GLOBAL,
+    "false": DEFAULT_FFT_GLOBAL,
+    "no": DEFAULT_FFT_GLOBAL,
+    "mlp": FFT_GLOBAL_MLP,
+    "frequency_mlp": FFT_GLOBAL_MLP,
+    "freq_mlp": FFT_GLOBAL_MLP,
+}
+DEFAULT_INPUT_QKV = "none"
+INPUT_QKV_CHANNEL = "channel"
+INPUT_QKV_TIME = "time"
+VALID_INPUT_QKVS = (DEFAULT_INPUT_QKV, INPUT_QKV_CHANNEL, INPUT_QKV_TIME)
+INPUT_QKV_ALIASES = {
+    "none": DEFAULT_INPUT_QKV,
+    "off": DEFAULT_INPUT_QKV,
+    "false": DEFAULT_INPUT_QKV,
+    "no": DEFAULT_INPUT_QKV,
+    "channel": INPUT_QKV_CHANNEL,
+    "channels": INPUT_QKV_CHANNEL,
+    "channel_qkv": INPUT_QKV_CHANNEL,
+    "qkv": INPUT_QKV_CHANNEL,
+    "time": INPUT_QKV_TIME,
+    "temporal": INPUT_QKV_TIME,
+    "time_token": INPUT_QKV_TIME,
+    "time_tokens": INPUT_QKV_TIME,
+    "time_qkv": INPUT_QKV_TIME,
+    "temporal_qkv": INPUT_QKV_TIME,
+    "qkv_time": INPUT_QKV_TIME,
+}
+DEFAULT_INPUT_QKV_DIM = 64
+DEFAULT_INPUT_QKV_HEADS = 4
+DEFAULT_INPUT_QKV_DROPOUT = 0.1
+DEFAULT_INPUT_QKV_RES_SCALE = 0.1
+DEFAULT_CUMULATIVE_QUERY_ATTENTION = False
+DEFAULT_TRANSFORMER_BRANCHES = 1
+TRANSFORMER_FUSION_SINGLE = "single"
+TRANSFORMER_FUSION_SOFTMAX = "softmax_weighted_sum"
+DEFAULT_INPUT_QKV_TIME_TOKEN_LEN = 32
 AUTO_RERUN_ENV_VAR = "TRAIN_ACTIVITY_LOSO_PROJECT_ENV_ACTIVE"
+
+
+def validate_conv_type(raw: str | None) -> str:
+    value = DEFAULT_CONV_TYPE if raw is None else str(raw).strip().lower().replace("-", "_")
+    resolved = CONV_TYPE_ALIASES.get(value)
+    if resolved is None:
+        allowed = ", ".join(VALID_CONV_TYPES)
+        raise ValueError(f"conv_type must be one of: {allowed}")
+    return resolved
+
+
+def validate_fft_global(raw: str | None) -> str:
+    value = DEFAULT_FFT_GLOBAL if raw is None else str(raw).strip().lower().replace("-", "_")
+    resolved = FFT_GLOBAL_ALIASES.get(value)
+    if resolved is None:
+        allowed = ", ".join(VALID_FFT_GLOBALS)
+        raise ValueError(f"fft_global must be one of: {allowed}")
+    return resolved
+
+
+def validate_input_qkv(raw: str | None) -> str:
+    value = DEFAULT_INPUT_QKV if raw is None else str(raw).strip().lower().replace("-", "_")
+    resolved = INPUT_QKV_ALIASES.get(value)
+    if resolved is None:
+        allowed = ", ".join(VALID_INPUT_QKVS)
+        raise ValueError(f"input_qkv must be one of: {allowed}")
+    return resolved
+
+
+def validate_fft_global_for_input_domain(input_domain: str | None, fft_global: str | None) -> str:
+    resolved_input_domain = validate_input_domain(input_domain)
+    resolved_fft_global = validate_fft_global(fft_global)
+    if resolved_input_domain == DEFAULT_INPUT_DOMAIN and resolved_fft_global != DEFAULT_FFT_GLOBAL:
+        raise ValueError("--fft-global applies only to fft or time_fft input domains")
+    return resolved_fft_global
+
+
+def resolve_transformer_branch_depths(
+    depth: int = DEFAULT_DEPTH,
+    transformer_branches: int = DEFAULT_TRANSFORMER_BRANCHES,
+    transformer_depths: list[int] | tuple[int, ...] | None = None,
+    input_domain: str | None = None,
+) -> tuple[int, ...]:
+    """Validate the optional parallel Transformer depth configuration.
+
+    The historical single-encoder path remains ``--depth``.  Parallel depth
+    branches are deliberately limited to the ``time_fft`` dual-input model,
+    where time and FFT each receive an independent set of encoders and
+    independent learnable fusion logits.
+    """
+    resolved_depth = int(depth)
+    if resolved_depth < 1:
+        raise ValueError("depth must be >= 1")
+
+    resolved_branches = int(transformer_branches)
+    if resolved_branches < 1:
+        raise ValueError("transformer_branches must be >= 1")
+
+    if transformer_depths is None:
+        if resolved_branches != DEFAULT_TRANSFORMER_BRANCHES:
+            raise ValueError(
+                "--transformer-depths is required when --transformer-branches is greater than 1"
+            )
+        resolved_depths = (resolved_depth,)
+    else:
+        resolved_depths = tuple(int(value) for value in transformer_depths)
+        if len(resolved_depths) != resolved_branches:
+            raise ValueError(
+                "--transformer-branches must equal the number of values in --transformer-depths"
+            )
+        if any(value < 1 for value in resolved_depths):
+            raise ValueError("all --transformer-depths values must be >= 1")
+        if resolved_branches == DEFAULT_TRANSFORMER_BRANCHES and resolved_depths != (resolved_depth,):
+            raise ValueError("use --depth for a single Transformer encoder")
+
+    if len(resolved_depths) > 1 and resolved_depth != DEFAULT_DEPTH:
+        raise ValueError("--depth cannot be combined with parallel --transformer-depths")
+
+    if input_domain is not None and len(resolved_depths) > 1:
+        if validate_input_domain(input_domain) != DUAL_INPUT_DOMAIN:
+            raise ValueError(
+                "parallel Transformer depth branches require --input-domain time_fft"
+            )
+    return resolved_depths
 
 
 # ---------------------------------------------------------------------------
@@ -86,7 +224,18 @@ class RuntimeConfig(NamedTuple):
     output_dir: Path
     seed: int
     input_domain: str = DEFAULT_INPUT_DOMAIN
+    conv_type: str = DEFAULT_CONV_TYPE
+    fft_global: str = DEFAULT_FFT_GLOBAL
     class_weights: list[float] | None = None
+    input_qkv: str = DEFAULT_INPUT_QKV
+    input_qkv_dim: int = DEFAULT_INPUT_QKV_DIM
+    input_qkv_heads: int = DEFAULT_INPUT_QKV_HEADS
+    input_qkv_dropout: float = DEFAULT_INPUT_QKV_DROPOUT
+    input_qkv_res_scale: float = DEFAULT_INPUT_QKV_RES_SCALE
+    cumulative_query_attention: bool = DEFAULT_CUMULATIVE_QUERY_ATTENTION
+    depth: int = DEFAULT_DEPTH
+    transformer_branches: int = DEFAULT_TRANSFORMER_BRANCHES
+    transformer_depths: tuple[int, ...] = (DEFAULT_DEPTH,)
 
 
 # ---------------------------------------------------------------------------
@@ -103,13 +252,21 @@ class PatchEmbedding(nn.Module):
     spatial conv kernel made dynamic on ``n_channels``.
     """
 
-    def __init__(self, n_channels: int, emb_size: int = 40, dropout: float = 0.5) -> None:
+    def __init__(
+        self,
+        n_channels: int,
+        emb_size: int = 40,
+        dropout: float = 0.5,
+        conv_type: str = DEFAULT_CONV_TYPE,
+    ) -> None:
         super().__init__()
+        self.conv_type = validate_conv_type(conv_type)
+        spatial_groups = 40 if self.conv_type == DWCONV_CONV_TYPE else 1
         self.shallownet = nn.Sequential(
             # temporal filter
             nn.Conv2d(1, 40, (1, 25), (1, 1)),
-            # spatial filter – depth-wise across all EEG channels
-            nn.Conv2d(40, 40, (n_channels, 1), (1, 1)),
+            # spatial filter across all EEG channels; optionally depthwise over the 40 temporal-filter maps
+            nn.Conv2d(40, 40, (n_channels, 1), (1, 1), groups=spatial_groups),
             nn.BatchNorm2d(40),
             nn.ELU(),
             # patch pooling (same kernel/stride as original)
@@ -140,7 +297,14 @@ class MultiHeadAttention(nn.Module):
         self.att_drop = nn.Dropout(dropout)
         self.projection = nn.Linear(emb_size, emb_size)
 
-    def forward(self, x: Tensor, mask: Tensor | None = None) -> Tensor:
+    def forward(
+        self,
+        x: Tensor,
+        mask: Tensor | None = None,
+        cumulative_queries: Tensor | None = None,
+        cumulative_query_attention: bool = False,
+        return_cumulative_queries: bool = False,
+    ) -> Tensor | tuple[Tensor, Tensor | None]:
         B, N, _ = x.shape
         h = self.num_heads
         d = self.emb_size // h
@@ -152,7 +316,15 @@ class MultiHeadAttention(nn.Module):
         keys = _reshape(self.keys(x))
         values = _reshape(self.values(x))
 
-        energy = torch.einsum("bhqd,bhkd->bhqk", queries, keys)
+        updated_cumulative_queries: Tensor | None = None
+        energy_queries = queries
+        if cumulative_query_attention:
+            updated_cumulative_queries = (
+                queries if cumulative_queries is None else cumulative_queries + queries
+            )
+            energy_queries = updated_cumulative_queries
+
+        energy = torch.einsum("bhqd,bhkd->bhqk", energy_queries, keys)
         if mask is not None:
             fill_value = torch.finfo(torch.float32).min
             energy = energy.masked_fill(~mask, fill_value)
@@ -163,7 +335,10 @@ class MultiHeadAttention(nn.Module):
 
         out = torch.einsum("bhal,bhlv->bhav", att, values)  # (B, h, N, d)
         out = out.transpose(1, 2).contiguous().view(B, N, self.emb_size)
-        return self.projection(out)
+        projected = self.projection(out)
+        if return_cumulative_queries:
+            return projected, updated_cumulative_queries
+        return projected
 
 
 class ResidualAdd(nn.Module):
@@ -190,7 +365,7 @@ class FeedForwardBlock(nn.Sequential):
 
 
 class TransformerEncoderBlock(nn.Sequential):
-    """One Transformer encoder block – identical structure to original."""
+    """One Transformer encoder block with optional cross-block query accumulation."""
 
     def __init__(
         self,
@@ -217,10 +392,51 @@ class TransformerEncoderBlock(nn.Sequential):
             ),
         )
 
+    def forward(
+        self,
+        x: Tensor,
+        cumulative_queries: Tensor | None = None,
+        cumulative_query_attention: bool = False,
+        return_cumulative_queries: bool = False,
+    ) -> Tensor | tuple[Tensor, Tensor | None]:
+        # Keep the original Sequential child layout (and state_dict keys), while
+        # explicitly exposing the attention queries to the enclosing encoder.
+        attention_stack = self[0].fn
+        normalized = attention_stack[0](x)
+        attention_out, cumulative_queries = attention_stack[1](
+            normalized,
+            cumulative_queries=cumulative_queries,
+            cumulative_query_attention=cumulative_query_attention,
+            return_cumulative_queries=True,
+        )
+        x = x + attention_stack[2](attention_out)
+        x = self[1](x)
+        if return_cumulative_queries:
+            return x, cumulative_queries
+        return x
+
 
 class TransformerEncoder(nn.Sequential):
-    def __init__(self, depth: int, emb_size: int, num_heads: int = 5) -> None:
+    def __init__(
+        self,
+        depth: int,
+        emb_size: int,
+        num_heads: int = 5,
+        cumulative_query_attention: bool = DEFAULT_CUMULATIVE_QUERY_ATTENTION,
+    ) -> None:
         super().__init__(*[TransformerEncoderBlock(emb_size, num_heads) for _ in range(depth)])
+        self.cumulative_query_attention = bool(cumulative_query_attention)
+
+    def forward(self, x: Tensor) -> Tensor:
+        cumulative_queries: Tensor | None = None
+        for block in self:
+            x, cumulative_queries = block(
+                x,
+                cumulative_queries=cumulative_queries,
+                cumulative_query_attention=self.cumulative_query_attention,
+                return_cumulative_queries=True,
+            )
+        return x
 
 
 class ClassificationHead(nn.Module):
@@ -249,6 +465,219 @@ class ClassificationHead(nn.Module):
         return x, out
 
 
+def compute_fft_global_hidden_size(n_times: int) -> int:
+    """Small hidden width for the optional FFT frequency MLP."""
+    return max(16, int(n_times) // 4)
+
+
+class FFTGlobalMLP(nn.Module):
+    """Fast global frequency mixer for FFT inputs.
+
+    Shape is preserved: (B, 1, C, F) -> (B, 1, C, F).  The same small MLP is
+    shared across EEG channels and operates along the full frequency axis.
+    """
+
+    def __init__(self, n_times: int, hidden_size: int | None = None) -> None:
+        super().__init__()
+        self.n_times = int(n_times)
+        self.hidden_size = compute_fft_global_hidden_size(self.n_times) if hidden_size is None else int(hidden_size)
+        self.net = nn.Sequential(
+            nn.Linear(self.n_times, self.hidden_size),
+            nn.GELU(),
+            nn.Linear(self.hidden_size, self.n_times),
+        )
+
+    def forward(self, x: Tensor) -> Tensor:
+        if x.ndim != 4:
+            raise ValueError(f"FFTGlobalMLP expects a 4D tensor (B,1,C,F), got shape={tuple(x.shape)}")
+        B, one, C, Freq = x.shape
+        if one != 1:
+            raise ValueError(f"FFTGlobalMLP expects channel dimension 1, got {one}")
+        if Freq != self.n_times:
+            raise ValueError(f"FFTGlobalMLP was built for F={self.n_times}, got F={Freq}")
+        y = x.reshape(B * C, Freq)
+        y = self.net(y)
+        return y.reshape(B, one, C, Freq)
+
+
+class InputQKVResidual(nn.Module):
+    """Channel-token pre-network QKV attention with an input skip connection.
+
+    The input shape is preserved: (B, 1, C, L) -> (B, 1, C, L).  EEG channels
+    are treated as tokens and each token uses the full time/frequency axis as
+    its feature vector.  This keeps the attention cost small while allowing
+    channel-wise mixing before the original EEG-Conformer stem.
+    """
+
+    def __init__(
+        self,
+        n_times: int,
+        d_model: int = DEFAULT_INPUT_QKV_DIM,
+        num_heads: int = DEFAULT_INPUT_QKV_HEADS,
+        dropout: float = DEFAULT_INPUT_QKV_DROPOUT,
+        res_scale: float = DEFAULT_INPUT_QKV_RES_SCALE,
+    ) -> None:
+        super().__init__()
+        self.n_times = int(n_times)
+        self.d_model = int(d_model)
+        self.num_heads = int(num_heads)
+        self.dropout_p = float(dropout)
+        if self.n_times < 1:
+            raise ValueError("InputQKVResidual n_times must be >= 1")
+        if self.d_model < 1:
+            raise ValueError("input_qkv_dim must be >= 1")
+        if self.num_heads < 1:
+            raise ValueError("input_qkv_heads must be >= 1")
+        if self.d_model % self.num_heads != 0:
+            raise ValueError("input_qkv_dim must be divisible by input_qkv_heads")
+        if not 0.0 <= self.dropout_p < 1.0:
+            raise ValueError("input_qkv_dropout must be in [0, 1)")
+
+        self.norm = nn.LayerNorm(self.n_times)
+        self.in_proj = nn.Linear(self.n_times, self.d_model)
+        self.attn = nn.MultiheadAttention(
+            embed_dim=self.d_model,
+            num_heads=self.num_heads,
+            dropout=self.dropout_p,
+            batch_first=True,
+        )
+        self.out_proj = nn.Linear(self.d_model, self.n_times)
+        self.dropout = nn.Dropout(self.dropout_p)
+        self.gamma = nn.Parameter(torch.tensor(float(res_scale), dtype=torch.float32))
+
+    def forward(self, x: Tensor) -> Tensor:
+        if x.ndim != 4:
+            raise ValueError(f"InputQKVResidual expects a 4D tensor (B,1,C,L), got shape={tuple(x.shape)}")
+        B, one, C, L = x.shape
+        if one != 1:
+            raise ValueError(f"InputQKVResidual expects channel dimension 1, got {one}")
+        if L != self.n_times:
+            raise ValueError(f"InputQKVResidual was built for L={self.n_times}, got L={L}")
+
+        residual = x
+        z = x.squeeze(1)          # (B, C, L)
+        z = self.norm(z)
+        z = self.in_proj(z)       # (B, C, d_model)
+        z, _ = self.attn(z, z, z, need_weights=False)
+        z = self.out_proj(z)      # (B, C, L)
+        z = self.dropout(z).unsqueeze(1)
+        return residual + self.gamma * z
+
+
+def compute_temporal_qkv_token_shape(
+    n_times: int,
+    preferred_token_len: int = DEFAULT_INPUT_QKV_TIME_TOKEN_LEN,
+) -> tuple[int, int, int, int]:
+    """Return (n_tokens, token_len, padded_n_times, pad_len) for time-token QKV.
+
+    The default keeps chunks close to 32 samples.  For example:
+      * L=1920 -> 60 tokens x 32 samples
+      * L=961  -> 31 tokens x 31 samples
+    If the length is not exactly divisible, the signal is zero-padded only
+    inside the QKV block and cropped back before the residual add.
+    """
+    n_times = int(n_times)
+    preferred_token_len = int(preferred_token_len)
+    if n_times < 1:
+        raise ValueError("n_times must be >= 1 for temporal QKV")
+    if preferred_token_len < 1:
+        raise ValueError("preferred_token_len must be >= 1 for temporal QKV")
+    n_tokens = max(1, (n_times + preferred_token_len - 1) // preferred_token_len)
+    token_len = max(1, (n_times + n_tokens - 1) // n_tokens)
+    padded_n_times = n_tokens * token_len
+    pad_len = padded_n_times - n_times
+    return n_tokens, token_len, padded_n_times, pad_len
+
+
+class InputTemporalQKVResidual(nn.Module):
+    """Time-token pre-network QKV attention with an input skip connection.
+
+    The input shape is preserved: (B, 1, C, L) -> (B, 1, C, L).  The time or
+    frequency axis is split into short consecutive chunks.  Each chunk is one
+    token whose feature vector contains all EEG channels within that chunk.
+    Therefore attention is over temporal/frequency chunks (e.g. 60x60 for a
+    1920-sample time window), not over the 21 electrodes.
+    """
+
+    def __init__(
+        self,
+        n_channels: int,
+        n_times: int,
+        preferred_token_len: int = DEFAULT_INPUT_QKV_TIME_TOKEN_LEN,
+        d_model: int = DEFAULT_INPUT_QKV_DIM,
+        num_heads: int = DEFAULT_INPUT_QKV_HEADS,
+        dropout: float = DEFAULT_INPUT_QKV_DROPOUT,
+        res_scale: float = DEFAULT_INPUT_QKV_RES_SCALE,
+    ) -> None:
+        super().__init__()
+        self.n_channels = int(n_channels)
+        self.n_times = int(n_times)
+        self.preferred_token_len = int(preferred_token_len)
+        self.d_model = int(d_model)
+        self.num_heads = int(num_heads)
+        self.dropout_p = float(dropout)
+        if self.n_channels < 1:
+            raise ValueError("InputTemporalQKVResidual n_channels must be >= 1")
+        if self.n_times < 1:
+            raise ValueError("InputTemporalQKVResidual n_times must be >= 1")
+        if self.d_model < 1:
+            raise ValueError("input_qkv_dim must be >= 1")
+        if self.num_heads < 1:
+            raise ValueError("input_qkv_heads must be >= 1")
+        if self.d_model % self.num_heads != 0:
+            raise ValueError("input_qkv_dim must be divisible by input_qkv_heads")
+        if not 0.0 <= self.dropout_p < 1.0:
+            raise ValueError("input_qkv_dropout must be in [0, 1)")
+
+        (
+            self.n_tokens,
+            self.token_len,
+            self.padded_n_times,
+            self.pad_len,
+        ) = compute_temporal_qkv_token_shape(self.n_times, self.preferred_token_len)
+        self.feature_dim = self.n_channels * self.token_len
+
+        self.norm = nn.LayerNorm(self.feature_dim)
+        self.in_proj = nn.Linear(self.feature_dim, self.d_model)
+        self.attn = nn.MultiheadAttention(
+            embed_dim=self.d_model,
+            num_heads=self.num_heads,
+            dropout=self.dropout_p,
+            batch_first=True,
+        )
+        self.out_proj = nn.Linear(self.d_model, self.feature_dim)
+        self.dropout = nn.Dropout(self.dropout_p)
+        self.gamma = nn.Parameter(torch.tensor(float(res_scale), dtype=torch.float32))
+
+    def forward(self, x: Tensor) -> Tensor:
+        if x.ndim != 4:
+            raise ValueError(f"InputTemporalQKVResidual expects a 4D tensor (B,1,C,L), got shape={tuple(x.shape)}")
+        B, one, C, L = x.shape
+        if one != 1:
+            raise ValueError(f"InputTemporalQKVResidual expects channel dimension 1, got {one}")
+        if C != self.n_channels:
+            raise ValueError(f"InputTemporalQKVResidual was built for C={self.n_channels}, got C={C}")
+        if L != self.n_times:
+            raise ValueError(f"InputTemporalQKVResidual was built for L={self.n_times}, got L={L}")
+
+        residual = x
+        z = x.squeeze(1)  # (B, C, L)
+        if self.pad_len:
+            z = F.pad(z, (0, self.pad_len))
+        z = z.reshape(B, C, self.n_tokens, self.token_len)
+        z = z.permute(0, 2, 1, 3).contiguous().view(B, self.n_tokens, self.feature_dim)
+        z = self.norm(z)
+        z = self.in_proj(z)  # (B, n_tokens, d_model)
+        z, _ = self.attn(z, z, z, need_weights=False)
+        z = self.out_proj(z)  # (B, n_tokens, C * token_len)
+        z = self.dropout(z)
+        z = z.view(B, self.n_tokens, C, self.token_len)
+        z = z.permute(0, 2, 1, 3).contiguous().view(B, C, self.padded_n_times)
+        if self.pad_len:
+            z = z[..., :L]
+        return residual + self.gamma * z.unsqueeze(1)
+
+
 class ConformerFeatureBranch(nn.Module):
     """EEG-Conformer feature extractor used by the dual-branch model.
 
@@ -264,16 +693,97 @@ class ConformerFeatureBranch(nn.Module):
         depth: int = 6,
         num_heads: int = 5,
         dropout: float = 0.5,
+        conv_type: str = DEFAULT_CONV_TYPE,
+        input_qkv: str = DEFAULT_INPUT_QKV,
+        input_qkv_dim: int = DEFAULT_INPUT_QKV_DIM,
+        input_qkv_heads: int = DEFAULT_INPUT_QKV_HEADS,
+        input_qkv_dropout: float = DEFAULT_INPUT_QKV_DROPOUT,
+        input_qkv_res_scale: float = DEFAULT_INPUT_QKV_RES_SCALE,
+        cumulative_query_attention: bool = DEFAULT_CUMULATIVE_QUERY_ATTENTION,
+        transformer_depths: list[int] | tuple[int, ...] | None = None,
     ) -> None:
         super().__init__()
+        self.conv_type = validate_conv_type(conv_type)
+        self.input_qkv = validate_input_qkv(input_qkv)
+        self.cumulative_query_attention = bool(cumulative_query_attention)
+        self.transformer_branch_depths = (
+            (int(depth),)
+            if transformer_depths is None
+            else tuple(int(value) for value in transformer_depths)
+        )
+        if not self.transformer_branch_depths or any(
+            value < 1 for value in self.transformer_branch_depths
+        ):
+            raise ValueError("transformer_depths must contain positive integers")
+        self.transformer_branches = len(self.transformer_branch_depths)
+        self.transformer_fusion = (
+            TRANSFORMER_FUSION_SOFTMAX
+            if self.transformer_branches > 1
+            else TRANSFORMER_FUSION_SINGLE
+        )
         n_patches = compute_n_patches(n_times)
         self.flat_size = emb_size * n_patches
-        self.patch_embedding = PatchEmbedding(n_channels, emb_size, dropout)
-        self.encoder = TransformerEncoder(depth, emb_size, num_heads)
+        if self.input_qkv == INPUT_QKV_CHANNEL:
+            self.input_qkv_layer = InputQKVResidual(
+                n_times=n_times,
+                d_model=input_qkv_dim,
+                num_heads=input_qkv_heads,
+                dropout=input_qkv_dropout,
+                res_scale=input_qkv_res_scale,
+            )
+        elif self.input_qkv == INPUT_QKV_TIME:
+            self.input_qkv_layer = InputTemporalQKVResidual(
+                n_channels=n_channels,
+                n_times=n_times,
+                d_model=input_qkv_dim,
+                num_heads=input_qkv_heads,
+                dropout=input_qkv_dropout,
+                res_scale=input_qkv_res_scale,
+            )
+        else:
+            self.input_qkv_layer = nn.Identity()
+        self.patch_embedding = PatchEmbedding(n_channels, emb_size, dropout, conv_type=self.conv_type)
+        if self.transformer_branches > 1:
+            self.depth_encoders = nn.ModuleList(
+                [
+                    TransformerEncoder(
+                        branch_depth,
+                        emb_size,
+                        num_heads,
+                        cumulative_query_attention=self.cumulative_query_attention,
+                    )
+                    for branch_depth in self.transformer_branch_depths
+                ]
+            )
+            # Equal zero logits become equal 1/n weights after softmax.  The
+            # time and FFT ConformerFeatureBranch instances own separate logits.
+            self.depth_weight_logits = nn.Parameter(torch.zeros(self.transformer_branches))
+        else:
+            # Keep the historical attribute/state_dict layout unchanged when
+            # the new feature is disabled, so old checkpoints still load.
+            self.encoder = TransformerEncoder(
+                depth, emb_size, num_heads, cumulative_query_attention=self.cumulative_query_attention
+            )
+
+    def normalized_transformer_weights(self) -> Tensor:
+        if self.transformer_branches == 1:
+            parameter = next(self.encoder.parameters())
+            return parameter.new_ones(1)
+        return F.softmax(self.depth_weight_logits, dim=0)
+
+    def transformer_weight_values(self) -> list[float]:
+        weights = self.normalized_transformer_weights().detach().cpu().tolist()
+        return [float(value) for value in weights]
 
     def forward(self, x: Tensor) -> Tensor:
+        x = self.input_qkv_layer(x)
         x = self.patch_embedding(x)
-        x = self.encoder(x)
+        if self.transformer_branches > 1:
+            encoded = torch.stack([encoder(x) for encoder in self.depth_encoders], dim=0)
+            weights = self.normalized_transformer_weights().view(-1, 1, 1, 1)
+            x = (weights * encoded).sum(dim=0)
+        else:
+            x = self.encoder(x)
         return x.contiguous().view(x.size(0), -1)
 
 
@@ -315,8 +825,39 @@ class DualBranchActivityConformer(nn.Module):
         depth: int = 6,
         num_heads: int = 5,
         dropout: float = 0.5,
+        conv_type: str = DEFAULT_CONV_TYPE,
+        fft_global: str = DEFAULT_FFT_GLOBAL,
+        input_qkv: str = DEFAULT_INPUT_QKV,
+        input_qkv_dim: int = DEFAULT_INPUT_QKV_DIM,
+        input_qkv_heads: int = DEFAULT_INPUT_QKV_HEADS,
+        input_qkv_dropout: float = DEFAULT_INPUT_QKV_DROPOUT,
+        input_qkv_res_scale: float = DEFAULT_INPUT_QKV_RES_SCALE,
+        cumulative_query_attention: bool = DEFAULT_CUMULATIVE_QUERY_ATTENTION,
+        transformer_depths: list[int] | tuple[int, ...] | None = None,
     ) -> None:
         super().__init__()
+        self.conv_type = validate_conv_type(conv_type)
+        self.fft_global = validate_fft_global(fft_global)
+        self.input_qkv = validate_input_qkv(input_qkv)
+        self.cumulative_query_attention = bool(cumulative_query_attention)
+        self.transformer_branch_depths = (
+            (int(depth),)
+            if transformer_depths is None
+            else tuple(int(value) for value in transformer_depths)
+        )
+        if not self.transformer_branch_depths or any(
+            value < 1 for value in self.transformer_branch_depths
+        ):
+            raise ValueError("transformer_depths must contain positive integers")
+        self.transformer_branches = len(self.transformer_branch_depths)
+        self.transformer_fusion = (
+            TRANSFORMER_FUSION_SOFTMAX
+            if self.transformer_branches > 1
+            else TRANSFORMER_FUSION_SINGLE
+        )
+        self.fft_global_layer = (
+            FFTGlobalMLP(fft_n_times) if self.fft_global == FFT_GLOBAL_MLP else nn.Identity()
+        )
         self.time_branch = ConformerFeatureBranch(
             n_channels=n_channels,
             n_times=time_n_times,
@@ -324,6 +865,14 @@ class DualBranchActivityConformer(nn.Module):
             depth=depth,
             num_heads=num_heads,
             dropout=dropout,
+            conv_type=self.conv_type,
+            input_qkv=self.input_qkv,
+            input_qkv_dim=input_qkv_dim,
+            input_qkv_heads=input_qkv_heads,
+            input_qkv_dropout=input_qkv_dropout,
+            input_qkv_res_scale=input_qkv_res_scale,
+            cumulative_query_attention=self.cumulative_query_attention,
+            transformer_depths=self.transformer_branch_depths,
         )
         self.fft_branch = ConformerFeatureBranch(
             n_channels=n_channels,
@@ -332,14 +881,31 @@ class DualBranchActivityConformer(nn.Module):
             depth=depth,
             num_heads=num_heads,
             dropout=dropout,
+            conv_type=self.conv_type,
+            input_qkv=self.input_qkv,
+            input_qkv_dim=input_qkv_dim,
+            input_qkv_heads=input_qkv_heads,
+            input_qkv_dropout=input_qkv_dropout,
+            input_qkv_res_scale=input_qkv_res_scale,
+            cumulative_query_attention=self.cumulative_query_attention,
+            transformer_depths=self.transformer_branch_depths,
         )
         self.cls_head = FusionClassificationHead(
             self.time_branch.flat_size + self.fft_branch.flat_size,
             n_classes,
         )
 
+    def transformer_weight_metadata(self) -> dict[str, list[float]]:
+        if self.transformer_branches == 1:
+            return {}
+        return {
+            "time_transformer_branch_weights": self.time_branch.transformer_weight_values(),
+            "fft_transformer_branch_weights": self.fft_branch.transformer_weight_values(),
+        }
+
     def forward(self, x_time: Tensor, x_fft: Tensor) -> tuple[Tensor, Tensor]:
         time_features = self.time_branch(x_time)
+        x_fft = self.fft_global_layer(x_fft)
         fft_features = self.fft_branch(x_fft)
         fused_features = torch.cat([time_features, fft_features], dim=1)
         return self.cls_head(fused_features)
@@ -362,14 +928,52 @@ class ActivityConformer(nn.Module):
         depth: int = 6,
         num_heads: int = 5,
         dropout: float = 0.5,
+        conv_type: str = DEFAULT_CONV_TYPE,
+        fft_global: str = DEFAULT_FFT_GLOBAL,
+        input_qkv: str = DEFAULT_INPUT_QKV,
+        input_qkv_dim: int = DEFAULT_INPUT_QKV_DIM,
+        input_qkv_heads: int = DEFAULT_INPUT_QKV_HEADS,
+        input_qkv_dropout: float = DEFAULT_INPUT_QKV_DROPOUT,
+        input_qkv_res_scale: float = DEFAULT_INPUT_QKV_RES_SCALE,
+        cumulative_query_attention: bool = DEFAULT_CUMULATIVE_QUERY_ATTENTION,
     ) -> None:
         super().__init__()
+        self.conv_type = validate_conv_type(conv_type)
+        self.fft_global = validate_fft_global(fft_global)
+        self.input_qkv = validate_input_qkv(input_qkv)
+        self.cumulative_query_attention = bool(cumulative_query_attention)
+        self.fft_global_layer = (
+            FFTGlobalMLP(n_times) if self.fft_global == FFT_GLOBAL_MLP else nn.Identity()
+        )
+        if self.input_qkv == INPUT_QKV_CHANNEL:
+            self.input_qkv_layer = InputQKVResidual(
+                n_times=n_times,
+                d_model=input_qkv_dim,
+                num_heads=input_qkv_heads,
+                dropout=input_qkv_dropout,
+                res_scale=input_qkv_res_scale,
+            )
+        elif self.input_qkv == INPUT_QKV_TIME:
+            self.input_qkv_layer = InputTemporalQKVResidual(
+                n_channels=n_channels,
+                n_times=n_times,
+                d_model=input_qkv_dim,
+                num_heads=input_qkv_heads,
+                dropout=input_qkv_dropout,
+                res_scale=input_qkv_res_scale,
+            )
+        else:
+            self.input_qkv_layer = nn.Identity()
         n_patches = compute_n_patches(n_times)
-        self.patch_embedding = PatchEmbedding(n_channels, emb_size, dropout)
-        self.encoder = TransformerEncoder(depth, emb_size, num_heads)
+        self.patch_embedding = PatchEmbedding(n_channels, emb_size, dropout, conv_type=self.conv_type)
+        self.encoder = TransformerEncoder(
+            depth, emb_size, num_heads, cumulative_query_attention=self.cumulative_query_attention
+        )
         self.cls_head = ClassificationHead(emb_size, n_patches, n_classes)
 
     def forward(self, x: Tensor) -> tuple[Tensor, Tensor]:
+        x = self.fft_global_layer(x)
+        x = self.input_qkv_layer(x)
         x = self.patch_embedding(x)
         x = self.encoder(x)
         return self.cls_head(x)
@@ -389,6 +993,17 @@ def compute_n_patches(n_times: int) -> int:
         )
     t_after_temporal = n_times - 24
     return (t_after_temporal - 75) // 15 + 1
+
+
+def temporal_qkv_shape_metadata(prefix: str, n_channels: int, n_times: int) -> dict[str, int]:
+    n_tokens, token_len, padded_n_times, pad_len = compute_temporal_qkv_token_shape(n_times)
+    return {
+        f"{prefix}input_qkv_time_tokens": int(n_tokens),
+        f"{prefix}input_qkv_time_token_len": int(token_len),
+        f"{prefix}input_qkv_time_padded_n_times": int(padded_n_times),
+        f"{prefix}input_qkv_time_pad_len": int(pad_len),
+        f"{prefix}input_qkv_time_feature_dim": int(n_channels) * int(token_len),
+    }
 
 
 def validate_input_domain(raw: str | None) -> str:
@@ -774,6 +1389,16 @@ def train_loso_fold(
     num_heads: int = DEFAULT_NUM_HEADS,
     dropout: float = DEFAULT_DROPOUT,
     input_domain: str = DEFAULT_INPUT_DOMAIN,
+    conv_type: str = DEFAULT_CONV_TYPE,
+    fft_global: str = DEFAULT_FFT_GLOBAL,
+    input_qkv: str = DEFAULT_INPUT_QKV,
+    input_qkv_dim: int = DEFAULT_INPUT_QKV_DIM,
+    input_qkv_heads: int = DEFAULT_INPUT_QKV_HEADS,
+    input_qkv_dropout: float = DEFAULT_INPUT_QKV_DROPOUT,
+    input_qkv_res_scale: float = DEFAULT_INPUT_QKV_RES_SCALE,
+    cumulative_query_attention: bool = DEFAULT_CUMULATIVE_QUERY_ATTENTION,
+    transformer_branches: int = DEFAULT_TRANSFORMER_BRANCHES,
+    transformer_depths: list[int] | tuple[int, ...] | None = None,
     class_weights: list[float] | None = None,
 ) -> Path:
     """Train one LOSO fold and return path to metrics.json."""
@@ -789,6 +1414,26 @@ def train_loso_fold(
 
     device_obj = torch.device(device)
     resolved_input_domain = validate_input_domain(input_domain)
+    resolved_conv_type = validate_conv_type(conv_type)
+    resolved_fft_global = validate_fft_global_for_input_domain(resolved_input_domain, fft_global)
+    resolved_input_qkv = validate_input_qkv(input_qkv)
+    resolved_input_qkv_dim = int(input_qkv_dim)
+    resolved_input_qkv_heads = int(input_qkv_heads)
+    resolved_input_qkv_dropout = float(input_qkv_dropout)
+    resolved_input_qkv_res_scale = float(input_qkv_res_scale)
+    resolved_cumulative_query_attention = bool(cumulative_query_attention)
+    resolved_transformer_depths = resolve_transformer_branch_depths(
+        depth=depth,
+        transformer_branches=transformer_branches,
+        transformer_depths=transformer_depths,
+        input_domain=resolved_input_domain,
+    )
+    resolved_transformer_branches = len(resolved_transformer_depths)
+    resolved_transformer_fusion = (
+        TRANSFORMER_FUSION_SOFTMAX
+        if resolved_transformer_branches > 1
+        else TRANSFORMER_FUSION_SINGLE
+    )
 
     (
         train_loader, test_loader,
@@ -813,6 +1458,10 @@ def train_loso_fold(
                 "fft_n_times": fft_n_times,
             }
         )
+        if resolved_input_qkv == INPUT_QKV_TIME:
+            branch_shape_metadata.update({"input_qkv_time_preferred_token_len": DEFAULT_INPUT_QKV_TIME_TOKEN_LEN})
+            branch_shape_metadata.update(temporal_qkv_shape_metadata("time_", n_channels, time_n_times))
+            branch_shape_metadata.update(temporal_qkv_shape_metadata("fft_", n_channels, fft_n_times))
         model = DualBranchActivityConformer(
             n_channels=n_channels,
             time_n_times=time_n_times,
@@ -822,8 +1471,24 @@ def train_loso_fold(
             depth=depth,
             num_heads=num_heads,
             dropout=dropout,
+            conv_type=resolved_conv_type,
+            fft_global=resolved_fft_global,
+            input_qkv=resolved_input_qkv,
+            input_qkv_dim=resolved_input_qkv_dim,
+            input_qkv_heads=resolved_input_qkv_heads,
+            input_qkv_dropout=resolved_input_qkv_dropout,
+            input_qkv_res_scale=resolved_input_qkv_res_scale,
+            cumulative_query_attention=resolved_cumulative_query_attention,
+            transformer_depths=(
+                resolved_transformer_depths
+                if resolved_transformer_branches > 1
+                else None
+            ),
         ).to(device_obj)
     else:
+        if resolved_input_qkv == INPUT_QKV_TIME:
+            branch_shape_metadata.update({"input_qkv_time_preferred_token_len": DEFAULT_INPUT_QKV_TIME_TOKEN_LEN})
+            branch_shape_metadata.update(temporal_qkv_shape_metadata("", n_channels, n_times))
         model = ActivityConformer(
             n_channels=n_channels,
             n_times=n_times,
@@ -832,6 +1497,14 @@ def train_loso_fold(
             depth=depth,
             num_heads=num_heads,
             dropout=dropout,
+            conv_type=resolved_conv_type,
+            fft_global=resolved_fft_global,
+            input_qkv=resolved_input_qkv,
+            input_qkv_dim=resolved_input_qkv_dim,
+            input_qkv_heads=resolved_input_qkv_heads,
+            input_qkv_dropout=resolved_input_qkv_dropout,
+            input_qkv_res_scale=resolved_input_qkv_res_scale,
+            cumulative_query_attention=resolved_cumulative_query_attention,
         ).to(device_obj)
 
     # Adam + CrossEntropyLoss – identical hyper-parameters to original
@@ -857,6 +1530,7 @@ def train_loso_fold(
     aver_acc = 0.0
     best_y_true: np.ndarray | None = None
     best_y_pred: np.ndarray | None = None
+    best_transformer_weight_metadata: dict[str, list[float]] = {}
     epoch_history: list[dict] = []
 
     history_metadata = {
@@ -867,6 +1541,18 @@ def train_loso_fold(
         "seed": seed,
         "input_domain": resolved_input_domain,
         "model_type": model_type,
+        "conv_type": resolved_conv_type,
+        "fft_global": resolved_fft_global,
+        "input_qkv": resolved_input_qkv,
+        "input_qkv_dim": resolved_input_qkv_dim,
+        "input_qkv_heads": resolved_input_qkv_heads,
+        "input_qkv_dropout": resolved_input_qkv_dropout,
+        "input_qkv_res_scale": resolved_input_qkv_res_scale,
+        "cumulative_query_attention": resolved_cumulative_query_attention,
+        "transformer_branches": resolved_transformer_branches,
+        "transformer_branch_depths": list(resolved_transformer_depths),
+        "transformer_branch_fusion": resolved_transformer_fusion,
+        "transformer_weights_independent_by_domain": resolved_transformer_branches > 1,
         "class_weights": class_weights,
         "n_train_samples": n_train_samples,
         "n_test_samples": n_test_samples,
@@ -895,10 +1581,31 @@ def train_loso_fold(
     else:
         shape_text = f"shape=(1,{n_channels},{n_times})"
 
+    qkv_shape_text = ""
+    if resolved_input_qkv == INPUT_QKV_TIME:
+        if resolved_input_domain == DUAL_INPUT_DOMAIN:
+            qkv_shape_text = (
+                f"  time_qkv_tokens={branch_shape_metadata['time_input_qkv_time_tokens']}x"
+                f"{branch_shape_metadata['time_input_qkv_time_token_len']}"
+                f"  fft_qkv_tokens={branch_shape_metadata['fft_input_qkv_time_tokens']}x"
+                f"{branch_shape_metadata['fft_input_qkv_time_token_len']}"
+            )
+        else:
+            qkv_shape_text = (
+                f"  qkv_tokens={branch_shape_metadata['input_qkv_time_tokens']}x"
+                f"{branch_shape_metadata['input_qkv_time_token_len']}"
+            )
+
     log(
         f"\n[LOSO fold subject={test_subject_id}] "
         f"train={n_train_samples}  test={n_test_samples}  "
-        f"{shape_text}  classes={n_classes}  model={model_type}"
+        f"{shape_text}  classes={n_classes}  model={model_type}  "
+        f"conv_type={resolved_conv_type}  fft_global={resolved_fft_global}  "
+        f"input_qkv={resolved_input_qkv}  "
+        f"cumulative_query_attention={resolved_cumulative_query_attention}  "
+        f"transformer_depths={list(resolved_transformer_depths)}  "
+        f"transformer_fusion={resolved_transformer_fusion}"
+        f"{qkv_shape_text}"
     )
 
     for epoch in range(epochs):
@@ -928,10 +1635,16 @@ def train_loso_fold(
 
         aver_acc += test_acc
         is_best_epoch = test_acc > best_acc
+        current_transformer_weight_metadata = (
+            model.transformer_weight_metadata()
+            if isinstance(model, DualBranchActivityConformer)
+            else {}
+        )
         if is_best_epoch:
             best_acc = test_acc
             best_epoch = epoch + 1
             best_y_true, best_y_pred = collect_predictions(model, test_loader, device_obj)
+            best_transformer_weight_metadata = current_transformer_weight_metadata
             torch.save(
                 {
                     "epoch": epoch,
@@ -949,6 +1662,19 @@ def train_loso_fold(
                     "loss": "CrossEntropyLoss",
                     "input_domain": resolved_input_domain,
                     "model_type": model_type,
+                    "conv_type": resolved_conv_type,
+                    "fft_global": resolved_fft_global,
+                    "input_qkv": resolved_input_qkv,
+                    "input_qkv_dim": resolved_input_qkv_dim,
+                    "input_qkv_heads": resolved_input_qkv_heads,
+                    "input_qkv_dropout": resolved_input_qkv_dropout,
+                    "input_qkv_res_scale": resolved_input_qkv_res_scale,
+                    "cumulative_query_attention": resolved_cumulative_query_attention,
+                    "transformer_branches": resolved_transformer_branches,
+                    "transformer_branch_depths": list(resolved_transformer_depths),
+                    "transformer_branch_fusion": resolved_transformer_fusion,
+                    "transformer_weights_independent_by_domain": resolved_transformer_branches > 1,
+                    **current_transformer_weight_metadata,
                     **branch_shape_metadata,
                 },
                 fold_dir / "best_model.pt",
@@ -962,6 +1688,7 @@ def train_loso_fold(
             "test_acc": round(test_acc, 6),
             "best_test_acc": round(best_acc, 6),
             "is_best_epoch": is_best_epoch,
+            **current_transformer_weight_metadata,
         }
         epoch_history.append(epoch_record)
         history_csv_path, history_json_path = write_epoch_history_files(
@@ -994,6 +1721,19 @@ def train_loso_fold(
         "seed": seed,
         "input_domain": resolved_input_domain,
         "model_type": model_type,
+        "conv_type": resolved_conv_type,
+        "fft_global": resolved_fft_global,
+        "input_qkv": resolved_input_qkv,
+        "input_qkv_dim": resolved_input_qkv_dim,
+        "input_qkv_heads": resolved_input_qkv_heads,
+        "input_qkv_dropout": resolved_input_qkv_dropout,
+        "input_qkv_res_scale": resolved_input_qkv_res_scale,
+        "cumulative_query_attention": resolved_cumulative_query_attention,
+        "transformer_branches": resolved_transformer_branches,
+        "transformer_branch_depths": list(resolved_transformer_depths),
+        "transformer_branch_fusion": resolved_transformer_fusion,
+        "transformer_weights_independent_by_domain": resolved_transformer_branches > 1,
+        **best_transformer_weight_metadata,
         "class_weights": class_weights,
         "emb_size": emb_size,
         "depth": depth,
@@ -1192,6 +1932,9 @@ def build_noninteractive_example() -> str:
         f"--batch-size {DEFAULT_BATCH_SIZE} "
         f"--lr {DEFAULT_LR} "
         f"--device {DEFAULT_DEVICE} "
+        f"--conv-type {DEFAULT_CONV_TYPE} "
+        f"--fft-global {DEFAULT_FFT_GLOBAL} "
+        f"--input-qkv {DEFAULT_INPUT_QKV} "
         f"--output-dir {shlex.quote(str(DEFAULT_OUTPUT_DIR))}"
     )
 
@@ -1217,6 +1960,17 @@ def resolve_runtime_config(
     output_dir: Path | str | None,
     seed: int | None,
     input_domain: str | None = None,
+    conv_type: str | None = None,
+    fft_global: str | None = None,
+    input_qkv: str | None = None,
+    input_qkv_dim: int | None = None,
+    input_qkv_heads: int | None = None,
+    input_qkv_dropout: float | None = None,
+    input_qkv_res_scale: float | None = None,
+    cumulative_query_attention: bool = DEFAULT_CUMULATIVE_QUERY_ATTENTION,
+    depth: int = DEFAULT_DEPTH,
+    transformer_branches: int = DEFAULT_TRANSFORMER_BRANCHES,
+    transformer_depths: list[int] | tuple[int, ...] | None = None,
     class_weights: str | list[float] | tuple[float, ...] | None = None,
 ) -> RuntimeConfig:
     missing_flags: list[str] = []
@@ -1292,6 +2046,22 @@ def resolve_runtime_config(
 
     resolved_seed = 42 if seed is None else int(seed)
     resolved_input_domain = validate_input_domain(input_domain)
+    resolved_conv_type = validate_conv_type(conv_type)
+    resolved_fft_global = validate_fft_global_for_input_domain(resolved_input_domain, fft_global)
+    resolved_input_qkv = validate_input_qkv(input_qkv)
+    resolved_input_qkv_dim = DEFAULT_INPUT_QKV_DIM if input_qkv_dim is None else int(input_qkv_dim)
+    resolved_input_qkv_heads = DEFAULT_INPUT_QKV_HEADS if input_qkv_heads is None else int(input_qkv_heads)
+    resolved_input_qkv_dropout = DEFAULT_INPUT_QKV_DROPOUT if input_qkv_dropout is None else float(input_qkv_dropout)
+    resolved_input_qkv_res_scale = (
+        DEFAULT_INPUT_QKV_RES_SCALE if input_qkv_res_scale is None else float(input_qkv_res_scale)
+    )
+    resolved_depth = int(depth)
+    resolved_transformer_depths = resolve_transformer_branch_depths(
+        depth=resolved_depth,
+        transformer_branches=transformer_branches,
+        transformer_depths=transformer_depths,
+        input_domain=resolved_input_domain,
+    )
     resolved_class_weights = parse_class_weights(class_weights)
 
     return RuntimeConfig(
@@ -1304,7 +2074,18 @@ def resolve_runtime_config(
         output_dir=resolved_output_dir,
         seed=resolved_seed,
         input_domain=resolved_input_domain,
+        conv_type=resolved_conv_type,
+        fft_global=resolved_fft_global,
         class_weights=resolved_class_weights,
+        input_qkv=resolved_input_qkv,
+        input_qkv_dim=resolved_input_qkv_dim,
+        input_qkv_heads=resolved_input_qkv_heads,
+        input_qkv_dropout=resolved_input_qkv_dropout,
+        input_qkv_res_scale=resolved_input_qkv_res_scale,
+        cumulative_query_attention=bool(cumulative_query_attention),
+        depth=resolved_depth,
+        transformer_branches=len(resolved_transformer_depths),
+        transformer_depths=resolved_transformer_depths,
     )
 
 
@@ -1327,12 +2108,74 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--epochs", type=int, default=DEFAULT_EPOCHS)
     parser.add_argument("--batch-size", type=int, default=DEFAULT_BATCH_SIZE)
     parser.add_argument("--lr", type=float, default=DEFAULT_LR)
+    parser.add_argument("--depth", type=int, default=DEFAULT_DEPTH, help="TransformerEncoder block count (default: 6)")
+    parser.add_argument(
+        "--transformer-branches",
+        type=int,
+        default=DEFAULT_TRANSFORMER_BRANCHES,
+        help="Parallel Transformer encoders per time/FFT branch (default: 1)",
+    )
+    parser.add_argument(
+        "--transformer-depths",
+        type=int,
+        nargs="+",
+        default=None,
+        help="Block counts for parallel encoders, e.g. 11 10 8",
+    )
     parser.add_argument("--device", type=str, default=DEFAULT_DEVICE)
     parser.add_argument(
         "--input-domain",
         type=str,
         default=DEFAULT_INPUT_DOMAIN,
         help="Input representation: time, fft, or time_fft dual branch (default: time)",
+    )
+    parser.add_argument(
+        "--conv-type",
+        type=str,
+        default=DEFAULT_CONV_TYPE,
+        help="Convolution type in PatchEmbedding spatial conv: standard or dwconv (default: standard)",
+    )
+    parser.add_argument(
+        "--fft-global",
+        type=str,
+        default=DEFAULT_FFT_GLOBAL,
+        help="Optional global FFT preprocessor: none or mlp (default: none)",
+    )
+    parser.add_argument(
+        "--input-qkv",
+        type=str,
+        default=DEFAULT_INPUT_QKV,
+        help="Optional input QKV residual block: none, channel, or time (default: none)",
+    )
+    parser.add_argument(
+        "--input-qkv-dim",
+        type=int,
+        default=DEFAULT_INPUT_QKV_DIM,
+        help="Embedding width for --input-qkv channel/time (default: 64)",
+    )
+    parser.add_argument(
+        "--input-qkv-heads",
+        type=int,
+        default=DEFAULT_INPUT_QKV_HEADS,
+        help="Number of attention heads for --input-qkv channel/time (default: 4)",
+    )
+    parser.add_argument(
+        "--input-qkv-dropout",
+        type=float,
+        default=DEFAULT_INPUT_QKV_DROPOUT,
+        help="Dropout inside the input QKV residual block (default: 0.1)",
+    )
+    parser.add_argument(
+        "--input-qkv-res-scale",
+        type=float,
+        default=DEFAULT_INPUT_QKV_RES_SCALE,
+        help="Initial residual scale gamma for input QKV block (default: 0.1)",
+    )
+    parser.add_argument(
+        "--cumulative-query-attention",
+        action="store_true",
+        default=DEFAULT_CUMULATIVE_QUERY_ATTENTION,
+        help="Use (Q1 + ... + Qi) @ Ki^T in encoder block i (default: disabled)",
     )
     parser.add_argument(
         "--class-weights",
@@ -1365,7 +2208,22 @@ def main(argv: list[str] | None = None) -> None:
             output_dir=args.output_dir,
             seed=args.seed,
             input_domain=args.input_domain,
-            class_weights=args.class_weights,
+            conv_type=getattr(args, "conv_type", DEFAULT_CONV_TYPE),
+            fft_global=getattr(args, "fft_global", DEFAULT_FFT_GLOBAL),
+            input_qkv=getattr(args, "input_qkv", DEFAULT_INPUT_QKV),
+            input_qkv_dim=getattr(args, "input_qkv_dim", DEFAULT_INPUT_QKV_DIM),
+            input_qkv_heads=getattr(args, "input_qkv_heads", DEFAULT_INPUT_QKV_HEADS),
+            input_qkv_dropout=getattr(args, "input_qkv_dropout", DEFAULT_INPUT_QKV_DROPOUT),
+            input_qkv_res_scale=getattr(args, "input_qkv_res_scale", DEFAULT_INPUT_QKV_RES_SCALE),
+            cumulative_query_attention=getattr(
+                args, "cumulative_query_attention", DEFAULT_CUMULATIVE_QUERY_ATTENTION
+            ),
+            depth=getattr(args, "depth", DEFAULT_DEPTH),
+            transformer_branches=getattr(
+                args, "transformer_branches", DEFAULT_TRANSFORMER_BRANCHES
+            ),
+            transformer_depths=getattr(args, "transformer_depths", None),
+            class_weights=getattr(args, "class_weights", None),
         )
     else:
         maybe_rerun_in_project_env([], DEFAULT_DEVICE)
@@ -1392,6 +2250,17 @@ def main(argv: list[str] | None = None) -> None:
         output_dir=config.output_dir,
         seed=config.seed,
         input_domain=config.input_domain,
+        conv_type=config.conv_type,
+        fft_global=config.fft_global,
+        input_qkv=config.input_qkv,
+        input_qkv_dim=config.input_qkv_dim,
+        input_qkv_heads=config.input_qkv_heads,
+        input_qkv_dropout=config.input_qkv_dropout,
+        input_qkv_res_scale=config.input_qkv_res_scale,
+        cumulative_query_attention=config.cumulative_query_attention,
+        depth=config.depth,
+        transformer_branches=config.transformer_branches,
+        transformer_depths=config.transformer_depths,
         class_weights=config.class_weights,
     )
 

@@ -125,6 +125,75 @@ class TestFoldIsComplete(unittest.TestCase):
         fold_dir.mkdir()
         self.assertFalse(self.module.fold_is_complete(self.output_dir, subject_id=4))
 
+    def test_false_when_conv_type_does_not_match_metrics(self) -> None:
+        fold_dir = self.output_dir / "fold_subject_5"
+        fold_dir.mkdir()
+        (fold_dir / "metrics.json").write_text(
+            json.dumps({"input_domain": "time", "conv_type": "standard"})
+        )
+        self.assertFalse(
+            self.module.fold_is_complete(
+                self.output_dir,
+                subject_id=5,
+                input_domain="time",
+                conv_type="dwconv",
+            )
+        )
+
+    def test_false_when_fft_global_does_not_match_metrics(self) -> None:
+        fold_dir = self.output_dir / "fold_subject_6"
+        fold_dir.mkdir()
+        (fold_dir / "metrics.json").write_text(
+            json.dumps({"input_domain": "fft", "conv_type": "dwconv", "fft_global": "none"})
+        )
+        self.assertFalse(
+            self.module.fold_is_complete(
+                self.output_dir,
+                subject_id=6,
+                input_domain="fft",
+                conv_type="dwconv",
+                fft_global="mlp",
+            )
+        )
+
+    def test_false_when_depth_does_not_match_metrics(self) -> None:
+        fold_dir = self.output_dir / "fold_subject_7"
+        fold_dir.mkdir()
+        (fold_dir / "metrics.json").write_text(json.dumps({"depth": 6}))
+        self.assertFalse(self.module.fold_is_complete(self.output_dir, subject_id=7, depth=3))
+
+    def test_parallel_transformer_config_must_match_metrics(self) -> None:
+        fold_dir = self.output_dir / "fold_subject_8"
+        fold_dir.mkdir()
+        (fold_dir / "metrics.json").write_text(
+            json.dumps(
+                {
+                    "input_domain": "time_fft",
+                    "depth": 6,
+                    "transformer_branches": 3,
+                    "transformer_branch_depths": [11, 10, 8],
+                }
+            )
+        )
+        self.assertTrue(
+            self.module.fold_is_complete(
+                self.output_dir,
+                subject_id=8,
+                input_domain="time_fft",
+                transformer_branches=3,
+                transformer_depths=[11, 10, 8],
+            )
+        )
+        self.assertFalse(
+            self.module.fold_is_complete(
+                self.output_dir,
+                subject_id=8,
+                input_domain="time_fft",
+                transformer_branches=3,
+                transformer_depths=[11, 10, 7],
+            )
+        )
+
 
 class TestRunLosoBatch(unittest.TestCase):
     def setUp(self) -> None:
@@ -212,6 +281,49 @@ class TestRunLosoBatch(unittest.TestCase):
                 )
         self.assertIn("failed folds", str(ctx.exception))
 
+    def test_passes_depth_to_fold_runner(self) -> None:
+        with patch.object(
+            self.module,
+            "train_loso_fold",
+            return_value=self.output_dir / "fold_subject_1" / "metrics.json",
+        ) as mock_train:
+            self.module.run_loso_batch(
+                subject_ids=[1],
+                dataset_root=self.dataset_root,
+                epochs=1,
+                batch_size=8,
+                lr=2e-4,
+                device="cpu",
+                output_dir=self.output_dir,
+                skip_existing=False,
+                depth=3,
+            )
+
+        self.assertEqual(mock_train.call_args.kwargs["depth"], 3)
+
+    def test_passes_parallel_transformer_config_to_fold_runner(self) -> None:
+        with patch.object(
+            self.module,
+            "train_loso_fold",
+            return_value=self.output_dir / "fold_subject_1" / "metrics.json",
+        ) as mock_train:
+            self.module.run_loso_batch(
+                subject_ids=[1],
+                dataset_root=self.dataset_root,
+                epochs=1,
+                batch_size=8,
+                lr=2e-4,
+                device="cpu",
+                output_dir=self.output_dir,
+                skip_existing=False,
+                input_domain="time_fft",
+                transformer_branches=3,
+                transformer_depths=[11, 10, 8],
+            )
+
+        self.assertEqual(mock_train.call_args.kwargs["transformer_branches"], 3)
+        self.assertEqual(mock_train.call_args.kwargs["transformer_depths"], (11, 10, 8))
+
     def test_passes_class_weights_to_fold_runner(self) -> None:
         with patch.object(
             self.module,
@@ -252,6 +364,47 @@ class TestRunLosoBatch(unittest.TestCase):
 
         self.assertEqual(mock_train.call_args.kwargs["input_domain"], "fft")
 
+    def test_passes_conv_type_to_fold_runner(self) -> None:
+        with patch.object(
+            self.module,
+            "train_loso_fold",
+            return_value=self.output_dir / "fold_subject_1" / "metrics.json",
+        ) as mock_train:
+            self.module.run_loso_batch(
+                subject_ids=[1],
+                dataset_root=self.dataset_root,
+                epochs=1,
+                batch_size=8,
+                lr=2e-4,
+                device="cpu",
+                output_dir=self.output_dir,
+                skip_existing=False,
+                conv_type="dwconv",
+            )
+
+        self.assertEqual(mock_train.call_args.kwargs["conv_type"], "dwconv")
+
+    def test_passes_fft_global_to_fold_runner(self) -> None:
+        with patch.object(
+            self.module,
+            "train_loso_fold",
+            return_value=self.output_dir / "fold_subject_1" / "metrics.json",
+        ) as mock_train:
+            self.module.run_loso_batch(
+                subject_ids=[1],
+                dataset_root=self.dataset_root,
+                epochs=1,
+                batch_size=8,
+                lr=2e-4,
+                device="cpu",
+                output_dir=self.output_dir,
+                skip_existing=False,
+                input_domain="fft",
+                fft_global="mlp",
+            )
+
+        self.assertEqual(mock_train.call_args.kwargs["fft_global"], "mlp")
+
 
 class TestParseArgs(unittest.TestCase):
     def setUp(self) -> None:
@@ -271,6 +424,16 @@ class TestParseArgs(unittest.TestCase):
         args = self.module.parse_args([])
         self.assertEqual(args.device, "cuda:0")
 
+    def test_accepts_depth_argument(self) -> None:
+        self.assertEqual(self.module.parse_args(["--depth", "3"]).depth, 3)
+
+    def test_accepts_parallel_transformer_arguments(self) -> None:
+        args = self.module.parse_args(
+            ["--transformer-branches", "3", "--transformer-depths", "11", "10", "8"]
+        )
+        self.assertEqual(args.transformer_branches, 3)
+        self.assertEqual(args.transformer_depths, [11, 10, 8])
+
     def test_skip_existing_defaults_to_false(self) -> None:
         args = self.module.parse_args([])
         self.assertFalse(args.skip_existing)
@@ -287,6 +450,12 @@ class TestParseArgs(unittest.TestCase):
         args = self.module.parse_args(["--class-weights", "3,3,1"])
         self.assertEqual(args.class_weights, "3,3,1")
 
+    def test_cumulative_query_attention_is_opt_in(self) -> None:
+        self.assertFalse(self.module.parse_args([]).cumulative_query_attention)
+        self.assertTrue(
+            self.module.parse_args(["--cumulative-query-attention"]).cumulative_query_attention
+        )
+
     def test_accepts_input_domain_argument(self) -> None:
         args = self.module.parse_args(["--input-domain", "fft"])
         self.assertEqual(args.input_domain, "fft")
@@ -294,6 +463,14 @@ class TestParseArgs(unittest.TestCase):
     def test_accepts_time_fft_input_domain_argument(self) -> None:
         args = self.module.parse_args(["--input-domain", "time_fft"])
         self.assertEqual(args.input_domain, "time_fft")
+
+    def test_accepts_conv_type_argument(self) -> None:
+        args = self.module.parse_args(["--conv-type", "dwconv"])
+        self.assertEqual(args.conv_type, "dwconv")
+
+    def test_accepts_fft_global_argument(self) -> None:
+        args = self.module.parse_args(["--fft-global", "mlp"])
+        self.assertEqual(args.fft_global, "mlp")
 
 
 class TestParseSubjectIdList(unittest.TestCase):

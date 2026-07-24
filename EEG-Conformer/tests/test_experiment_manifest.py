@@ -61,6 +61,8 @@ class TestExperimentManifest(unittest.TestCase):
                     "test_subject_id": 1,
                     "input_domain": "time_fft",
                     "model_type": "dual_branch",
+                    "conv_type": "dwconv",
+                    "fft_global": "mlp",
                     "epochs": 5,
                     "batch_size": 4,
                     "lr": 0.0002,
@@ -69,6 +71,12 @@ class TestExperimentManifest(unittest.TestCase):
                     "n_classes": 3,
                     "emb_size": 40,
                     "depth": 6,
+                    "transformer_branches": 3,
+                    "transformer_branch_depths": [11, 10, 8],
+                    "transformer_branch_fusion": "softmax_weighted_sum",
+                    "transformer_weights_independent_by_domain": True,
+                    "time_transformer_branch_weights": [0.4, 0.35, 0.25],
+                    "fft_transformer_branch_weights": [0.2, 0.3, 0.5],
                     "num_heads": 5,
                     "dropout": 0.5,
                     "time_n_times": 200,
@@ -125,7 +133,14 @@ class TestExperimentManifest(unittest.TestCase):
         manifest = json.loads(json_path.read_text(encoding="utf-8"))
         self.assertEqual(manifest["dataset"]["window_seconds"], 3.0)
         self.assertEqual(manifest["model"]["model_type"], "dual_branch")
+        self.assertEqual(manifest["model"]["conv_type"], "dwconv")
+        self.assertEqual(manifest["model"]["fft_global"], "mlp")
         self.assertEqual(manifest["model"]["fft_n_times"], 101)
+        self.assertEqual(manifest["model"]["transformer_branches"], 3)
+        self.assertEqual(manifest["model"]["transformer_branch_depths"], [11, 10, 8])
+        self.assertEqual(manifest["model"]["transformer_branch_fusion"], "softmax_weighted_sum")
+        self.assertEqual(manifest["model"]["time_transformer_branch_weights"], [0.4, 0.35, 0.25])
+        self.assertEqual(manifest["model"]["fft_transformer_branch_weights"], [0.2, 0.3, 0.5])
         self.assertEqual(manifest["training"]["epochs"], 5)
         self.assertEqual(manifest["split"]["n_folds"], 2)
         self.assertEqual(manifest["runtime"]["batch_size"], 4)

@@ -75,6 +75,12 @@ class FoldCheckpoint(NamedTuple):
     depth: int
     num_heads: int
     dropout: float
+    input_qkv: str = "none"
+    input_qkv_dim: int = 64
+    input_qkv_heads: int = 4
+    input_qkv_dropout: float = 0.1
+    input_qkv_res_scale: float = 0.1
+    cumulative_query_attention: bool = False
 
 
 class SelectedEnsemble(NamedTuple):
@@ -154,7 +160,18 @@ def discover_best_loso_ensemble(outputs_root: Path = OUTPUTS_ROOT) -> SelectedEn
                 emb_size=int(checkpoint.get("emb_size", 40)),
                 depth=int(checkpoint.get("depth", 6)),
                 num_heads=int(checkpoint.get("num_heads", 5)),
-                dropout=0.5,
+                dropout=float(checkpoint.get("dropout", 0.5)),
+                input_qkv=str(checkpoint.get("input_qkv", metrics.get("input_qkv", "none"))),
+                input_qkv_dim=int(checkpoint.get("input_qkv_dim", metrics.get("input_qkv_dim", 64))),
+                input_qkv_heads=int(checkpoint.get("input_qkv_heads", metrics.get("input_qkv_heads", 4))),
+                input_qkv_dropout=float(checkpoint.get("input_qkv_dropout", metrics.get("input_qkv_dropout", 0.1))),
+                input_qkv_res_scale=float(checkpoint.get("input_qkv_res_scale", metrics.get("input_qkv_res_scale", 0.1))),
+                cumulative_query_attention=bool(
+                    checkpoint.get(
+                        "cumulative_query_attention",
+                        metrics.get("cumulative_query_attention", False),
+                    )
+                ),
             )
         )
 
@@ -169,6 +186,8 @@ def discover_best_loso_ensemble(outputs_root: Path = OUTPUTS_ROOT) -> SelectedEn
             reference.n_classes,
         ):
             raise ValueError(f"Inconsistent checkpoint shapes under {window_dir}")
+        if item.cumulative_query_attention != reference.cumulative_query_attention:
+            raise ValueError(f"Inconsistent cumulative-query attention modes under {window_dir}")
 
     window_seconds, stride_seconds = parse_window_dir_name(window_dir.name)
     return SelectedEnsemble(
@@ -310,6 +329,12 @@ def build_runtime_bundle(device: str = DEFAULT_DEVICE) -> RuntimeBundle:
             depth=checkpoint_info.depth,
             num_heads=checkpoint_info.num_heads,
             dropout=checkpoint_info.dropout,
+            input_qkv=checkpoint_info.input_qkv,
+            input_qkv_dim=checkpoint_info.input_qkv_dim,
+            input_qkv_heads=checkpoint_info.input_qkv_heads,
+            input_qkv_dropout=checkpoint_info.input_qkv_dropout,
+            input_qkv_res_scale=checkpoint_info.input_qkv_res_scale,
+            cumulative_query_attention=checkpoint_info.cumulative_query_attention,
         )
         model.load_state_dict(ckpt["state_dict"])
         model.to(device)

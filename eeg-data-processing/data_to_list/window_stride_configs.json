@@ -1,3 +1,9 @@
 [
-    {"window_seconds": 3.0, "stride_seconds": 3.0}
+  {"window_seconds": 3.0, "stride_seconds": 3.0},
+  {"window_seconds": 3.0, "stride_seconds": 1.0},
+  {"window_seconds": 9.0, "stride_seconds": 9.0},
+  {"window_seconds": 9.0, "stride_seconds": 1.0},
+  {"window_seconds": 9.0, "stride_seconds": 3.0},
+  {"window_seconds": 15.0, "stride_seconds": 15.0},
+  {"window_seconds": 15.0, "stride_seconds": 3.0}
 ]

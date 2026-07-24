@@ -138,6 +138,12 @@ def build_model_from_artifacts(
         depth=cfg.get("depth", 6),
         num_heads=cfg.get("num_heads", 5),
         dropout=cfg.get("dropout", 0.5),
+        input_qkv=cfg.get("input_qkv", "none"),
+        input_qkv_dim=cfg.get("input_qkv_dim", 64),
+        input_qkv_heads=cfg.get("input_qkv_heads", 4),
+        input_qkv_dropout=cfg.get("input_qkv_dropout", 0.1),
+        input_qkv_res_scale=cfg.get("input_qkv_res_scale", 0.1),
+        cumulative_query_attention=cfg.get("cumulative_query_attention", False),
     )
     ckpt = torch.load(
         str(artifacts["model_dir"] / "final_model.pt"),

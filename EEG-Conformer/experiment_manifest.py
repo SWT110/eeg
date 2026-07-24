@@ -274,6 +274,32 @@ def build_model_info(
     info = {
         "model_type": fold_metrics.get("model_type", model_type),
         "input_domain": fold_metrics.get("input_domain", resolved_domain),
+        "conv_type": fold_metrics.get("conv_type", cfg.get("conv_type", "standard")),
+        "fft_global": fold_metrics.get("fft_global", cfg.get("fft_global", "none")),
+        "input_qkv": fold_metrics.get("input_qkv", cfg.get("input_qkv", "none")),
+        "input_qkv_dim": fold_metrics.get("input_qkv_dim", cfg.get("input_qkv_dim")),
+        "input_qkv_heads": fold_metrics.get("input_qkv_heads", cfg.get("input_qkv_heads")),
+        "input_qkv_dropout": fold_metrics.get("input_qkv_dropout", cfg.get("input_qkv_dropout")),
+        "input_qkv_res_scale": fold_metrics.get("input_qkv_res_scale", cfg.get("input_qkv_res_scale")),
+        "cumulative_query_attention": fold_metrics.get(
+            "cumulative_query_attention", cfg.get("cumulative_query_attention", False)
+        ),
+        "transformer_branches": fold_metrics.get(
+            "transformer_branches", cfg.get("transformer_branches", 1)
+        ),
+        "transformer_branch_depths": fold_metrics.get(
+            "transformer_branch_depths",
+            cfg.get("transformer_branch_depths", [fold_metrics.get("depth", cfg.get("depth"))]),
+        ),
+        "transformer_branch_fusion": fold_metrics.get(
+            "transformer_branch_fusion", cfg.get("transformer_branch_fusion", "single")
+        ),
+        "transformer_weights_independent_by_domain": fold_metrics.get(
+            "transformer_weights_independent_by_domain",
+            cfg.get("transformer_weights_independent_by_domain", False),
+        ),
+        "time_transformer_branch_weights": fold_metrics.get("time_transformer_branch_weights"),
+        "fft_transformer_branch_weights": fold_metrics.get("fft_transformer_branch_weights"),
         "n_classes": fold_metrics.get("n_classes", cfg.get("n_classes", n_classes_from_dataset)),
         "emb_size": fold_metrics.get("emb_size", cfg.get("emb_size")),
         "depth": fold_metrics.get("depth", cfg.get("depth")),
@@ -345,6 +371,20 @@ def build_markdown(manifest: dict[str, Any]) -> str:
         "## Model",
         f"- model_type: `{model.get('model_type')}`",
         f"- input_domain: `{model.get('input_domain')}`",
+        f"- conv_type: `{model.get('conv_type')}`",
+        f"- fft_global: `{model.get('fft_global')}`",
+        f"- input_qkv: `{model.get('input_qkv')}`",
+        f"- input_qkv_dim: `{model.get('input_qkv_dim')}`",
+        f"- input_qkv_heads: `{model.get('input_qkv_heads')}`",
+        f"- input_qkv_dropout: `{model.get('input_qkv_dropout')}`",
+        f"- input_qkv_res_scale: `{model.get('input_qkv_res_scale')}`",
+        f"- cumulative_query_attention: `{model.get('cumulative_query_attention')}`",
+        f"- transformer_branches: `{model.get('transformer_branches')}`",
+        f"- transformer_branch_depths: `{model.get('transformer_branch_depths')}`",
+        f"- transformer_branch_fusion: `{model.get('transformer_branch_fusion')}`",
+        f"- transformer_weights_independent_by_domain: `{model.get('transformer_weights_independent_by_domain')}`",
+        f"- time_transformer_branch_weights: `{model.get('time_transformer_branch_weights')}`",
+        f"- fft_transformer_branch_weights: `{model.get('fft_transformer_branch_weights')}`",
         f"- n_classes: `{model.get('n_classes')}`",
         f"- emb_size: `{model.get('emb_size')}`",
         f"- depth: `{model.get('depth')}`",

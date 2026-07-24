@@ -309,6 +309,12 @@ class TestParseArgsDefaults(unittest.TestCase):
         args = self.module.parse_args(["--input-domain", "fft"])
         self.assertEqual(args.input_domain, "fft")
 
+    def test_cumulative_query_attention_is_opt_in(self) -> None:
+        self.assertFalse(self.module.parse_args([]).cumulative_query_attention)
+        self.assertTrue(
+            self.module.parse_args(["--cumulative-query-attention"]).cumulative_query_attention
+        )
+
 
 class TestMaybeRerunInProjectEnv(unittest.TestCase):
     def setUp(self) -> None:

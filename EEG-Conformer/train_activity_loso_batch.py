@@ -45,6 +45,8 @@ from train_activity_loso import (  # noqa: E402
     AUTO_RERUN_ENV_VAR,
     DEFAULT_BATCH_SIZE,
     DEFAULT_BETAS,
+    DEFAULT_CONV_TYPE,
+    DEFAULT_CUMULATIVE_QUERY_ATTENTION,
     DEFAULT_DATASET_ROOT,
     DEFAULT_DEPTH,
     DEFAULT_DEVICE,
@@ -52,17 +54,28 @@ from train_activity_loso import (  # noqa: E402
     DEFAULT_EMB_SIZE,
     DEFAULT_ENV_NAME,
     DEFAULT_EPOCHS,
+    DEFAULT_FFT_GLOBAL,
     DEFAULT_INPUT_DOMAIN,
+    DEFAULT_INPUT_QKV,
+    DEFAULT_INPUT_QKV_DIM,
+    DEFAULT_INPUT_QKV_DROPOUT,
+    DEFAULT_INPUT_QKV_HEADS,
+    DEFAULT_INPUT_QKV_RES_SCALE,
     DEFAULT_LR,
     DEFAULT_NUM_HEADS,
     DEFAULT_OUTPUT_DIR,
+    DEFAULT_TRANSFORMER_BRANCHES,
     cuda_is_usable,
     normalize_device_name,
     parse_class_weights,
     project_env_prefix,
     running_inside_project_env,
+    resolve_transformer_branch_depths,
     train_loso_fold,
+    validate_conv_type,
+    validate_fft_global_for_input_domain,
     validate_input_domain,
+    validate_input_qkv,
     validate_device,
 )
 
@@ -110,17 +123,96 @@ def fold_is_complete(
     output_dir: str | Path,
     subject_id: int,
     input_domain: str = DEFAULT_INPUT_DOMAIN,
+    conv_type: str = DEFAULT_CONV_TYPE,
+    fft_global: str = DEFAULT_FFT_GLOBAL,
+    input_qkv: str = DEFAULT_INPUT_QKV,
+    input_qkv_dim: int = DEFAULT_INPUT_QKV_DIM,
+    input_qkv_heads: int = DEFAULT_INPUT_QKV_HEADS,
+    input_qkv_dropout: float = DEFAULT_INPUT_QKV_DROPOUT,
+    input_qkv_res_scale: float = DEFAULT_INPUT_QKV_RES_SCALE,
+    cumulative_query_attention: bool = DEFAULT_CUMULATIVE_QUERY_ATTENTION,
+    depth: int = DEFAULT_DEPTH,
+    transformer_branches: int = DEFAULT_TRANSFORMER_BRANCHES,
+    transformer_depths: list[int] | tuple[int, ...] | None = None,
 ) -> bool:
-    """Return True if the fold directory already contains a result artifact."""
+    """Return True if the fold directory already contains a matching result artifact."""
     fold_dir = fold_output_dir(output_dir, subject_id)
     metrics_path = fold_dir / "metrics.json"
+    expected_input_domain = validate_input_domain(input_domain)
+    expected_conv_type = validate_conv_type(conv_type)
+    expected_fft_global = validate_fft_global_for_input_domain(expected_input_domain, fft_global)
+    expected_input_qkv = validate_input_qkv(input_qkv)
+    expected_input_qkv_dim = int(input_qkv_dim)
+    expected_input_qkv_heads = int(input_qkv_heads)
+    expected_input_qkv_dropout = float(input_qkv_dropout)
+    expected_input_qkv_res_scale = float(input_qkv_res_scale)
+    expected_cumulative_query_attention = bool(cumulative_query_attention)
+    expected_depth = int(depth)
+    expected_transformer_depths = resolve_transformer_branch_depths(
+        depth=expected_depth,
+        transformer_branches=transformer_branches,
+        transformer_depths=transformer_depths,
+        input_domain=expected_input_domain,
+    )
+    expected_transformer_branches = len(expected_transformer_depths)
     if metrics_path.exists():
-        expected_input_domain = validate_input_domain(input_domain)
         with open(metrics_path, encoding="utf-8") as fh:
             metrics = json.load(fh)
         actual_input_domain = validate_input_domain(metrics.get("input_domain"))
-        return actual_input_domain == expected_input_domain
-    return (fold_dir / "best_model.pt").exists()
+        actual_conv_type = validate_conv_type(metrics.get("conv_type"))
+        actual_fft_global = validate_fft_global_for_input_domain(
+            actual_input_domain,
+            metrics.get("fft_global"),
+        )
+        actual_input_qkv = validate_input_qkv(metrics.get("input_qkv"))
+        actual_input_qkv_dim = int(metrics.get("input_qkv_dim", DEFAULT_INPUT_QKV_DIM))
+        actual_input_qkv_heads = int(metrics.get("input_qkv_heads", DEFAULT_INPUT_QKV_HEADS))
+        actual_input_qkv_dropout = float(metrics.get("input_qkv_dropout", DEFAULT_INPUT_QKV_DROPOUT))
+        actual_input_qkv_res_scale = float(metrics.get("input_qkv_res_scale", DEFAULT_INPUT_QKV_RES_SCALE))
+        actual_cumulative_query_attention = bool(
+            metrics.get("cumulative_query_attention", DEFAULT_CUMULATIVE_QUERY_ATTENTION)
+        )
+        actual_depth = int(metrics.get("depth", DEFAULT_DEPTH))
+        actual_transformer_branches = int(
+            metrics.get("transformer_branches", DEFAULT_TRANSFORMER_BRANCHES)
+        )
+        actual_transformer_depths = tuple(
+            int(value)
+            for value in metrics.get("transformer_branch_depths", [actual_depth])
+        )
+        qkv_params_match = True
+        if expected_input_qkv != DEFAULT_INPUT_QKV or actual_input_qkv != DEFAULT_INPUT_QKV:
+            qkv_params_match = (
+                actual_input_qkv_dim == expected_input_qkv_dim
+                and actual_input_qkv_heads == expected_input_qkv_heads
+                and actual_input_qkv_dropout == expected_input_qkv_dropout
+                and actual_input_qkv_res_scale == expected_input_qkv_res_scale
+            )
+        return (
+            actual_input_domain == expected_input_domain
+            and actual_conv_type == expected_conv_type
+            and actual_fft_global == expected_fft_global
+            and actual_input_qkv == expected_input_qkv
+            and actual_cumulative_query_attention == expected_cumulative_query_attention
+            and actual_depth == expected_depth
+            and actual_transformer_branches == expected_transformer_branches
+            and actual_transformer_depths == expected_transformer_depths
+            and qkv_params_match
+        )
+
+    # Legacy fallback: a bare best_model.pt has no metadata, so only treat it as
+    # complete for the historical default experiment.
+    return (
+        (fold_dir / "best_model.pt").exists()
+        and expected_input_domain == DEFAULT_INPUT_DOMAIN
+        and expected_conv_type == DEFAULT_CONV_TYPE
+        and expected_fft_global == DEFAULT_FFT_GLOBAL
+        and expected_input_qkv == DEFAULT_INPUT_QKV
+        and expected_cumulative_query_attention == DEFAULT_CUMULATIVE_QUERY_ATTENTION
+        and expected_depth == DEFAULT_DEPTH
+        and expected_transformer_branches == DEFAULT_TRANSFORMER_BRANCHES
+        and expected_transformer_depths == (DEFAULT_DEPTH,)
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -138,15 +230,57 @@ def run_loso_batch(
     skip_existing: bool,
     seed: int = 42,
     input_domain: str = DEFAULT_INPUT_DOMAIN,
+    conv_type: str = DEFAULT_CONV_TYPE,
+    fft_global: str = DEFAULT_FFT_GLOBAL,
+    input_qkv: str = DEFAULT_INPUT_QKV,
+    input_qkv_dim: int = DEFAULT_INPUT_QKV_DIM,
+    input_qkv_heads: int = DEFAULT_INPUT_QKV_HEADS,
+    input_qkv_dropout: float = DEFAULT_INPUT_QKV_DROPOUT,
+    input_qkv_res_scale: float = DEFAULT_INPUT_QKV_RES_SCALE,
+    cumulative_query_attention: bool = DEFAULT_CUMULATIVE_QUERY_ATTENTION,
+    depth: int = DEFAULT_DEPTH,
+    transformer_branches: int = DEFAULT_TRANSFORMER_BRANCHES,
+    transformer_depths: list[int] | tuple[int, ...] | None = None,
     class_weights: list[float] | None = None,
 ) -> list[LosoFoldResult]:
     resolved_device = validate_device(device)
     resolved_input_domain = validate_input_domain(input_domain)
+    resolved_conv_type = validate_conv_type(conv_type)
+    resolved_fft_global = validate_fft_global_for_input_domain(resolved_input_domain, fft_global)
+    resolved_input_qkv = validate_input_qkv(input_qkv)
+    resolved_input_qkv_dim = int(input_qkv_dim)
+    resolved_input_qkv_heads = int(input_qkv_heads)
+    resolved_input_qkv_dropout = float(input_qkv_dropout)
+    resolved_input_qkv_res_scale = float(input_qkv_res_scale)
+    resolved_cumulative_query_attention = bool(cumulative_query_attention)
+    resolved_depth = int(depth)
+    resolved_transformer_depths = resolve_transformer_branch_depths(
+        depth=resolved_depth,
+        transformer_branches=transformer_branches,
+        transformer_depths=transformer_depths,
+        input_domain=resolved_input_domain,
+    )
+    resolved_transformer_branches = len(resolved_transformer_depths)
     results: list[LosoFoldResult] = []
 
     print(f"Planned LOSO folds: {len(subject_ids)}")
     for subject_id in subject_ids:
-        if skip_existing and fold_is_complete(output_dir, subject_id, resolved_input_domain):
+        if skip_existing and fold_is_complete(
+            output_dir,
+            subject_id,
+            resolved_input_domain,
+            resolved_conv_type,
+            resolved_fft_global,
+            resolved_input_qkv,
+            resolved_input_qkv_dim,
+            resolved_input_qkv_heads,
+            resolved_input_qkv_dropout,
+            resolved_input_qkv_res_scale,
+            resolved_cumulative_query_attention,
+            resolved_depth,
+            resolved_transformer_branches,
+            resolved_transformer_depths,
+        ):
             fold_dir = fold_output_dir(output_dir, subject_id)
             print(f"[SKIP] subject={subject_id}  fold_dir={fold_dir}")
             results.append(
@@ -170,6 +304,17 @@ def run_loso_batch(
                 output_dir=output_dir,
                 seed=seed,
                 input_domain=resolved_input_domain,
+                conv_type=resolved_conv_type,
+                fft_global=resolved_fft_global,
+                input_qkv=resolved_input_qkv,
+                input_qkv_dim=resolved_input_qkv_dim,
+                input_qkv_heads=resolved_input_qkv_heads,
+                input_qkv_dropout=resolved_input_qkv_dropout,
+                input_qkv_res_scale=resolved_input_qkv_res_scale,
+                cumulative_query_attention=resolved_cumulative_query_attention,
+                depth=resolved_depth,
+                transformer_branches=resolved_transformer_branches,
+                transformer_depths=resolved_transformer_depths,
                 class_weights=class_weights,
             )
         except Exception as exc:
@@ -274,12 +419,74 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--epochs", type=int, default=DEFAULT_EPOCHS)
     parser.add_argument("--batch-size", type=int, default=DEFAULT_BATCH_SIZE)
     parser.add_argument("--lr", type=float, default=DEFAULT_LR)
+    parser.add_argument("--depth", type=int, default=DEFAULT_DEPTH, help="TransformerEncoder block count (default: 6)")
+    parser.add_argument(
+        "--transformer-branches",
+        type=int,
+        default=DEFAULT_TRANSFORMER_BRANCHES,
+        help="Parallel Transformer encoders per time/FFT branch (default: 1)",
+    )
+    parser.add_argument(
+        "--transformer-depths",
+        type=int,
+        nargs="+",
+        default=None,
+        help="Block counts for parallel encoders, e.g. 11 10 8",
+    )
     parser.add_argument("--device", type=str, default=DEFAULT_DEVICE)
     parser.add_argument(
         "--input-domain",
         type=str,
         default=DEFAULT_INPUT_DOMAIN,
         help="Input representation: time, fft, or time_fft dual branch (default: time)",
+    )
+    parser.add_argument(
+        "--conv-type",
+        type=str,
+        default=DEFAULT_CONV_TYPE,
+        help="Convolution type in PatchEmbedding spatial conv: standard or dwconv (default: standard)",
+    )
+    parser.add_argument(
+        "--fft-global",
+        type=str,
+        default=DEFAULT_FFT_GLOBAL,
+        help="Optional global FFT preprocessor: none or mlp (default: none)",
+    )
+    parser.add_argument(
+        "--input-qkv",
+        type=str,
+        default=DEFAULT_INPUT_QKV,
+        help="Optional input QKV residual block: none, channel, or time (default: none)",
+    )
+    parser.add_argument(
+        "--input-qkv-dim",
+        type=int,
+        default=DEFAULT_INPUT_QKV_DIM,
+        help="Embedding width for --input-qkv channel/time (default: 64)",
+    )
+    parser.add_argument(
+        "--input-qkv-heads",
+        type=int,
+        default=DEFAULT_INPUT_QKV_HEADS,
+        help="Number of attention heads for --input-qkv channel/time (default: 4)",
+    )
+    parser.add_argument(
+        "--input-qkv-dropout",
+        type=float,
+        default=DEFAULT_INPUT_QKV_DROPOUT,
+        help="Dropout inside the input QKV residual block (default: 0.1)",
+    )
+    parser.add_argument(
+        "--input-qkv-res-scale",
+        type=float,
+        default=DEFAULT_INPUT_QKV_RES_SCALE,
+        help="Initial residual scale gamma for input QKV block (default: 0.1)",
+    )
+    parser.add_argument(
+        "--cumulative-query-attention",
+        action="store_true",
+        default=DEFAULT_CUMULATIVE_QUERY_ATTENTION,
+        help="Accumulate encoder queries across blocks (default: disabled)",
     )
     parser.add_argument(
         "--class-weights",
@@ -315,6 +522,9 @@ def main(argv: list[str] | None = None) -> None:
     requested = parse_subject_id_list(args.subject_ids)
     class_weights = parse_class_weights(args.class_weights)
     input_domain = validate_input_domain(args.input_domain)
+    conv_type = validate_conv_type(args.conv_type)
+    fft_global = validate_fft_global_for_input_domain(input_domain, args.fft_global)
+    input_qkv = validate_input_qkv(args.input_qkv)
     if requested is not None:
         missing = [sid for sid in requested if sid not in all_subject_ids]
         if missing:
@@ -337,6 +547,17 @@ def main(argv: list[str] | None = None) -> None:
         skip_existing=bool(args.skip_existing),
         seed=args.seed,
         input_domain=input_domain,
+        conv_type=conv_type,
+        fft_global=fft_global,
+        input_qkv=input_qkv,
+        input_qkv_dim=args.input_qkv_dim,
+        input_qkv_heads=args.input_qkv_heads,
+        input_qkv_dropout=args.input_qkv_dropout,
+        input_qkv_res_scale=args.input_qkv_res_scale,
+        cumulative_query_attention=args.cumulative_query_attention,
+        depth=args.depth,
+        transformer_branches=args.transformer_branches,
+        transformer_depths=args.transformer_depths,
         class_weights=class_weights,
     )
 

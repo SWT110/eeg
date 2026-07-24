@@ -382,6 +382,18 @@ class TestBuildModelFromArtifacts(unittest.TestCase):
         model = self.module.build_model_from_artifacts(arts, device="cpu")
         self.assertFalse(model.training)
 
+    def test_restores_cumulative_query_attention_from_config(self) -> None:
+        config_path = self.model_dir / "train_config.json"
+        config = json.loads(config_path.read_text())
+        config["cumulative_query_attention"] = True
+        config_path.write_text(json.dumps(config))
+
+        arts = self.module.load_model_artifacts(self.model_dir)
+        model = self.module.build_model_from_artifacts(arts, device="cpu")
+
+        self.assertTrue(model.cumulative_query_attention)
+        self.assertTrue(model.encoder.cumulative_query_attention)
+
 
 # ---------------------------------------------------------------------------
 # 9-12. predict_signal (end-to-end with mocked xlsx + real model)

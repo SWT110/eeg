@@ -1,5 +1,6 @@
 # macOS / editor / tooling
 .DS_Store
+__MACOSX/
 .vscode/
 .playwright-mcp/
 .repo-history-backups/
@@ -26,6 +27,9 @@ EEG-Conformer/.conda-pkgs/
 # Training / inference outputs
 local_artifacts/
 local_artifacts*.zip
+local_artifacts*.tar
+local_artifacts*.tar.gz
+local_artifacts*.tgz
 EEG-Conformer/outputs/
 eeg-data-processing/data_to_list/npy_dataset/
 eeg-data-processing/data_to_list/npy_dataset*/

@@ -98,8 +98,15 @@ confusion_matrix_from_arrays = _loso.confusion_matrix_from_arrays
 per_class_metrics_from_cm = _loso.per_class_metrics_from_cm
 macro_f1_from_per_class = _loso.macro_f1_from_per_class
 DEFAULT_INPUT_DOMAIN = _loso.DEFAULT_INPUT_DOMAIN
+DEFAULT_INPUT_QKV = _loso.DEFAULT_INPUT_QKV
+DEFAULT_INPUT_QKV_DIM = _loso.DEFAULT_INPUT_QKV_DIM
+DEFAULT_INPUT_QKV_HEADS = _loso.DEFAULT_INPUT_QKV_HEADS
+DEFAULT_INPUT_QKV_DROPOUT = _loso.DEFAULT_INPUT_QKV_DROPOUT
+DEFAULT_INPUT_QKV_RES_SCALE = _loso.DEFAULT_INPUT_QKV_RES_SCALE
+DEFAULT_CUMULATIVE_QUERY_ATTENTION = _loso.DEFAULT_CUMULATIVE_QUERY_ATTENTION
 transform_windows_for_input_domain = _loso.transform_windows_for_input_domain
 validate_input_domain = _loso.validate_input_domain
+validate_input_qkv = _loso.validate_input_qkv
 
 
 # ---------------------------------------------------------------------------
@@ -116,6 +123,12 @@ class RuntimeConfig(NamedTuple):
     seed: int
     val_fraction: float
     input_domain: str = DEFAULT_INPUT_DOMAIN
+    input_qkv: str = DEFAULT_INPUT_QKV
+    input_qkv_dim: int = DEFAULT_INPUT_QKV_DIM
+    input_qkv_heads: int = DEFAULT_INPUT_QKV_HEADS
+    input_qkv_dropout: float = DEFAULT_INPUT_QKV_DROPOUT
+    input_qkv_res_scale: float = DEFAULT_INPUT_QKV_RES_SCALE
+    cumulative_query_attention: bool = DEFAULT_CUMULATIVE_QUERY_ATTENTION
 
 
 # ---------------------------------------------------------------------------
@@ -232,6 +245,12 @@ def train_final_model(
     num_heads: int = DEFAULT_NUM_HEADS,
     dropout: float = DEFAULT_DROPOUT,
     input_domain: str = DEFAULT_INPUT_DOMAIN,
+    input_qkv: str = DEFAULT_INPUT_QKV,
+    input_qkv_dim: int = DEFAULT_INPUT_QKV_DIM,
+    input_qkv_heads: int = DEFAULT_INPUT_QKV_HEADS,
+    input_qkv_dropout: float = DEFAULT_INPUT_QKV_DROPOUT,
+    input_qkv_res_scale: float = DEFAULT_INPUT_QKV_RES_SCALE,
+    cumulative_query_attention: bool = DEFAULT_CUMULATIVE_QUERY_ATTENTION,
 ) -> Path:
     """Train final deployment model and save all artifacts.
 
@@ -246,6 +265,12 @@ def train_final_model(
 
     device_obj = torch.device(device)
     resolved_input_domain = validate_input_domain(input_domain)
+    resolved_input_qkv = validate_input_qkv(input_qkv)
+    resolved_input_qkv_dim = int(input_qkv_dim)
+    resolved_input_qkv_heads = int(input_qkv_heads)
+    resolved_input_qkv_dropout = float(input_qkv_dropout)
+    resolved_input_qkv_res_scale = float(input_qkv_res_scale)
+    resolved_cumulative_query_attention = bool(cumulative_query_attention)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -289,6 +314,12 @@ def train_final_model(
         depth=depth,
         num_heads=num_heads,
         dropout=dropout,
+        input_qkv=resolved_input_qkv,
+        input_qkv_dim=resolved_input_qkv_dim,
+        input_qkv_heads=resolved_input_qkv_heads,
+        input_qkv_dropout=resolved_input_qkv_dropout,
+        input_qkv_res_scale=resolved_input_qkv_res_scale,
+        cumulative_query_attention=resolved_cumulative_query_attention,
     ).to(device_obj)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, betas=DEFAULT_BETAS)
@@ -300,7 +331,8 @@ def train_final_model(
 
     print(
         f"\n[Final model] train={len(train_X)}  val={len(val_X)}  "
-        f"shape=(1,{n_channels},{n_times})  classes={n_classes}"
+        f"shape=(1,{n_channels},{n_times})  classes={n_classes}  "
+        f"cumulative_query_attention={resolved_cumulative_query_attention}"
     )
 
     for epoch in range(epochs):
@@ -341,6 +373,13 @@ def train_final_model(
                         "emb_size": emb_size,
                         "depth": depth,
                         "num_heads": num_heads,
+                        "dropout": dropout,
+                        "input_qkv": resolved_input_qkv,
+                        "input_qkv_dim": resolved_input_qkv_dim,
+                        "input_qkv_heads": resolved_input_qkv_heads,
+                        "input_qkv_dropout": resolved_input_qkv_dropout,
+                        "input_qkv_res_scale": resolved_input_qkv_res_scale,
+                        "cumulative_query_attention": resolved_cumulative_query_attention,
                     },
                     output_dir / "final_model.pt",
                 )
@@ -362,6 +401,13 @@ def train_final_model(
                         "emb_size": emb_size,
                         "depth": depth,
                         "num_heads": num_heads,
+                        "dropout": dropout,
+                        "input_qkv": resolved_input_qkv,
+                        "input_qkv_dim": resolved_input_qkv_dim,
+                        "input_qkv_heads": resolved_input_qkv_heads,
+                        "input_qkv_dropout": resolved_input_qkv_dropout,
+                        "input_qkv_res_scale": resolved_input_qkv_res_scale,
+                        "cumulative_query_attention": resolved_cumulative_query_attention,
                     },
                     output_dir / "final_model.pt",
                 )
@@ -396,6 +442,12 @@ def train_final_model(
         "window_seconds": metadata.get("window_seconds"),
         "stride_seconds": metadata.get("stride_seconds"),
         "input_domain": resolved_input_domain,
+        "input_qkv": resolved_input_qkv,
+        "input_qkv_dim": resolved_input_qkv_dim,
+        "input_qkv_heads": resolved_input_qkv_heads,
+        "input_qkv_dropout": resolved_input_qkv_dropout,
+        "input_qkv_res_scale": resolved_input_qkv_res_scale,
+        "cumulative_query_attention": resolved_cumulative_query_attention,
     }
     with open(output_dir / "train_config.json", "w", encoding="ascii") as fh:
         json.dump(train_config, fh, indent=2)
@@ -585,6 +637,7 @@ def build_noninteractive_example() -> str:
         f"--batch-size {DEFAULT_BATCH_SIZE} "
         f"--lr {DEFAULT_LR} "
         f"--device {DEFAULT_DEVICE} "
+        f"--input-qkv {DEFAULT_INPUT_QKV} "
         f"--output-dir {shlex.quote(str(DEFAULT_OUTPUT_DIR))}"
     )
 
@@ -610,6 +663,12 @@ def resolve_runtime_config(
     seed: int | None,
     val_fraction: float | None,
     input_domain: str | None = None,
+    input_qkv: str | None = None,
+    input_qkv_dim: int | None = None,
+    input_qkv_heads: int | None = None,
+    input_qkv_dropout: float | None = None,
+    input_qkv_res_scale: float | None = None,
+    cumulative_query_attention: bool = DEFAULT_CUMULATIVE_QUERY_ATTENTION,
 ) -> RuntimeConfig:
     missing_flags: list[str] = []
     if dataset_root is None:
@@ -680,6 +739,13 @@ def resolve_runtime_config(
         DEFAULT_VAL_FRACTION if val_fraction is None else float(val_fraction)
     )
     resolved_input_domain = validate_input_domain(input_domain)
+    resolved_input_qkv = validate_input_qkv(input_qkv)
+    resolved_input_qkv_dim = DEFAULT_INPUT_QKV_DIM if input_qkv_dim is None else int(input_qkv_dim)
+    resolved_input_qkv_heads = DEFAULT_INPUT_QKV_HEADS if input_qkv_heads is None else int(input_qkv_heads)
+    resolved_input_qkv_dropout = DEFAULT_INPUT_QKV_DROPOUT if input_qkv_dropout is None else float(input_qkv_dropout)
+    resolved_input_qkv_res_scale = (
+        DEFAULT_INPUT_QKV_RES_SCALE if input_qkv_res_scale is None else float(input_qkv_res_scale)
+    )
 
     return RuntimeConfig(
         dataset_root=resolved_dataset_root,
@@ -691,6 +757,12 @@ def resolve_runtime_config(
         seed=resolved_seed,
         val_fraction=resolved_val_fraction,
         input_domain=resolved_input_domain,
+        input_qkv=resolved_input_qkv,
+        input_qkv_dim=resolved_input_qkv_dim,
+        input_qkv_heads=resolved_input_qkv_heads,
+        input_qkv_dropout=resolved_input_qkv_dropout,
+        input_qkv_res_scale=resolved_input_qkv_res_scale,
+        cumulative_query_attention=bool(cumulative_query_attention),
     )
 
 
@@ -715,12 +787,48 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Input representation: time or fft (default: time)",
     )
     parser.add_argument(
+        "--input-qkv",
+        type=str,
+        default=DEFAULT_INPUT_QKV,
+        help="Optional input QKV residual block: none, channel, or time (default: none)",
+    )
+    parser.add_argument(
+        "--input-qkv-dim",
+        type=int,
+        default=DEFAULT_INPUT_QKV_DIM,
+        help="Embedding width for --input-qkv channel/time (default: 64)",
+    )
+    parser.add_argument(
+        "--input-qkv-heads",
+        type=int,
+        default=DEFAULT_INPUT_QKV_HEADS,
+        help="Number of attention heads for --input-qkv channel/time (default: 4)",
+    )
+    parser.add_argument(
+        "--input-qkv-dropout",
+        type=float,
+        default=DEFAULT_INPUT_QKV_DROPOUT,
+        help="Dropout inside the input QKV residual block (default: 0.1)",
+    )
+    parser.add_argument(
+        "--input-qkv-res-scale",
+        type=float,
+        default=DEFAULT_INPUT_QKV_RES_SCALE,
+        help="Initial residual scale gamma for input QKV block (default: 0.1)",
+    )
+    parser.add_argument(
         "--output-dir",
         type=Path,
         default=DEFAULT_OUTPUT_DIR,
         help="Directory for final model artifacts",
     )
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument(
+        "--cumulative-query-attention",
+        action="store_true",
+        default=DEFAULT_CUMULATIVE_QUERY_ATTENTION,
+        help="Accumulate encoder queries across blocks (default: disabled)",
+    )
     parser.add_argument(
         "--val-fraction",
         type=float,
@@ -745,6 +853,14 @@ def main(argv: list[str] | None = None) -> None:
             seed=args.seed,
             val_fraction=args.val_fraction,
             input_domain=args.input_domain,
+            input_qkv=getattr(args, "input_qkv", DEFAULT_INPUT_QKV),
+            input_qkv_dim=getattr(args, "input_qkv_dim", DEFAULT_INPUT_QKV_DIM),
+            input_qkv_heads=getattr(args, "input_qkv_heads", DEFAULT_INPUT_QKV_HEADS),
+            input_qkv_dropout=getattr(args, "input_qkv_dropout", DEFAULT_INPUT_QKV_DROPOUT),
+            input_qkv_res_scale=getattr(args, "input_qkv_res_scale", DEFAULT_INPUT_QKV_RES_SCALE),
+            cumulative_query_attention=getattr(
+                args, "cumulative_query_attention", DEFAULT_CUMULATIVE_QUERY_ATTENTION
+            ),
         )
     else:
         maybe_rerun_in_project_env([], DEFAULT_DEVICE)
@@ -770,6 +886,12 @@ def main(argv: list[str] | None = None) -> None:
         seed=config.seed,
         val_fraction=config.val_fraction,
         input_domain=config.input_domain,
+        input_qkv=config.input_qkv,
+        input_qkv_dim=config.input_qkv_dim,
+        input_qkv_heads=config.input_qkv_heads,
+        input_qkv_dropout=config.input_qkv_dropout,
+        input_qkv_res_scale=config.input_qkv_res_scale,
+        cumulative_query_attention=config.cumulative_query_attention,
     )
 
 
