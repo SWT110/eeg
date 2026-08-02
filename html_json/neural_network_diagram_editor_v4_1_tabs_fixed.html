@@ -89,7 +89,7 @@
   .canvas-wrap{position:relative;overflow:hidden;background:
       linear-gradient(#dbe1ec55 1px,transparent 1px),
       linear-gradient(90deg,#dbe1ec55 1px,transparent 1px);
-      background-size:20px 20px}
+      background-color:#fff;background-size:20px 20px}
   #canvas{width:100%;height:100%;display:block;touch-action:none;user-select:none}
   #canvas.pan-ready,#canvas.pan-ready *{cursor:grab!important}
   #canvas.panning,#canvas.panning *{cursor:grabbing!important}
@@ -132,6 +132,20 @@
     .layout{grid-template-columns:230px 1fr}
     .panel.right{position:absolute;right:0;top:101px;bottom:0;width:290px;z-index:8;box-shadow:-4px 0 20px #0002}
   }
+
+  /* 纯画布全屏：隐藏顶部、标签栏和左右面板，只保留画布区域。 */
+  .app.canvas-only{grid-template-rows:minmax(0,1fr)}
+  .app.canvas-only > .topbar,
+  .app.canvas-only > .tabsbar,
+  .app.canvas-only > .layout > .panel{display:none}
+  .app.canvas-only > .layout{grid-template-columns:minmax(0,1fr)}
+  .app.canvas-only > .layout > .canvas-wrap{grid-column:1;min-width:0;min-height:0}
+  .canvas-wrap:fullscreen,
+  .canvas-wrap:-webkit-full-screen{width:100vw;height:100vh;background-color:#fff}
+  .canvas-wrap::backdrop{background:#fff}
+  .app.canvas-only .floating,
+  .canvas-wrap:fullscreen .floating,
+  .canvas-wrap:-webkit-full-screen .floating{z-index:10}
 </style>
 </head>
 <body>
@@ -152,6 +166,7 @@
     <div class="sep"></div>
     <button class="btn primary" id="exportSvgBtn">导出 SVG</button>
     <button class="btn primary" id="exportPngBtn">导出 PNG</button>
+    <button class="btn" id="canvasOnlyBtn" type="button" title="仅显示画布（Ctrl+Shift+F）" aria-pressed="false">⛶ 画布全屏</button>
     <div class="status" id="status">未选择元素</div>
   </header>
 
@@ -225,7 +240,7 @@
           <span class="kbd">Delete</span> 删除，
           <span class="kbd">Ctrl+D</span> 复制，
           <span class="kbd">Ctrl+Z</span> 撤销。<br>
-          双击矩形可快速改名；双击空白处添加矩形。<br>双击标签可改名；标签支持拖动排序。<br><span class="kbd">Ctrl+T</span> 新标签，<span class="kbd">Ctrl+W</span> 关闭，<span class="kbd">Ctrl+Tab</span> 切换。
+          双击矩形可快速改名；双击空白处添加矩形。<br>双击标签可改名；标签支持拖动排序。<br><span class="kbd">Ctrl+T</span> 新标签，<span class="kbd">Ctrl+W</span> 关闭，<span class="kbd">Ctrl+Tab</span> 切换。<br><span class="kbd">Ctrl+Shift+F</span> 进入纯画布全屏，<span class="kbd">Esc</span> 退出。
         </div>
       </div>
     </aside>
@@ -253,6 +268,7 @@
         <button class="btn icon" id="fitBtn">适</button>
         <button class="btn icon" id="zoomInBtn">＋</button>
         <button class="btn" id="gridBtn">吸附：开</button>
+        <button class="btn" id="canvasOnlyFloatingBtn" type="button" title="仅显示画布（Ctrl+Shift+F）" aria-pressed="false">⛶ 全屏</button>
       </div>
     </section>
 
@@ -400,7 +416,11 @@
   let suppressCanvasActivationTimer = null;
   let guides = [];
   let toastTimer = null;
+  let canvasOnlyMode = false;
+  let canvasResizeFrame = null;
 
+  const app = $(".app");
+  const canvasWrap = $("#canvasWrap");
   const svg = $("#canvas");
   const viewport = $("#viewport");
   const nodesLayer = $("#nodesLayer");
@@ -466,6 +486,7 @@
     normalizeState();
     syncActiveDocument();
     render();
+    if(canvasOnlyMode)scheduleCanvasViewResize();
     requestAnimationFrame(()=>{
       [...document.querySelectorAll(".diagram-tab")]
         .find(tab=>tab.dataset.id===id)
@@ -670,6 +691,81 @@
     const t=$("#toast"); t.textContent=msg; t.classList.add("show");
     clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("show"),1500);
   }
+
+  function fullscreenElement(){
+    return document.fullscreenElement||document.webkitFullscreenElement||null;
+  }
+  function scheduleCanvasViewResize(){
+    if(canvasResizeFrame!==null)cancelAnimationFrame(canvasResizeFrame);
+    canvasResizeFrame=requestAnimationFrame(()=>{
+      canvasResizeFrame=requestAnimationFrame(()=>{
+        canvasResizeFrame=null;
+        const width=svg.clientWidth,height=svg.clientHeight;
+        if(!width||!height||!state?.view)return;
+        // 保持纵向视野不变，只扩展/收窄横向视野，避免全屏切换后图形变形或留白。
+        const nextWidth=state.view.h*(width/height);
+        if(!Number.isFinite(nextWidth)||Math.abs(nextWidth-state.view.w)<0.01)return;
+        const centerX=state.view.x+state.view.w/2;
+        state.view.x=centerX-nextWidth/2;
+        state.view.w=nextWidth;
+        render();
+      });
+    });
+  }
+  function updateCanvasOnlyButtons(){
+    const fullLabel=canvasOnlyMode?"⤢ 退出画布全屏":"⛶ 画布全屏";
+    const compactLabel=canvasOnlyMode?"⤢ 退出全屏":"⛶ 全屏";
+    const title=canvasOnlyMode?"退出纯画布全屏（Esc）":"仅显示画布（Ctrl+Shift+F）";
+    [["#canvasOnlyBtn",fullLabel],["#canvasOnlyFloatingBtn",compactLabel]].forEach(([selector,label])=>{
+      const button=$(selector);if(!button)return;
+      button.textContent=label;
+      button.title=title;
+      button.setAttribute("aria-pressed",String(canvasOnlyMode));
+    });
+  }
+  function applyCanvasOnlyLayout(enabled){
+    canvasOnlyMode=!!enabled;
+    app.classList.toggle("canvas-only",canvasOnlyMode);
+    updateCanvasOnlyButtons();
+    scheduleCanvasViewResize();
+  }
+  async function enterCanvasOnlyMode(){
+    if(canvasOnlyMode)return;
+    applyCanvasOnlyLayout(true);
+    const request=canvasWrap.requestFullscreen||canvasWrap.webkitRequestFullscreen;
+    if(!request){showToast("已进入纯画布模式；按 Esc 退出");return}
+    try{
+      if(!fullscreenElement())await request.call(canvasWrap);
+      showToast("已进入纯画布全屏；按 Esc 退出");
+    }catch(err){
+      console.warn("浏览器全屏不可用，改用页面内纯画布模式",err);
+      showToast("已进入纯画布模式；按 Esc 退出");
+    }
+  }
+  async function exitCanvasOnlyMode(){
+    const active=fullscreenElement();
+    const exit=document.exitFullscreen||document.webkitExitFullscreen;
+    if(active===canvasWrap&&exit){
+      try{await exit.call(document)}catch(err){console.warn("退出浏览器全屏失败",err)}
+    }
+    applyCanvasOnlyLayout(false);
+  }
+  function toggleCanvasOnlyMode(){
+    return canvasOnlyMode?exitCanvasOnlyMode():enterCanvasOnlyMode();
+  }
+  function handleFullscreenChange(){
+    const active=fullscreenElement();
+    if(active===canvasWrap){
+      if(!canvasOnlyMode)applyCanvasOnlyLayout(true);
+      else scheduleCanvasViewResize();
+    }else if(canvasOnlyMode){
+      applyCanvasOnlyLayout(false);
+    }
+  }
+  document.addEventListener("fullscreenchange",handleFullscreenChange);
+  document.addEventListener("webkitfullscreenchange",handleFullscreenChange);
+  window.addEventListener("resize",()=>{if(canvasOnlyMode)scheduleCanvasViewResize()});
+
   function svgEl(tag,attrs={}){
     const e=document.createElementNS(SVG_NS,tag);
     Object.entries(attrs).forEach(([k,v])=>{
@@ -1524,6 +1620,8 @@
   $("#zoomOutBtn").onclick=()=>zoomCenter(1.18);
   $("#fitBtn").onclick=()=>{fitView();render()};
   $("#gridBtn").onclick=()=>commit(()=>state.settings.snap=!state.settings.snap);
+  $("#canvasOnlyBtn").onclick=toggleCanvasOnlyMode;
+  $("#canvasOnlyFloatingBtn").onclick=toggleCanvasOnlyMode;
 
   function zoomCenter(f){
     const cx=state.view.x+state.view.w/2,cy=state.view.y+state.view.h/2;
@@ -1546,6 +1644,8 @@
     const command=ev.ctrlKey||ev.metaKey;
     const key=ev.key.toLowerCase();
     const editing=isEditableTarget(ev.target);
+    if(ev.key==="Escape"&&canvasOnlyMode){ev.preventDefault();exitCanvasOnlyMode();return}
+    if(command&&ev.shiftKey&&key==="f"){ev.preventDefault();toggleCanvasOnlyMode();return}
     if(!command&&!editing&&isPanModifierKey(ev)){
       ev.preventDefault();setPanModifierHeld(true);return;
     }
