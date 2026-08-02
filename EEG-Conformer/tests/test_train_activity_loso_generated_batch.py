@@ -418,6 +418,10 @@ class TestParseArgs(unittest.TestCase):
         args = self.module.parse_args(["--class-weights", "3,3,1"])
         self.assertEqual(args.class_weights, "3,3,1")
 
+    def test_resume_is_opt_in(self) -> None:
+        self.assertFalse(self.module.parse_args([]).resume)
+        self.assertTrue(self.module.parse_args(["--resume"]).resume)
+
     def test_accepts_depth_argument(self) -> None:
         self.assertEqual(self.module.parse_args(["--depth", "3"]).depth, 3)
 

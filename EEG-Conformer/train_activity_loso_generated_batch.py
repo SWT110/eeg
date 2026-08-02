@@ -605,6 +605,7 @@ def write_dataset_manifest(
     run_status: str,
     run_started_at: str | None,
     run_ended_at: str | None,
+    resume: bool = False,
     note: str | None = None,
 ) -> tuple[Path, Path]:
     return write_loso_experiment_manifest(
@@ -635,6 +636,7 @@ def write_dataset_manifest(
             "device": device,
             "batch_size": batch_size,
             "skip_existing": skip_existing,
+            "resume": resume,
             "output_dir": str(job.output_dir),
             "output_base": str(job.output_dir.parent),
         },
@@ -670,6 +672,7 @@ def run_generated_dataset_batch(
     transformer_branches: int = DEFAULT_TRANSFORMER_BRANCHES,
     transformer_depths: list[int] | tuple[int, ...] | None = None,
     class_weights: list[float] | None = None,
+    resume: bool = False,
     config_path: str | Path | None = None,
     command_line: list[str] | None = None,
 ) -> list[DatasetRunResult]:
@@ -749,6 +752,7 @@ def run_generated_dataset_batch(
                         run_status="skipped_existing",
                         run_started_at=run_started_at,
                         run_ended_at=utc_now_iso(),
+                        resume=bool(resume),
                         note=(
                             "Output directory was complete before this invocation; "
                             "fold metrics are used where available, runtime fields reflect the current command."
@@ -791,6 +795,7 @@ def run_generated_dataset_batch(
                 transformer_branches=resolved_transformer_branches,
                 transformer_depths=resolved_transformer_depths,
                 class_weights=class_weights,
+                resume=bool(resume),
             )
             summary_json = summarize_output_dir(job.output_dir)
             manifest_json, manifest_md = write_dataset_manifest(
@@ -820,6 +825,7 @@ def run_generated_dataset_batch(
                 run_status="trained",
                 run_started_at=run_started_at,
                 run_ended_at=utc_now_iso(),
+                resume=bool(resume),
             )
             print(f"[DONE] dataset={job.dataset_name} summary={summary_json}")
             print(f"[MANIFEST] {manifest_json}  {manifest_md}")
@@ -833,6 +839,12 @@ def run_generated_dataset_batch(
             )
         except Exception as exc:
             print(f"[FAIL] dataset={job.dataset_name} error={exc}")
+            storage_checker = getattr(train_batch, "is_storage_exhaustion_error", None)
+            if storage_checker is not None and storage_checker(exc):
+                raise RuntimeError(
+                    f"Storage exhausted while training dataset {job.dataset_name}; "
+                    "aborting remaining datasets"
+                ) from exc
             results.append(
                 DatasetRunResult(
                     dataset_name=job.dataset_name,
@@ -974,6 +986,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             action="store_false",
             help="Do not skip datasets/folds that already have complete outputs",
         )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Resume incomplete folds from their last_checkpoint.pt files",
+    )
     parser.add_argument("--seed", type=int, default=42)
     return parser.parse_args(argv)
 
@@ -1047,6 +1064,7 @@ def main(argv: list[str] | None = None) -> None:
         transformer_branches=len(resolved_transformer_depths),
         transformer_depths=resolved_transformer_depths,
         class_weights=class_weights,
+        resume=bool(args.resume),
         config_path=config_path,
         command_line=[sys.executable, str(Path(__file__).resolve()), *runtime_argv],
     )

@@ -26,6 +26,7 @@ import argparse
 import csv
 import json
 import os
+import random
 import shlex
 import subprocess
 import sys
@@ -122,7 +123,34 @@ DEFAULT_CUMULATIVE_QUERY_ATTENTION = False
 DEFAULT_TRANSFORMER_BRANCHES = 1
 TRANSFORMER_FUSION_SINGLE = "single"
 TRANSFORMER_FUSION_SOFTMAX = "softmax_weighted_sum"
+TRANSFORMER_FUSION_LOSS_SOFTMAX = "loss_softmax"
+DEFAULT_TRANSFORMER_BRANCH_FUSION = TRANSFORMER_FUSION_SOFTMAX
+DEFAULT_BRANCH_LOSS_AUX_WEIGHT = 0.0
+DEFAULT_TRANSFORMER_BRANCH_QKV = "none"
+TRANSFORMER_BRANCH_QKV_CROSS_DEPTH = "cross_depth"
+DEFAULT_TRANSFORMER_BRANCH_QKV_DROPOUT = 0.1
+DEFAULT_TRANSFORMER_BRANCH_QKV_RES_SCALE = 0.1
+TRANSFORMER_BRANCH_QKV_ALIASES = {
+    "none": DEFAULT_TRANSFORMER_BRANCH_QKV,
+    "off": DEFAULT_TRANSFORMER_BRANCH_QKV,
+    "false": DEFAULT_TRANSFORMER_BRANCH_QKV,
+    "no": DEFAULT_TRANSFORMER_BRANCH_QKV,
+    "cross_depth": TRANSFORMER_BRANCH_QKV_CROSS_DEPTH,
+    "crossdepth": TRANSFORMER_BRANCH_QKV_CROSS_DEPTH,
+    "depth": TRANSFORMER_BRANCH_QKV_CROSS_DEPTH,
+}
+TRANSFORMER_BRANCH_FUSION_ALIASES = {
+    "single": TRANSFORMER_FUSION_SINGLE,
+    "feature": TRANSFORMER_FUSION_SOFTMAX,
+    "feature_softmax": TRANSFORMER_FUSION_SOFTMAX,
+    "softmax": TRANSFORMER_FUSION_SOFTMAX,
+    "softmax_weighted_sum": TRANSFORMER_FUSION_SOFTMAX,
+    "loss": TRANSFORMER_FUSION_LOSS_SOFTMAX,
+    "loss_softmax": TRANSFORMER_FUSION_LOSS_SOFTMAX,
+}
 DEFAULT_INPUT_QKV_TIME_TOKEN_LEN = 32
+RESUME_CHECKPOINT_FILENAME = "last_checkpoint.pt"
+RESUME_CHECKPOINT_VERSION = 1
 AUTO_RERUN_ENV_VAR = "TRAIN_ACTIVITY_LOSO_PROJECT_ENV_ACTIVE"
 
 
@@ -210,6 +238,93 @@ def resolve_transformer_branch_depths(
     return resolved_depths
 
 
+def validate_transformer_branch_fusion(raw: str | None) -> str:
+    """Normalize the opt-in parallel-depth fusion strategy."""
+    value = (
+        DEFAULT_TRANSFORMER_BRANCH_FUSION
+        if raw is None
+        else str(raw).strip().lower().replace("-", "_")
+    )
+    resolved = TRANSFORMER_BRANCH_FUSION_ALIASES.get(value)
+    if resolved is None:
+        raise ValueError(
+            "transformer_branch_fusion must be one of: feature_softmax, loss_softmax"
+        )
+    return resolved
+
+
+def resolve_transformer_branch_fusion(
+    raw: str | None,
+    transformer_branches: int,
+    input_domain: str | None = None,
+) -> str:
+    """Return the effective fusion mode and reject incompatible combinations."""
+    resolved = validate_transformer_branch_fusion(raw)
+    branches = int(transformer_branches)
+    if branches < 1:
+        raise ValueError("transformer_branches must be >= 1")
+    if branches == 1:
+        if resolved == TRANSFORMER_FUSION_LOSS_SOFTMAX:
+            raise ValueError("loss_softmax requires at least two Transformer branches")
+        return TRANSFORMER_FUSION_SINGLE
+    if resolved == TRANSFORMER_FUSION_SINGLE:
+        raise ValueError("single fusion cannot be used with parallel Transformer branches")
+    if (
+        resolved == TRANSFORMER_FUSION_LOSS_SOFTMAX
+        and input_domain is not None
+        and validate_input_domain(input_domain) != DUAL_INPUT_DOMAIN
+    ):
+        raise ValueError("loss_softmax requires --input-domain time_fft")
+    return resolved
+
+
+def resolve_branch_loss_aux_weight(raw: float, transformer_branch_fusion: str) -> float:
+    """Validate the additive mean-branch-loss coefficient."""
+    value = float(raw)
+    if not np.isfinite(value) or value < 0.0:
+        raise ValueError("branch_loss_aux_weight must be a finite value >= 0")
+    if transformer_branch_fusion != TRANSFORMER_FUSION_LOSS_SOFTMAX and value != 0.0:
+        raise ValueError(
+            "--branch-loss-aux-weight applies only when "
+            "--transformer-branch-fusion loss_softmax is enabled"
+        )
+    return value
+
+
+def validate_transformer_branch_qkv(raw: str | None) -> str:
+    """Normalize the optional QKV communication mode between depth branches."""
+    value = (
+        DEFAULT_TRANSFORMER_BRANCH_QKV
+        if raw is None
+        else str(raw).strip().lower().replace("-", "_")
+    )
+    resolved = TRANSFORMER_BRANCH_QKV_ALIASES.get(value)
+    if resolved is None:
+        raise ValueError("transformer_branch_qkv must be one of: none, cross_depth")
+    return resolved
+
+
+def resolve_transformer_branch_qkv(
+    raw: str | None,
+    transformer_branch_fusion: str,
+    transformer_branches: int,
+    input_domain: str | None = None,
+) -> str:
+    """Validate Cross-Depth QKV against the surrounding branch architecture."""
+    resolved = validate_transformer_branch_qkv(raw)
+    if resolved == DEFAULT_TRANSFORMER_BRANCH_QKV:
+        return resolved
+    if int(transformer_branches) < 2:
+        raise ValueError("cross_depth QKV requires at least two Transformer branches")
+    if transformer_branch_fusion != TRANSFORMER_FUSION_LOSS_SOFTMAX:
+        raise ValueError(
+            "cross_depth QKV requires --transformer-branch-fusion loss_softmax"
+        )
+    if input_domain is not None and validate_input_domain(input_domain) != DUAL_INPUT_DOMAIN:
+        raise ValueError("cross_depth QKV requires --input-domain time_fft")
+    return resolved
+
+
 # ---------------------------------------------------------------------------
 # Runtime config
 # ---------------------------------------------------------------------------
@@ -236,6 +351,10 @@ class RuntimeConfig(NamedTuple):
     depth: int = DEFAULT_DEPTH
     transformer_branches: int = DEFAULT_TRANSFORMER_BRANCHES
     transformer_depths: tuple[int, ...] = (DEFAULT_DEPTH,)
+    transformer_branch_fusion: str = TRANSFORMER_FUSION_SINGLE
+    branch_loss_aux_weight: float = DEFAULT_BRANCH_LOSS_AUX_WEIGHT
+    transformer_branch_qkv: str = DEFAULT_TRANSFORMER_BRANCH_QKV
+    resume: bool = False
 
 
 # ---------------------------------------------------------------------------
@@ -701,11 +820,13 @@ class ConformerFeatureBranch(nn.Module):
         input_qkv_res_scale: float = DEFAULT_INPUT_QKV_RES_SCALE,
         cumulative_query_attention: bool = DEFAULT_CUMULATIVE_QUERY_ATTENTION,
         transformer_depths: list[int] | tuple[int, ...] | None = None,
+        enable_feature_fusion: bool = True,
     ) -> None:
         super().__init__()
         self.conv_type = validate_conv_type(conv_type)
         self.input_qkv = validate_input_qkv(input_qkv)
         self.cumulative_query_attention = bool(cumulative_query_attention)
+        self.enable_feature_fusion = bool(enable_feature_fusion)
         self.transformer_branch_depths = (
             (int(depth),)
             if transformer_depths is None
@@ -755,9 +876,10 @@ class ConformerFeatureBranch(nn.Module):
                     for branch_depth in self.transformer_branch_depths
                 ]
             )
-            # Equal zero logits become equal 1/n weights after softmax.  The
-            # time and FFT ConformerFeatureBranch instances own separate logits.
-            self.depth_weight_logits = nn.Parameter(torch.zeros(self.transformer_branches))
+            if self.enable_feature_fusion:
+                # Equal zero logits become equal 1/n weights after softmax.  The
+                # time and FFT ConformerFeatureBranch instances own separate logits.
+                self.depth_weight_logits = nn.Parameter(torch.zeros(self.transformer_branches))
         else:
             # Keep the historical attribute/state_dict layout unchanged when
             # the new feature is disabled, so old checkpoints still load.
@@ -769,22 +891,118 @@ class ConformerFeatureBranch(nn.Module):
         if self.transformer_branches == 1:
             parameter = next(self.encoder.parameters())
             return parameter.new_ones(1)
+        if not self.enable_feature_fusion:
+            raise RuntimeError("feature-fusion weights are disabled for this branch")
         return F.softmax(self.depth_weight_logits, dim=0)
 
     def transformer_weight_values(self) -> list[float]:
         weights = self.normalized_transformer_weights().detach().cpu().tolist()
         return [float(value) for value in weights]
 
-    def forward(self, x: Tensor) -> Tensor:
+    def forward_transformer_branch_tokens(self, x: Tensor) -> tuple[Tensor, ...]:
+        """Return unflattened ``(B, patches, emb)`` tokens for every depth."""
         x = self.input_qkv_layer(x)
-        x = self.patch_embedding(x)
+        tokens = self.patch_embedding(x)
         if self.transformer_branches > 1:
-            encoded = torch.stack([encoder(x) for encoder in self.depth_encoders], dim=0)
-            weights = self.normalized_transformer_weights().view(-1, 1, 1, 1)
-            x = (weights * encoded).sum(dim=0)
-        else:
-            x = self.encoder(x)
-        return x.contiguous().view(x.size(0), -1)
+            return tuple(encoder(tokens) for encoder in self.depth_encoders)
+        return (self.encoder(tokens),)
+
+    @staticmethod
+    def flatten_transformer_branch_tokens(
+        branch_tokens: tuple[Tensor, ...],
+    ) -> tuple[Tensor, ...]:
+        return tuple(
+            value.contiguous().view(value.size(0), -1)
+            for value in branch_tokens
+        )
+
+    def forward_transformer_branches(self, x: Tensor) -> tuple[Tensor, ...]:
+        """Return one flattened feature tensor for each Transformer depth."""
+        return self.flatten_transformer_branch_tokens(
+            self.forward_transformer_branch_tokens(x)
+        )
+
+    def forward(self, x: Tensor) -> Tensor:
+        branch_features = self.forward_transformer_branches(x)
+        if self.transformer_branches > 1:
+            if not self.enable_feature_fusion:
+                raise RuntimeError(
+                    "Use forward_transformer_branches when feature fusion is disabled"
+                )
+            stacked = torch.stack(branch_features, dim=0)
+            weights = self.normalized_transformer_weights().view(-1, 1, 1)
+            return (weights * stacked).sum(dim=0)
+        return branch_features[0]
+
+
+class CrossDepthQKVResidual(nn.Module):
+    """Exchange information across parallel depths at each patch position.
+
+    Inputs are one ``(B, patches, emb_size)`` tensor per depth.  The depth axis
+    becomes a short attention sequence, so every branch query can attend to the
+    keys/values of all depth branches while patch positions remain aligned.
+    """
+
+    def __init__(
+        self,
+        n_branches: int,
+        emb_size: int,
+        num_heads: int,
+        dropout: float = DEFAULT_TRANSFORMER_BRANCH_QKV_DROPOUT,
+        res_scale: float = DEFAULT_TRANSFORMER_BRANCH_QKV_RES_SCALE,
+    ) -> None:
+        super().__init__()
+        self.n_branches = int(n_branches)
+        self.emb_size = int(emb_size)
+        if self.n_branches < 2:
+            raise ValueError("CrossDepthQKVResidual requires at least two branches")
+        self.depth_embeddings = nn.Parameter(
+            torch.empty(self.n_branches, self.emb_size)
+        )
+        nn.init.normal_(self.depth_embeddings, mean=0.0, std=0.02)
+        self.norm = nn.LayerNorm(self.emb_size)
+        self.attention = nn.MultiheadAttention(
+            embed_dim=self.emb_size,
+            num_heads=int(num_heads),
+            dropout=float(dropout),
+            batch_first=True,
+        )
+        self.dropout = nn.Dropout(float(dropout))
+        self.gamma = nn.Parameter(torch.tensor(float(res_scale), dtype=torch.float32))
+
+    def forward(self, branch_tokens: tuple[Tensor, ...]) -> tuple[Tensor, ...]:
+        if len(branch_tokens) != self.n_branches:
+            raise ValueError(
+                f"Expected {self.n_branches} depth tensors, got {len(branch_tokens)}"
+            )
+        # (B, patches, depth, emb); torch.stack also verifies equal token shapes.
+        residual = torch.stack(branch_tokens, dim=2)
+        if residual.ndim != 4 or residual.shape[-1] != self.emb_size:
+            raise ValueError(
+                "Cross-depth tokens must have shape (B, patches, emb_size)"
+            )
+        batch_size, n_patches, _, _ = residual.shape
+        depth_positions = self.depth_embeddings.view(1, 1, self.n_branches, self.emb_size)
+        attended_input = self.norm(residual + depth_positions)
+        attended_input = attended_input.reshape(
+            batch_size * n_patches,
+            self.n_branches,
+            self.emb_size,
+        )
+        attended, _ = self.attention(
+            attended_input,
+            attended_input,
+            attended_input,
+            need_weights=False,
+        )
+        attended = attended.reshape(
+            batch_size,
+            n_patches,
+            self.n_branches,
+            self.emb_size,
+        )
+        updated = residual + self.gamma * self.dropout(attended)
+        return tuple(updated[:, :, index, :] for index in range(self.n_branches))
 
 
 class FusionClassificationHead(nn.Module):
@@ -807,12 +1025,12 @@ class FusionClassificationHead(nn.Module):
 
 
 class DualBranchActivityConformer(nn.Module):
-    """Dual-branch EEG-Conformer using both time-domain and FFT features.
+    """Dual-domain EEG-Conformer with opt-in feature- or loss-level fusion.
 
-    The two branches have independent CNN + Transformer stacks because the
-    time-domain waveform and log-power spectrum have different distributions
-    and usually different sequence lengths.  Their flattened features are
-    concatenated before the final MLP classifier.
+    The legacy/default path independently softmax-fuses the parallel depth
+    features in the time and FFT domains and then uses one classifier.  The
+    ``loss_softmax`` path pairs equal-depth time/FFT features, gives every pair
+    its own classifier, and learns one shared softmax weight per depth.
     """
 
     def __init__(
@@ -834,6 +1052,9 @@ class DualBranchActivityConformer(nn.Module):
         input_qkv_res_scale: float = DEFAULT_INPUT_QKV_RES_SCALE,
         cumulative_query_attention: bool = DEFAULT_CUMULATIVE_QUERY_ATTENTION,
         transformer_depths: list[int] | tuple[int, ...] | None = None,
+        transformer_branch_fusion: str = DEFAULT_TRANSFORMER_BRANCH_FUSION,
+        branch_loss_aux_weight: float = DEFAULT_BRANCH_LOSS_AUX_WEIGHT,
+        transformer_branch_qkv: str = DEFAULT_TRANSFORMER_BRANCH_QKV,
     ) -> None:
         super().__init__()
         self.conv_type = validate_conv_type(conv_type)
@@ -850,10 +1071,26 @@ class DualBranchActivityConformer(nn.Module):
         ):
             raise ValueError("transformer_depths must contain positive integers")
         self.transformer_branches = len(self.transformer_branch_depths)
-        self.transformer_fusion = (
-            TRANSFORMER_FUSION_SOFTMAX
-            if self.transformer_branches > 1
-            else TRANSFORMER_FUSION_SINGLE
+        self.transformer_fusion = resolve_transformer_branch_fusion(
+            transformer_branch_fusion,
+            transformer_branches=self.transformer_branches,
+            input_domain=DUAL_INPUT_DOMAIN,
+        )
+        self.branch_loss_aux_weight = resolve_branch_loss_aux_weight(
+            branch_loss_aux_weight,
+            self.transformer_fusion,
+        )
+        self.uses_branch_loss_fusion = (
+            self.transformer_fusion == TRANSFORMER_FUSION_LOSS_SOFTMAX
+        )
+        self.transformer_branch_qkv = resolve_transformer_branch_qkv(
+            transformer_branch_qkv,
+            transformer_branch_fusion=self.transformer_fusion,
+            transformer_branches=self.transformer_branches,
+            input_domain=DUAL_INPUT_DOMAIN,
+        )
+        self.uses_cross_depth_qkv = (
+            self.transformer_branch_qkv == TRANSFORMER_BRANCH_QKV_CROSS_DEPTH
         )
         self.fft_global_layer = (
             FFTGlobalMLP(fft_n_times) if self.fft_global == FFT_GLOBAL_MLP else nn.Identity()
@@ -873,6 +1110,7 @@ class DualBranchActivityConformer(nn.Module):
             input_qkv_res_scale=input_qkv_res_scale,
             cumulative_query_attention=self.cumulative_query_attention,
             transformer_depths=self.transformer_branch_depths,
+            enable_feature_fusion=not self.uses_branch_loss_fusion,
         )
         self.fft_branch = ConformerFeatureBranch(
             n_channels=n_channels,
@@ -889,21 +1127,107 @@ class DualBranchActivityConformer(nn.Module):
             input_qkv_res_scale=input_qkv_res_scale,
             cumulative_query_attention=self.cumulative_query_attention,
             transformer_depths=self.transformer_branch_depths,
+            enable_feature_fusion=not self.uses_branch_loss_fusion,
         )
-        self.cls_head = FusionClassificationHead(
-            self.time_branch.flat_size + self.fft_branch.flat_size,
-            n_classes,
-        )
+        fused_size = self.time_branch.flat_size + self.fft_branch.flat_size
+        if self.uses_cross_depth_qkv:
+            # Time and FFT keep independent QKV parameters because their token
+            # distributions and patch counts differ.
+            self.time_cross_depth_qkv = CrossDepthQKVResidual(
+                n_branches=self.transformer_branches,
+                emb_size=emb_size,
+                num_heads=num_heads,
+            )
+            self.fft_cross_depth_qkv = CrossDepthQKVResidual(
+                n_branches=self.transformer_branches,
+                emb_size=emb_size,
+                num_heads=num_heads,
+            )
+        if self.uses_branch_loss_fusion:
+            self.branch_cls_heads = nn.ModuleList(
+                [FusionClassificationHead(fused_size, n_classes) for _ in self.transformer_branch_depths]
+            )
+            # Zero logits initialize all depth-loss weights to 1 / n.
+            self.branch_loss_weight_logits = nn.Parameter(torch.zeros(self.transformer_branches))
+        else:
+            # Preserve the legacy module/state_dict layout when the new mode is disabled.
+            self.cls_head = FusionClassificationHead(fused_size, n_classes)
 
-    def transformer_weight_metadata(self) -> dict[str, list[float]]:
+    def normalized_branch_loss_weights(self) -> Tensor:
+        if not self.uses_branch_loss_fusion:
+            raise RuntimeError("branch-loss weights are available only in loss_softmax mode")
+        return F.softmax(self.branch_loss_weight_logits, dim=0)
+
+    def transformer_weight_metadata(self) -> dict[str, list[float] | float]:
         if self.transformer_branches == 1:
             return {}
+        if self.uses_branch_loss_fusion:
+            values = self.normalized_branch_loss_weights().detach().cpu().tolist()
+            metadata: dict[str, list[float] | float] = {
+                "transformer_branch_loss_weights": [float(value) for value in values],
+            }
+            if self.uses_cross_depth_qkv:
+                metadata.update(
+                    {
+                        "time_transformer_branch_qkv_gamma": float(
+                            self.time_cross_depth_qkv.gamma.detach().cpu().item()
+                        ),
+                        "fft_transformer_branch_qkv_gamma": float(
+                            self.fft_cross_depth_qkv.gamma.detach().cpu().item()
+                        ),
+                    }
+                )
+            return metadata
         return {
             "time_transformer_branch_weights": self.time_branch.transformer_weight_values(),
             "fft_transformer_branch_weights": self.fft_branch.transformer_weight_values(),
         }
 
+    def paired_transformer_features(
+        self,
+        x_time: Tensor,
+        x_fft: Tensor,
+    ) -> tuple[Tensor, ...]:
+        """Concatenate time/FFT features for each corresponding depth."""
+        time_tokens = self.time_branch.forward_transformer_branch_tokens(x_time)
+        x_fft = self.fft_global_layer(x_fft)
+        fft_tokens = self.fft_branch.forward_transformer_branch_tokens(x_fft)
+        if self.uses_cross_depth_qkv:
+            time_tokens = self.time_cross_depth_qkv(time_tokens)
+            fft_tokens = self.fft_cross_depth_qkv(fft_tokens)
+        time_features = self.time_branch.flatten_transformer_branch_tokens(time_tokens)
+        fft_features = self.fft_branch.flatten_transformer_branch_tokens(fft_tokens)
+        return tuple(
+            torch.cat([time_value, fft_value], dim=1)
+            for time_value, fft_value in zip(time_features, fft_features)
+        )
+
+    def forward_with_branch_logits(
+        self,
+        x_time: Tensor,
+        x_fft: Tensor,
+    ) -> tuple[Tensor, Tensor, tuple[Tensor, ...]]:
+        """Return weighted features/logits plus all independently supervised logits."""
+        if not self.uses_branch_loss_fusion:
+            raise RuntimeError("forward_with_branch_logits requires loss_softmax mode")
+        paired_features = self.paired_transformer_features(x_time, x_fft)
+        branch_logits = tuple(
+            head(features)[1]
+            for head, features in zip(self.branch_cls_heads, paired_features)
+        )
+        weights = self.normalized_branch_loss_weights()
+        fused_features = (
+            weights.view(-1, 1, 1) * torch.stack(paired_features, dim=0)
+        ).sum(dim=0)
+        fused_logits = (
+            weights.view(-1, 1, 1) * torch.stack(branch_logits, dim=0)
+        ).sum(dim=0)
+        return fused_features, fused_logits, branch_logits
+
     def forward(self, x_time: Tensor, x_fft: Tensor) -> tuple[Tensor, Tensor]:
+        if self.uses_branch_loss_fusion:
+            features, logits, _ = self.forward_with_branch_logits(x_time, x_fft)
+            return features, logits
         time_features = self.time_branch(x_time)
         x_fft = self.fft_global_layer(x_fft)
         fft_features = self.fft_branch(x_fft)
@@ -1203,26 +1527,105 @@ def build_dataloaders(
 # Evaluation
 # ---------------------------------------------------------------------------
 
-def forward_model_batch(
+def forward_model_batch_with_branches(
     model: nn.Module,
     batch: list[Tensor] | tuple[Tensor, ...],
     device: torch.device,
-) -> tuple[Tensor, Tensor]:
-    """Move a single- or dual-input batch to device and return logits + labels."""
+) -> tuple[Tensor, Tensor, tuple[Tensor, ...]]:
+    """Move a batch to device and return fused logits, labels, and branch logits."""
     if len(batch) == 3:
         batch_X_time, batch_X_fft, batch_y = batch
         batch_X_time = batch_X_time.to(device)
         batch_X_fft = batch_X_fft.to(device)
         batch_y = batch_y.to(device)
+        if bool(getattr(model, "uses_branch_loss_fusion", False)):
+            _, logits, branch_logits = model.forward_with_branch_logits(
+                batch_X_time,
+                batch_X_fft,
+            )
+            return logits, batch_y, branch_logits
         _, logits = model(batch_X_time, batch_X_fft)
-        return logits, batch_y
+        return logits, batch_y, ()
     if len(batch) == 2:
         batch_X, batch_y = batch
         batch_X = batch_X.to(device)
         batch_y = batch_y.to(device)
         _, logits = model(batch_X)
-        return logits, batch_y
+        return logits, batch_y, ()
     raise ValueError(f"Expected batch with 2 or 3 tensors, got {len(batch)}")
+
+
+def forward_model_batch(
+    model: nn.Module,
+    batch: list[Tensor] | tuple[Tensor, ...],
+    device: torch.device,
+) -> tuple[Tensor, Tensor]:
+    """Backward-compatible helper returning only fused logits and labels."""
+    logits, labels, _ = forward_model_batch_with_branches(model, batch, device)
+    return logits, labels
+
+
+def compute_model_batch_loss(
+    model: nn.Module,
+    logits: Tensor,
+    labels: Tensor,
+    criterion: nn.Module,
+    branch_logits: tuple[Tensor, ...] = (),
+) -> tuple[Tensor, tuple[Tensor, ...]]:
+    """Compute legacy CE or learnable weighted per-depth CE losses."""
+    if not branch_logits:
+        return criterion(logits, labels), ()
+    if not bool(getattr(model, "uses_branch_loss_fusion", False)):
+        raise ValueError("branch logits were returned by a model outside loss_softmax mode")
+
+    branch_losses = tuple(criterion(value, labels) for value in branch_logits)
+    weights = model.normalized_branch_loss_weights()
+    if len(branch_losses) != int(weights.numel()):
+        raise ValueError("branch loss count does not match the learnable weight count")
+    stacked_losses = torch.stack(branch_losses)
+    weighted_loss = (weights * stacked_losses).sum()
+    auxiliary_loss = float(model.branch_loss_aux_weight) * stacked_losses.mean()
+    return weighted_loss + auxiliary_loss, branch_losses
+
+
+def evaluate_with_branch_losses(
+    model: nn.Module,
+    dataloader: DataLoader,
+    criterion: nn.Module,
+    device: torch.device,
+) -> tuple[float, float, list[float]]:
+    """Return mean total loss, fused-logit accuracy, and mean branch losses."""
+    model.eval()
+    total_loss = 0.0
+    total_correct = 0
+    total_samples = 0
+    branch_loss_totals: list[float] = []
+
+    with torch.no_grad():
+        for batch in dataloader:
+            logits, batch_y, branch_logits = forward_model_batch_with_branches(
+                model,
+                batch,
+                device,
+            )
+            loss, branch_losses = compute_model_batch_loss(
+                model,
+                logits,
+                batch_y,
+                criterion,
+                branch_logits,
+            )
+            batch_size = len(batch_y)
+            total_loss += float(loss.item()) * batch_size
+            total_correct += int((logits.argmax(dim=1) == batch_y).sum().item())
+            total_samples += batch_size
+            if branch_losses and not branch_loss_totals:
+                branch_loss_totals = [0.0] * len(branch_losses)
+            for index, branch_loss in enumerate(branch_losses):
+                branch_loss_totals[index] += float(branch_loss.item()) * batch_size
+
+    mean_branch_losses = [value / total_samples for value in branch_loss_totals]
+    return total_loss / total_samples, total_correct / total_samples, mean_branch_losses
 
 
 def evaluate(
@@ -1231,22 +1634,9 @@ def evaluate(
     criterion: nn.Module,
     device: torch.device,
 ) -> tuple[float, float]:
-    """Return (mean_loss, accuracy) over the dataloader."""
-    model.eval()
-    total_loss = 0.0
-    total_correct = 0
-    total_samples = 0
-
-    with torch.no_grad():
-        for batch in dataloader:
-            logits, batch_y = forward_model_batch(model, batch, device)
-            loss = criterion(logits, batch_y)
-            batch_size = len(batch_y)
-            total_loss += float(loss.item()) * batch_size
-            total_correct += int((logits.argmax(dim=1) == batch_y).sum().item())
-            total_samples += batch_size
-
-    return total_loss / total_samples, total_correct / total_samples
+    """Backward-compatible evaluation returning (mean_loss, accuracy)."""
+    loss, accuracy, _ = evaluate_with_branch_losses(model, dataloader, criterion, device)
+    return loss, accuracy
 
 
 def collect_predictions(
@@ -1300,8 +1690,184 @@ def macro_f1_from_per_class(per_class: list[dict]) -> float:
 
 
 # ---------------------------------------------------------------------------
-# Training-history persistence
+# Training-history and resumable-checkpoint persistence
 # ---------------------------------------------------------------------------
+
+def temporary_artifact_path(path: str | Path) -> Path:
+    """Return the same-directory temporary path used for atomic replacement."""
+    target = Path(path)
+    return target.with_name(f".{target.name}.tmp")
+
+
+def _remove_temporary_artifact(path: Path) -> None:
+    try:
+        path.unlink()
+    except OSError:
+        # Cleanup must never hide the original checkpoint/write failure.
+        pass
+
+
+def atomic_torch_save(payload: dict, path: str | Path) -> Path:
+    """Write a torch artifact without replacing the previous valid file on failure."""
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    temporary = temporary_artifact_path(target)
+    _remove_temporary_artifact(temporary)
+    try:
+        torch.save(payload, temporary)
+        os.replace(temporary, target)
+    except BaseException:
+        _remove_temporary_artifact(temporary)
+        raise
+    return target
+
+
+def atomic_json_dump(
+    payload: dict,
+    path: str | Path,
+    *,
+    encoding: str = "utf-8",
+) -> Path:
+    """Atomically replace a JSON artifact."""
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    temporary = temporary_artifact_path(target)
+    _remove_temporary_artifact(temporary)
+    try:
+        with open(temporary, "w", encoding=encoding) as fh:
+            json.dump(payload, fh, indent=2)
+        os.replace(temporary, target)
+    except BaseException:
+        _remove_temporary_artifact(temporary)
+        raise
+    return target
+
+
+def atomic_save_npz(path: str | Path, **arrays: np.ndarray) -> Path:
+    """Atomically replace an ``np.savez`` artifact."""
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    temporary = temporary_artifact_path(target)
+    _remove_temporary_artifact(temporary)
+    try:
+        with open(temporary, "wb") as fh:
+            np.savez(fh, **arrays)
+        os.replace(temporary, target)
+    except BaseException:
+        _remove_temporary_artifact(temporary)
+        raise
+    return target
+
+
+def capture_training_rng_state(device: torch.device) -> dict:
+    """Capture RNG streams needed to continue the next epoch."""
+    state = {
+        "python": random.getstate(),
+        "numpy": np.random.get_state(),
+        "torch_cpu": torch.get_rng_state(),
+    }
+    if device.type == "cuda" and torch.cuda.is_available():
+        state["torch_cuda"] = torch.cuda.get_rng_state(device).cpu()
+    return state
+
+
+def restore_training_rng_state(state: dict, device: torch.device) -> None:
+    """Restore RNG streams saved after the last completed epoch."""
+    random.setstate(state["python"])
+    np.random.set_state(state["numpy"])
+    torch.set_rng_state(state["torch_cpu"].cpu())
+    cuda_state = state.get("torch_cuda")
+    if cuda_state is not None and device.type == "cuda" and torch.cuda.is_available():
+        torch.cuda.set_rng_state(cuda_state.cpu(), device=device)
+
+
+def move_optimizer_state_to_device(
+    optimizer: torch.optim.Optimizer,
+    device: torch.device,
+) -> None:
+    """Move optimizer tensors after loading a checkpoint with a different map location."""
+    for parameter_state in optimizer.state.values():
+        for key, value in parameter_state.items():
+            if torch.is_tensor(value):
+                parameter_state[key] = value.to(device)
+
+
+def load_torch_checkpoint(path: str | Path, map_location: torch.device) -> dict:
+    """Load a trusted local checkpoint across old and new PyTorch defaults."""
+    try:
+        checkpoint = torch.load(path, map_location=map_location, weights_only=False)
+    except TypeError:
+        # PyTorch 1.12 does not expose the weights_only argument.
+        checkpoint = torch.load(path, map_location=map_location)
+    if not isinstance(checkpoint, dict):
+        raise ValueError(f"Resume checkpoint must contain a dict: {path}")
+    return checkpoint
+
+
+def validate_resume_checkpoint(
+    checkpoint: dict,
+    expected_training_config: dict,
+    target_epochs: int,
+) -> int:
+    """Validate checkpoint format/config and return its completed epoch count."""
+    version = int(checkpoint.get("resume_checkpoint_version", -1))
+    if version != RESUME_CHECKPOINT_VERSION:
+        raise ValueError(
+            f"Unsupported resume checkpoint version {version}; "
+            f"expected {RESUME_CHECKPOINT_VERSION}"
+        )
+
+    required = {
+        "model_state_dict",
+        "optimizer_state_dict",
+        "rng_state",
+        "epoch_history",
+        "training_config",
+        "completed_epoch",
+        "average_test_acc_sum",
+    }
+    missing = sorted(required.difference(checkpoint))
+    if missing:
+        raise ValueError(f"Resume checkpoint is missing fields: {missing}")
+
+    saved_config = checkpoint["training_config"]
+    if not isinstance(saved_config, dict):
+        raise ValueError("Resume checkpoint training_config must be a dict")
+    mismatches: list[str] = []
+    for key, expected_value in expected_training_config.items():
+        # Increasing --epochs is allowed; all data/model/optimizer settings must match.
+        if key == "epochs":
+            continue
+        if key not in saved_config:
+            mismatches.append(f"{key}=<missing> (expected {expected_value!r})")
+        elif saved_config[key] != expected_value:
+            mismatches.append(
+                f"{key}={saved_config[key]!r} (expected {expected_value!r})"
+            )
+    if mismatches:
+        details = "; ".join(mismatches)
+        raise ValueError(f"Resume checkpoint configuration mismatch: {details}")
+
+    completed_epoch = int(checkpoint["completed_epoch"])
+    if completed_epoch < 1:
+        raise ValueError("Resume checkpoint completed_epoch must be >= 1")
+    if completed_epoch > int(target_epochs):
+        raise ValueError(
+            f"Resume checkpoint already completed epoch {completed_epoch}, "
+            f"which exceeds requested --epochs {target_epochs}"
+        )
+    history = checkpoint["epoch_history"]
+    if not isinstance(history, list) or len(history) != completed_epoch:
+        raise ValueError(
+            "Resume checkpoint epoch_history length must equal completed_epoch"
+        )
+    if int(history[-1].get("epoch", -1)) != completed_epoch:
+        raise ValueError("Resume checkpoint history does not end at completed_epoch")
+    best_epoch = checkpoint.get("best_epoch")
+    if best_epoch is not None and not (1 <= int(best_epoch) <= completed_epoch):
+        raise ValueError("Resume checkpoint best_epoch is outside the completed range")
+    return completed_epoch
+
 
 def write_epoch_history_files(
     fold_dir: str | Path,
@@ -1314,6 +1880,8 @@ def write_epoch_history_files(
 
     csv_path = root / "epoch_history.csv"
     json_path = root / "epoch_history.json"
+    temporary_csv = temporary_artifact_path(csv_path)
+    _remove_temporary_artifact(temporary_csv)
 
     fieldnames = [
         "epoch",
@@ -1324,16 +1892,20 @@ def write_epoch_history_files(
         "best_test_acc",
         "is_best_epoch",
     ]
-    with open(csv_path, "w", newline="", encoding="utf-8") as fh:
-        writer = csv.DictWriter(fh, fieldnames=fieldnames)
-        writer.writeheader()
-        for row in history:
-            writer.writerow({name: row.get(name) for name in fieldnames})
+    try:
+        with open(temporary_csv, "w", newline="", encoding="utf-8") as fh:
+            writer = csv.DictWriter(fh, fieldnames=fieldnames)
+            writer.writeheader()
+            for row in history:
+                writer.writerow({name: row.get(name) for name in fieldnames})
+        os.replace(temporary_csv, csv_path)
+    except BaseException:
+        _remove_temporary_artifact(temporary_csv)
+        raise
 
     payload = dict(metadata)
     payload["history"] = history
-    with open(json_path, "w", encoding="utf-8") as fh:
-        json.dump(payload, fh, indent=2)
+    atomic_json_dump(payload, json_path)
 
     return csv_path, json_path
 
@@ -1400,11 +1972,14 @@ def train_loso_fold(
     transformer_branches: int = DEFAULT_TRANSFORMER_BRANCHES,
     transformer_depths: list[int] | tuple[int, ...] | None = None,
     class_weights: list[float] | None = None,
+    transformer_branch_fusion: str = DEFAULT_TRANSFORMER_BRANCH_FUSION,
+    branch_loss_aux_weight: float = DEFAULT_BRANCH_LOSS_AUX_WEIGHT,
+    transformer_branch_qkv: str = DEFAULT_TRANSFORMER_BRANCH_QKV,
+    resume: bool = False,
 ) -> Path:
     """Train one LOSO fold and return path to metrics.json."""
 
     # reproducibility
-    import random
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -1429,10 +2004,38 @@ def train_loso_fold(
         input_domain=resolved_input_domain,
     )
     resolved_transformer_branches = len(resolved_transformer_depths)
-    resolved_transformer_fusion = (
-        TRANSFORMER_FUSION_SOFTMAX
-        if resolved_transformer_branches > 1
-        else TRANSFORMER_FUSION_SINGLE
+    resolved_transformer_fusion = resolve_transformer_branch_fusion(
+        transformer_branch_fusion,
+        transformer_branches=resolved_transformer_branches,
+        input_domain=resolved_input_domain,
+    )
+    resolved_branch_loss_aux_weight = resolve_branch_loss_aux_weight(
+        branch_loss_aux_weight,
+        resolved_transformer_fusion,
+    )
+    resolved_transformer_branch_qkv = resolve_transformer_branch_qkv(
+        transformer_branch_qkv,
+        transformer_branch_fusion=resolved_transformer_fusion,
+        transformer_branches=resolved_transformer_branches,
+        input_domain=resolved_input_domain,
+    )
+    branch_qkv_config_metadata: dict[str, str | float] = {
+        "transformer_branch_qkv": resolved_transformer_branch_qkv,
+    }
+    if resolved_transformer_branch_qkv == TRANSFORMER_BRANCH_QKV_CROSS_DEPTH:
+        branch_qkv_config_metadata.update(
+            {
+                "transformer_branch_qkv_dropout": DEFAULT_TRANSFORMER_BRANCH_QKV_DROPOUT,
+                "transformer_branch_qkv_res_scale": DEFAULT_TRANSFORMER_BRANCH_QKV_RES_SCALE,
+            }
+        )
+    transformer_weights_independent_by_domain = (
+        resolved_transformer_fusion == TRANSFORMER_FUSION_SOFTMAX
+    )
+    loss_name = (
+        "LearnableSoftmaxWeightedBranchCrossEntropyLoss"
+        if resolved_transformer_fusion == TRANSFORMER_FUSION_LOSS_SOFTMAX
+        else "CrossEntropyLoss"
     )
 
     (
@@ -1484,6 +2087,9 @@ def train_loso_fold(
                 if resolved_transformer_branches > 1
                 else None
             ),
+            transformer_branch_fusion=resolved_transformer_fusion,
+            branch_loss_aux_weight=resolved_branch_loss_aux_weight,
+            transformer_branch_qkv=resolved_transformer_branch_qkv,
         ).to(device_obj)
     else:
         if resolved_input_qkv == INPUT_QKV_TIME:
@@ -1523,14 +2129,37 @@ def train_loso_fold(
     fold_dir = Path(output_dir) / f"fold_subject_{test_subject_id}"
     fold_dir.mkdir(parents=True, exist_ok=True)
     log_path = fold_dir / "train.log"
-    log_path.write_text("", encoding="utf-8")
+    history_csv_path = fold_dir / "epoch_history.csv"
+    history_json_path = fold_dir / "epoch_history.json"
+    resume_checkpoint_path = fold_dir / RESUME_CHECKPOINT_FILENAME
+    resume_checkpoint_temporary = temporary_artifact_path(resume_checkpoint_path)
+    _remove_temporary_artifact(resume_checkpoint_temporary)
+    legacy_partial_artifacts = (
+        bool(resume)
+        and not resume_checkpoint_path.exists()
+        and any(
+            path.exists()
+            for path in (fold_dir / "best_model.pt", history_json_path, history_csv_path)
+        )
+    )
+    if resume and resume_checkpoint_path.exists():
+        log_path.touch(exist_ok=True)
+    else:
+        log_path.write_text("", encoding="utf-8")
+        if not resume:
+            try:
+                resume_checkpoint_path.unlink()
+            except FileNotFoundError:
+                pass
 
-    best_acc = 0.0
+    # -1 guarantees epoch 1 becomes a valid best checkpoint even if accuracy is 0.
+    best_acc = -1.0
     best_epoch: int | None = None
     aver_acc = 0.0
     best_y_true: np.ndarray | None = None
     best_y_pred: np.ndarray | None = None
-    best_transformer_weight_metadata: dict[str, list[float]] = {}
+    best_transformer_weight_metadata: dict[str, list[float] | float] = {}
+    best_test_branch_losses: list[float] = []
     epoch_history: list[dict] = []
 
     history_metadata = {
@@ -1552,7 +2181,9 @@ def train_loso_fold(
         "transformer_branches": resolved_transformer_branches,
         "transformer_branch_depths": list(resolved_transformer_depths),
         "transformer_branch_fusion": resolved_transformer_fusion,
-        "transformer_weights_independent_by_domain": resolved_transformer_branches > 1,
+        "transformer_weights_independent_by_domain": transformer_weights_independent_by_domain,
+        "branch_loss_aux_weight": resolved_branch_loss_aux_weight,
+        **branch_qkv_config_metadata,
         "class_weights": class_weights,
         "n_train_samples": n_train_samples,
         "n_test_samples": n_test_samples,
@@ -1565,13 +2196,124 @@ def train_loso_fold(
         "dropout": dropout,
         "optimizer": "Adam",
         "optimizer_betas": list(DEFAULT_BETAS),
-        "loss": "CrossEntropyLoss",
+        "loss": loss_name,
         **branch_shape_metadata,
     }
 
     def log(message: str) -> None:
         print(message)
         append_training_log(log_path, message)
+
+    def build_best_model_checkpoint(
+        completed_best_epoch: int,
+        transformer_weight_metadata: dict[str, list[float] | float],
+    ) -> dict:
+        return {
+            # Keep the historical zero-based epoch field used by prediction code.
+            "epoch": completed_best_epoch - 1,
+            "test_subject_id": test_subject_id,
+            "state_dict": model.state_dict(),
+            "n_channels": n_channels,
+            "n_times": n_times,
+            "n_classes": n_classes,
+            "emb_size": emb_size,
+            "depth": depth,
+            "num_heads": num_heads,
+            "dropout": dropout,
+            "optimizer": "Adam",
+            "optimizer_betas": list(DEFAULT_BETAS),
+            "loss": loss_name,
+            "input_domain": resolved_input_domain,
+            "model_type": model_type,
+            "conv_type": resolved_conv_type,
+            "fft_global": resolved_fft_global,
+            "input_qkv": resolved_input_qkv,
+            "input_qkv_dim": resolved_input_qkv_dim,
+            "input_qkv_heads": resolved_input_qkv_heads,
+            "input_qkv_dropout": resolved_input_qkv_dropout,
+            "input_qkv_res_scale": resolved_input_qkv_res_scale,
+            "cumulative_query_attention": resolved_cumulative_query_attention,
+            "transformer_branches": resolved_transformer_branches,
+            "transformer_branch_depths": list(resolved_transformer_depths),
+            "transformer_branch_fusion": resolved_transformer_fusion,
+            "transformer_weights_independent_by_domain": transformer_weights_independent_by_domain,
+            "branch_loss_aux_weight": resolved_branch_loss_aux_weight,
+            **branch_qkv_config_metadata,
+            **transformer_weight_metadata,
+            **branch_shape_metadata,
+        }
+
+    start_epoch = 0
+    resumed_from_epoch: int | None = None
+    resume_rng_state: dict | None = None
+    resume_message: str | None = None
+    if resume and resume_checkpoint_path.exists():
+        checkpoint = load_torch_checkpoint(resume_checkpoint_path, device_obj)
+        start_epoch = validate_resume_checkpoint(
+            checkpoint,
+            expected_training_config=history_metadata,
+            target_epochs=epochs,
+        )
+        model.load_state_dict(checkpoint["model_state_dict"], strict=True)
+        optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        move_optimizer_state_to_device(optimizer, device_obj)
+        best_acc = float(checkpoint.get("best_acc", 0.0))
+        best_epoch_value = checkpoint.get("best_epoch")
+        best_epoch = None if best_epoch_value is None else int(best_epoch_value)
+        aver_acc = float(checkpoint["average_test_acc_sum"])
+        raw_best_y_true = checkpoint.get("best_y_true")
+        raw_best_y_pred = checkpoint.get("best_y_pred")
+        best_y_true = (
+            None
+            if raw_best_y_true is None
+            else np.asarray(raw_best_y_true, dtype=np.int64)
+        )
+        best_y_pred = (
+            None
+            if raw_best_y_pred is None
+            else np.asarray(raw_best_y_pred, dtype=np.int64)
+        )
+        best_transformer_weight_metadata = dict(
+            checkpoint.get("best_transformer_weight_metadata", {})
+        )
+        best_test_branch_losses = [
+            float(value)
+            for value in checkpoint.get("best_test_branch_losses", [])
+        ]
+        epoch_history = list(checkpoint["epoch_history"])
+        resume_rng_state = checkpoint["rng_state"]
+        resumed_from_epoch = start_epoch
+        resume_message = (
+            f"[RESUME] restored model + Adam optimizer from "
+            f"{resume_checkpoint_path}; completed={start_epoch}/{epochs}, "
+            f"next_epoch={start_epoch + 1 if start_epoch < epochs else 'finalize'}"
+        )
+        # The latest state is also the best state when best_epoch equals the
+        # completed epoch. Recreate best_model.pt in case interruption happened
+        # after the resumable checkpoint but before the smaller best checkpoint.
+        if best_epoch == start_epoch:
+            atomic_torch_save(
+                build_best_model_checkpoint(
+                    start_epoch,
+                    best_transformer_weight_metadata,
+                ),
+                fold_dir / "best_model.pt",
+            )
+        # The checkpoint is authoritative if a previous history write was interrupted.
+        write_epoch_history_files(
+            fold_dir=fold_dir,
+            history=epoch_history,
+            metadata=history_metadata,
+        )
+    elif resume and legacy_partial_artifacts:
+        resume_message = (
+            "[RESUME] legacy partial artifacts found, but no last_checkpoint.pt "
+            "with optimizer state exists; restarting this fold from epoch 1"
+        )
+    elif resume:
+        resume_message = (
+            "[RESUME] no resumable checkpoint found; starting this fold from epoch 1"
+        )
 
     if resolved_input_domain == DUAL_INPUT_DOMAIN:
         shape_text = (
@@ -1604,21 +2346,39 @@ def train_loso_fold(
         f"input_qkv={resolved_input_qkv}  "
         f"cumulative_query_attention={resolved_cumulative_query_attention}  "
         f"transformer_depths={list(resolved_transformer_depths)}  "
-        f"transformer_fusion={resolved_transformer_fusion}"
+        f"transformer_fusion={resolved_transformer_fusion}  "
+        f"branch_loss_aux_weight={resolved_branch_loss_aux_weight}  "
+        f"transformer_branch_qkv={resolved_transformer_branch_qkv}"
         f"{qkv_shape_text}"
     )
+    if resume_message is not None:
+        log(resume_message)
+    if resume_rng_state is not None:
+        # Restore after model/dataloader construction and all checkpoint loading.
+        restore_training_rng_state(resume_rng_state, device_obj)
 
-    for epoch in range(epochs):
+    for epoch in range(start_epoch, epochs):
         # ---- train ----
         model.train()
         running_loss = 0.0
         running_correct = 0
         running_samples = 0
+        running_branch_loss_totals: list[float] = []
 
         for batch in train_loader:
             optimizer.zero_grad()
-            logits, batch_y = forward_model_batch(model, batch, device_obj)
-            loss = criterion(logits, batch_y)
+            logits, batch_y, branch_logits = forward_model_batch_with_branches(
+                model,
+                batch,
+                device_obj,
+            )
+            loss, branch_losses = compute_model_batch_loss(
+                model,
+                logits,
+                batch_y,
+                criterion,
+                branch_logits,
+            )
             loss.backward()
             optimizer.step()
 
@@ -1626,12 +2386,26 @@ def train_loso_fold(
             running_loss += float(loss.item()) * batch_size_actual
             running_correct += int((logits.argmax(dim=1) == batch_y).sum().item())
             running_samples += batch_size_actual
+            if branch_losses and not running_branch_loss_totals:
+                running_branch_loss_totals = [0.0] * len(branch_losses)
+            for index, branch_loss in enumerate(branch_losses):
+                running_branch_loss_totals[index] += (
+                    float(branch_loss.item()) * batch_size_actual
+                )
 
         train_loss = running_loss / running_samples
         train_acc = running_correct / running_samples
+        train_branch_losses = [
+            value / running_samples for value in running_branch_loss_totals
+        ]
 
         # ---- evaluate on test subject (every epoch, like original) ----
-        test_loss, test_acc = evaluate(model, test_loader, criterion, device_obj)
+        test_loss, test_acc, test_branch_losses = evaluate_with_branch_losses(
+            model,
+            test_loader,
+            criterion,
+            device_obj,
+        )
 
         aver_acc += test_acc
         is_best_epoch = test_acc > best_acc
@@ -1645,40 +2419,7 @@ def train_loso_fold(
             best_epoch = epoch + 1
             best_y_true, best_y_pred = collect_predictions(model, test_loader, device_obj)
             best_transformer_weight_metadata = current_transformer_weight_metadata
-            torch.save(
-                {
-                    "epoch": epoch,
-                    "test_subject_id": test_subject_id,
-                    "state_dict": model.state_dict(),
-                    "n_channels": n_channels,
-                    "n_times": n_times,
-                    "n_classes": n_classes,
-                    "emb_size": emb_size,
-                    "depth": depth,
-                    "num_heads": num_heads,
-                    "dropout": dropout,
-                    "optimizer": "Adam",
-                    "optimizer_betas": list(DEFAULT_BETAS),
-                    "loss": "CrossEntropyLoss",
-                    "input_domain": resolved_input_domain,
-                    "model_type": model_type,
-                    "conv_type": resolved_conv_type,
-                    "fft_global": resolved_fft_global,
-                    "input_qkv": resolved_input_qkv,
-                    "input_qkv_dim": resolved_input_qkv_dim,
-                    "input_qkv_heads": resolved_input_qkv_heads,
-                    "input_qkv_dropout": resolved_input_qkv_dropout,
-                    "input_qkv_res_scale": resolved_input_qkv_res_scale,
-                    "cumulative_query_attention": resolved_cumulative_query_attention,
-                    "transformer_branches": resolved_transformer_branches,
-                    "transformer_branch_depths": list(resolved_transformer_depths),
-                    "transformer_branch_fusion": resolved_transformer_fusion,
-                    "transformer_weights_independent_by_domain": resolved_transformer_branches > 1,
-                    **current_transformer_weight_metadata,
-                    **branch_shape_metadata,
-                },
-                fold_dir / "best_model.pt",
-            )
+            best_test_branch_losses = list(test_branch_losses)
 
         epoch_record = {
             "epoch": epoch + 1,
@@ -1690,18 +2431,68 @@ def train_loso_fold(
             "is_best_epoch": is_best_epoch,
             **current_transformer_weight_metadata,
         }
+        if train_branch_losses:
+            epoch_record["train_transformer_branch_losses"] = [
+                round(value, 6) for value in train_branch_losses
+            ]
+            epoch_record["test_transformer_branch_losses"] = [
+                round(value, 6) for value in test_branch_losses
+            ]
         epoch_history.append(epoch_record)
+        if resume:
+            atomic_torch_save(
+                {
+                    "resume_checkpoint_version": RESUME_CHECKPOINT_VERSION,
+                    "completed_epoch": epoch + 1,
+                    "test_subject_id": test_subject_id,
+                    "training_config": history_metadata,
+                    "model_state_dict": model.state_dict(),
+                    "optimizer_state_dict": optimizer.state_dict(),
+                    "average_test_acc_sum": aver_acc,
+                    "best_acc": best_acc,
+                    "best_epoch": best_epoch,
+                    "best_y_true": best_y_true,
+                    "best_y_pred": best_y_pred,
+                    "best_transformer_weight_metadata": best_transformer_weight_metadata,
+                    "best_test_branch_losses": best_test_branch_losses,
+                    "epoch_history": epoch_history,
+                    "rng_state": capture_training_rng_state(device_obj),
+                },
+                resume_checkpoint_path,
+            )
+        if is_best_epoch:
+            # Save this only after the optimizer checkpoint. If disk space runs
+            # out, the previous resume point and best checkpoint remain valid.
+            atomic_torch_save(
+                build_best_model_checkpoint(
+                    epoch + 1,
+                    current_transformer_weight_metadata,
+                ),
+                fold_dir / "best_model.pt",
+            )
         history_csv_path, history_json_path = write_epoch_history_files(
             fold_dir=fold_dir,
             history=epoch_history,
             metadata=history_metadata,
         )
 
+        branch_log_text = ""
+        if train_branch_losses:
+            weights = current_transformer_weight_metadata.get(
+                "transformer_branch_loss_weights",
+                [],
+            )
+            branch_log_text = (
+                f"  branch_train={[round(value, 4) for value in train_branch_losses]}"
+                f"  branch_test={[round(value, 4) for value in test_branch_losses]}"
+                f"  branch_weights={[round(value, 4) for value in weights]}"
+            )
         log(
             f"Epoch {epoch + 1}/{epochs} | "
             f"train_loss={train_loss:.4f}  train_acc={train_acc:.4f} | "
             f"test_loss={test_loss:.4f}  test_acc={test_acc:.4f}  "
             f"best={best_acc:.4f}"
+            f"{branch_log_text}"
         )
 
     aver_acc /= epochs
@@ -1732,7 +2523,9 @@ def train_loso_fold(
         "transformer_branches": resolved_transformer_branches,
         "transformer_branch_depths": list(resolved_transformer_depths),
         "transformer_branch_fusion": resolved_transformer_fusion,
-        "transformer_weights_independent_by_domain": resolved_transformer_branches > 1,
+        "transformer_weights_independent_by_domain": transformer_weights_independent_by_domain,
+        "branch_loss_aux_weight": resolved_branch_loss_aux_weight,
+        **branch_qkv_config_metadata,
         **best_transformer_weight_metadata,
         "class_weights": class_weights,
         "emb_size": emb_size,
@@ -1741,16 +2534,26 @@ def train_loso_fold(
         "dropout": dropout,
         "optimizer": "Adam",
         "optimizer_betas": list(DEFAULT_BETAS),
-        "loss": "CrossEntropyLoss",
+        "loss": loss_name,
         "best_epoch": best_epoch,
+        "optimizer_resume_enabled": bool(resume),
+        "resumed_from_epoch": resumed_from_epoch,
         **branch_shape_metadata,
         "epoch_history_csv": str(history_csv_path),
         "epoch_history_json": str(history_json_path),
         "train_log": str(log_path),
     }
+    if best_test_branch_losses:
+        metrics["best_test_transformer_branch_losses"] = [
+            round(value, 6) for value in best_test_branch_losses
+        ]
 
     if best_y_true is not None and best_y_pred is not None:
-        np.savez(fold_dir / "test_predictions.npz", y_true=best_y_true, y_pred=best_y_pred)
+        atomic_save_npz(
+            fold_dir / "test_predictions.npz",
+            y_true=best_y_true,
+            y_pred=best_y_pred,
+        )
         cm = confusion_matrix_from_arrays(best_y_true, best_y_pred, n_classes)
         pcm = per_class_metrics_from_cm(cm)
         metrics["confusion_matrix"] = cm
@@ -1758,8 +2561,7 @@ def train_loso_fold(
         metrics["macro_f1"] = macro_f1_from_per_class(pcm)
 
     metrics_path = fold_dir / "metrics.json"
-    with open(metrics_path, "w", encoding="ascii") as fh:
-        json.dump(metrics, fh, indent=2)
+    atomic_json_dump(metrics, metrics_path, encoding="ascii")
 
     log(f"\nFold subject={test_subject_id}: best_acc={best_acc:.4f}  aver_acc={aver_acc:.4f}")
     log(f"Checkpoint:       {fold_dir / 'best_model.pt'}")
@@ -1767,6 +2569,15 @@ def train_loso_fold(
     log(f"Epoch history CSV:{history_csv_path}")
     log(f"Epoch history JSON:{history_json_path}")
     log(f"Train log:        {log_path}")
+
+    # metrics.json marks a complete fold; the larger optimizer checkpoint is
+    # needed only while the fold is incomplete.
+    if resume:
+        try:
+            resume_checkpoint_path.unlink()
+        except FileNotFoundError:
+            pass
+        _remove_temporary_artifact(resume_checkpoint_temporary)
 
     return metrics_path
 
@@ -1972,6 +2783,10 @@ def resolve_runtime_config(
     transformer_branches: int = DEFAULT_TRANSFORMER_BRANCHES,
     transformer_depths: list[int] | tuple[int, ...] | None = None,
     class_weights: str | list[float] | tuple[float, ...] | None = None,
+    transformer_branch_fusion: str = DEFAULT_TRANSFORMER_BRANCH_FUSION,
+    branch_loss_aux_weight: float = DEFAULT_BRANCH_LOSS_AUX_WEIGHT,
+    transformer_branch_qkv: str = DEFAULT_TRANSFORMER_BRANCH_QKV,
+    resume: bool = False,
 ) -> RuntimeConfig:
     missing_flags: list[str] = []
     if dataset_root is None:
@@ -2062,6 +2877,21 @@ def resolve_runtime_config(
         transformer_depths=transformer_depths,
         input_domain=resolved_input_domain,
     )
+    resolved_transformer_fusion = resolve_transformer_branch_fusion(
+        transformer_branch_fusion,
+        transformer_branches=len(resolved_transformer_depths),
+        input_domain=resolved_input_domain,
+    )
+    resolved_branch_loss_aux_weight = resolve_branch_loss_aux_weight(
+        branch_loss_aux_weight,
+        resolved_transformer_fusion,
+    )
+    resolved_transformer_branch_qkv = resolve_transformer_branch_qkv(
+        transformer_branch_qkv,
+        transformer_branch_fusion=resolved_transformer_fusion,
+        transformer_branches=len(resolved_transformer_depths),
+        input_domain=resolved_input_domain,
+    )
     resolved_class_weights = parse_class_weights(class_weights)
 
     return RuntimeConfig(
@@ -2086,6 +2916,10 @@ def resolve_runtime_config(
         depth=resolved_depth,
         transformer_branches=len(resolved_transformer_depths),
         transformer_depths=resolved_transformer_depths,
+        transformer_branch_fusion=resolved_transformer_fusion,
+        branch_loss_aux_weight=resolved_branch_loss_aux_weight,
+        transformer_branch_qkv=resolved_transformer_branch_qkv,
+        resume=bool(resume),
     )
 
 
@@ -2121,6 +2955,30 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         nargs="+",
         default=None,
         help="Block counts for parallel encoders, e.g. 11 10 8",
+    )
+    parser.add_argument(
+        "--transformer-branch-fusion",
+        type=str,
+        default=DEFAULT_TRANSFORMER_BRANCH_FUSION,
+        help=(
+            "Parallel-depth fusion: feature_softmax (legacy/default) or "
+            "loss_softmax (independent classifier/loss per depth)"
+        ),
+    )
+    parser.add_argument(
+        "--branch-loss-aux-weight",
+        type=float,
+        default=DEFAULT_BRANCH_LOSS_AUX_WEIGHT,
+        help="Mean branch-loss coefficient used only with loss_softmax (default: 0.0)",
+    )
+    parser.add_argument(
+        "--transformer-branch-qkv",
+        type=str,
+        default=DEFAULT_TRANSFORMER_BRANCH_QKV,
+        help=(
+            "QKV communication between parallel depth outputs: none (default) "
+            "or cross_depth"
+        ),
     )
     parser.add_argument("--device", type=str, default=DEFAULT_DEVICE)
     parser.add_argument(
@@ -2189,6 +3047,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=DEFAULT_OUTPUT_DIR,
         help="Parent directory for fold checkpoints and metrics",
     )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help=(
+            "Resume an incomplete fold from last_checkpoint.pt, including Adam "
+            "state, epoch history, best metrics, and RNG state"
+        ),
+    )
     parser.add_argument("--seed", type=int, default=42)
     return parser.parse_args(argv)
 
@@ -2224,6 +3090,22 @@ def main(argv: list[str] | None = None) -> None:
             ),
             transformer_depths=getattr(args, "transformer_depths", None),
             class_weights=getattr(args, "class_weights", None),
+            transformer_branch_fusion=getattr(
+                args,
+                "transformer_branch_fusion",
+                DEFAULT_TRANSFORMER_BRANCH_FUSION,
+            ),
+            branch_loss_aux_weight=getattr(
+                args,
+                "branch_loss_aux_weight",
+                DEFAULT_BRANCH_LOSS_AUX_WEIGHT,
+            ),
+            transformer_branch_qkv=getattr(
+                args,
+                "transformer_branch_qkv",
+                DEFAULT_TRANSFORMER_BRANCH_QKV,
+            ),
+            resume=bool(getattr(args, "resume", False)),
         )
     else:
         maybe_rerun_in_project_env([], DEFAULT_DEVICE)
@@ -2238,6 +3120,7 @@ def main(argv: list[str] | None = None) -> None:
             seed=None,
             input_domain=None,
             class_weights=None,
+            resume=False,
         )
 
     train_loso_fold(
@@ -2262,6 +3145,10 @@ def main(argv: list[str] | None = None) -> None:
         transformer_branches=config.transformer_branches,
         transformer_depths=config.transformer_depths,
         class_weights=config.class_weights,
+        transformer_branch_fusion=config.transformer_branch_fusion,
+        branch_loss_aux_weight=config.branch_loss_aux_weight,
+        transformer_branch_qkv=config.transformer_branch_qkv,
+        resume=config.resume,
     )
 
 

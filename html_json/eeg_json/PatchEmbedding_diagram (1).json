@@ -1,0 +1,796 @@
+{
+  "nodes": [
+    {
+      "id": "time_input",
+      "type": "rect",
+      "x": 40,
+      "y": 242,
+      "w": 180,
+      "h": 68,
+      "label": "Time 输入",
+      "fill": "#c8d5e7",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 9
+    },
+    {
+      "id": "time_conv2d",
+      "type": "rect",
+      "x": 312,
+      "y": 173,
+      "w": 82,
+      "h": 208,
+      "label": "Conv2d 1×25",
+      "fill": "#cfe2f5",
+      "textColor": "#20242c",
+      "orientation": "vertical",
+      "radius": 11
+    },
+    {
+      "id": "time_spatial",
+      "type": "rect",
+      "x": 507,
+      "y": 173,
+      "w": 87,
+      "h": 208,
+      "label": "SpatialConv 21×1",
+      "fill": "#cfe2f5",
+      "textColor": "#20242c",
+      "orientation": "vertical",
+      "radius": 11
+    },
+    {
+      "id": "time_bn",
+      "type": "rect",
+      "x": 703,
+      "y": 173,
+      "w": 93,
+      "h": 208,
+      "label": "BatchNorm + ELU",
+      "fill": "#d8e8bd",
+      "textColor": "#20242c",
+      "orientation": "vertical",
+      "radius": 11
+    },
+    {
+      "id": "time_pool",
+      "type": "rect",
+      "x": 902,
+      "y": 173,
+      "w": 92,
+      "h": 208,
+      "label": "AvgPool 1×75 / 15",
+      "fill": "#d8e8bd",
+      "textColor": "#20242c",
+      "orientation": "vertical",
+      "radius": 11
+    },
+    {
+      "id": "time_proj",
+      "type": "rect",
+      "x": 1093,
+      "y": 173,
+      "w": 83,
+      "h": 208,
+      "label": "Projection 1×1",
+      "fill": "#cfe2f5",
+      "textColor": "#20242c",
+      "orientation": "vertical",
+      "radius": 11
+    },
+    {
+      "id": "time_squeeze",
+      "type": "rect",
+      "x": 1272,
+      "y": 173,
+      "w": 83,
+      "h": 208,
+      "label": "Squeeze + Transpose",
+      "fill": "#edf1f5",
+      "textColor": "#20242c",
+      "orientation": "vertical",
+      "radius": 11
+    },
+    {
+      "id": "fft_input",
+      "type": "rect",
+      "x": 40,
+      "y": 526,
+      "w": 180,
+      "h": 68,
+      "label": "FFT 输入",
+      "fill": "#c8d5e7",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 9
+    },
+    {
+      "id": "fft_conv2d",
+      "type": "rect",
+      "x": 312,
+      "y": 462,
+      "w": 82,
+      "h": 208,
+      "label": "Conv2d 1×25",
+      "fill": "#cfe2f5",
+      "textColor": "#20242c",
+      "orientation": "vertical",
+      "radius": 11
+    },
+    {
+      "id": "fft_spatial",
+      "type": "rect",
+      "x": 507,
+      "y": 462,
+      "w": 87,
+      "h": 208,
+      "label": "SpatialConv 21×1",
+      "fill": "#cfe2f5",
+      "textColor": "#20242c",
+      "orientation": "vertical",
+      "radius": 11
+    },
+    {
+      "id": "fft_bn",
+      "type": "rect",
+      "x": 703,
+      "y": 462,
+      "w": 93,
+      "h": 208,
+      "label": "BatchNorm + ELU",
+      "fill": "#d8e8bd",
+      "textColor": "#20242c",
+      "orientation": "vertical",
+      "radius": 11
+    },
+    {
+      "id": "fft_pool",
+      "type": "rect",
+      "x": 902,
+      "y": 462,
+      "w": 92,
+      "h": 208,
+      "label": "AvgPool 1×75 / 15",
+      "fill": "#d8e8bd",
+      "textColor": "#20242c",
+      "orientation": "vertical",
+      "radius": 11
+    },
+    {
+      "id": "fft_proj",
+      "type": "rect",
+      "x": 1093,
+      "y": 462,
+      "w": 83,
+      "h": 208,
+      "label": "Projection 1×1",
+      "fill": "#cfe2f5",
+      "textColor": "#20242c",
+      "orientation": "vertical",
+      "radius": 11
+    },
+    {
+      "id": "fft_squeeze",
+      "type": "rect",
+      "x": 1272,
+      "y": 462,
+      "w": 83,
+      "h": 208,
+      "label": "Squeeze + Transpose",
+      "fill": "#edf1f5",
+      "textColor": "#20242c",
+      "orientation": "vertical",
+      "radius": 11
+    },
+    {
+      "id": "patch_info_box",
+      "type": "rect",
+      "x": 459,
+      "y": 742,
+      "w": 714,
+      "h": 153,
+      "label": "",
+      "fill": "#ffffff",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    }
+  ],
+  "edges": [
+    {
+      "id": "e_pt_1",
+      "from": {
+        "nodeId": "time_input",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "time_conv2d",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 72,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "e_pt_2",
+      "from": {
+        "nodeId": "time_conv2d",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "time_spatial",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 72,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "e_pt_3",
+      "from": {
+        "nodeId": "time_spatial",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "time_bn",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 72,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "e_pt_4",
+      "from": {
+        "nodeId": "time_bn",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "time_pool",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 72,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "e_pt_5",
+      "from": {
+        "nodeId": "time_pool",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "time_proj",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 72,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "e_pt_6",
+      "from": {
+        "nodeId": "time_proj",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "time_squeeze",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 72,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "e_pt_out",
+      "from": {
+        "nodeId": "time_squeeze",
+        "port": "right"
+      },
+      "to": {
+        "x": 1412,
+        "y": 277
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 72,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "e_pb_1",
+      "from": {
+        "nodeId": "fft_input",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "fft_conv2d",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 72,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "e_pb_2",
+      "from": {
+        "nodeId": "fft_conv2d",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "fft_spatial",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 72,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "e_pb_3",
+      "from": {
+        "nodeId": "fft_spatial",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "fft_bn",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 72,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "e_pb_4",
+      "from": {
+        "nodeId": "fft_bn",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "fft_pool",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 72,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "e_pb_5",
+      "from": {
+        "nodeId": "fft_pool",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "fft_proj",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 72,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "e_pb_6",
+      "from": {
+        "nodeId": "fft_proj",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "fft_squeeze",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 72,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "e_pb_out",
+      "from": {
+        "nodeId": "fft_squeeze",
+        "port": "right"
+      },
+      "to": {
+        "x": 1412,
+        "y": 566
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 72,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    }
+  ],
+  "notes": [
+    {
+      "id": "title",
+      "x": 836,
+      "y": 49,
+      "text": "PatchEmbedding 结构图",
+      "fontSize": 42,
+      "color": "#111111",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "subtitle",
+      "x": 836,
+      "y": 111,
+      "text": "Shallow-CNN stem：Conv(1×25) → Conv(C×1) → AvgPool(1×75,stride=15) → Projection",
+      "fontSize": 22,
+      "color": "#666666",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "time_npatch",
+      "x": 1510,
+      "y": 279,
+      "text": "n_patches = 122",
+      "fontSize": 19,
+      "color": "#111111",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_dim_input",
+      "x": 130,
+      "y": 337,
+      "text": "(B,1,21,1920)",
+      "fontSize": 18,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_dim_conv",
+      "x": 353,
+      "y": 408,
+      "text": "(B,40,21,1896)",
+      "fontSize": 18,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_dim_spatial",
+      "x": 550,
+      "y": 408,
+      "text": "(B,40,1,1896)",
+      "fontSize": 18,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_dim_bn",
+      "x": 750,
+      "y": 408,
+      "text": "(B,40,1,1896)",
+      "fontSize": 18,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_dim_pool",
+      "x": 948,
+      "y": 408,
+      "text": "(B,40,1,122)",
+      "fontSize": 18,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_dim_proj",
+      "x": 1134,
+      "y": 408,
+      "text": "(B,40,1,122)",
+      "fontSize": 18,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_dim_sq",
+      "x": 1314,
+      "y": 408,
+      "text": "(B,122,40)",
+      "fontSize": 18,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "fft_npatch",
+      "x": 1508,
+      "y": 568,
+      "text": "n_patches = 58",
+      "fontSize": 19,
+      "color": "#111111",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pb_dim_input",
+      "x": 130,
+      "y": 621,
+      "text": "(B,1,21,961)",
+      "fontSize": 18,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pb_dim_conv",
+      "x": 353,
+      "y": 696,
+      "text": "(B,40,21,937)",
+      "fontSize": 18,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pb_dim_spatial",
+      "x": 550,
+      "y": 696,
+      "text": "(B,40,1,937)",
+      "fontSize": 18,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pb_dim_bn",
+      "x": 750,
+      "y": 696,
+      "text": "(B,40,1,937)",
+      "fontSize": 18,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pb_dim_pool",
+      "x": 948,
+      "y": 696,
+      "text": "(B,40,1,58)",
+      "fontSize": 18,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pb_dim_proj",
+      "x": 1134,
+      "y": 696,
+      "text": "(B,40,1,58)",
+      "fontSize": 18,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pb_dim_sq",
+      "x": 1314,
+      "y": 696,
+      "text": "(B,58,40)",
+      "fontSize": 18,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "patch_b1",
+      "x": 814,
+      "y": 779,
+      "text": "•  Time 分支：PatchEmbedding 输出 token 序列 (B,122,40)",
+      "fontSize": 18,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "patch_b2",
+      "x": 814,
+      "y": 820,
+      "text": "•  FFT 分支：PatchEmbedding 输出 token 序列 (B,58,40)",
+      "fontSize": 18,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "patch_b3",
+      "x": 814,
+      "y": 861,
+      "text": "•  emb_size = 40，conv-type = standard",
+      "fontSize": 18,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    }
+  ],
+  "settings": {
+    "corner": 12,
+    "gridSize": 5,
+    "snap": true,
+    "lastBulge": 72,
+    "lastRoute": "auto",
+    "dragDelay": 180,
+    "routeMemory": {
+      "arch": {
+        "bulge": 110,
+        "corner": 12
+      },
+      "turn-right-up": {
+        "corner": 12
+      },
+      "turn-right-down": {
+        "corner": 12
+      },
+      "turn-left-up": {
+        "corner": 12
+      },
+      "turn-left-down": {
+        "corner": 12
+      },
+      "auto": {
+        "corner": 12
+      },
+      "straight": {
+        "corner": 0
+      }
+    }
+  },
+  "profileGroups": {
+    "arch": [
+      {
+        "id": "p_arch_72",
+        "name": "标准绕行",
+        "bulge": 72,
+        "corner": 14
+      },
+      {
+        "id": "p_arch_110",
+        "name": "结构图残差绕行",
+        "bulge": 110,
+        "corner": 12
+      }
+    ],
+    "turn-right-up": [
+      {
+        "id": "p_tru_14",
+        "name": "右转向上",
+        "corner": 14
+      },
+      {
+        "id": "p_tru_12",
+        "name": "右转向上",
+        "corner": 12
+      }
+    ],
+    "turn-right-down": [
+      {
+        "id": "p_trd_14",
+        "name": "右转向下",
+        "corner": 14
+      },
+      {
+        "id": "p_trd_12",
+        "name": "右转向下",
+        "corner": 12
+      }
+    ],
+    "turn-left-up": [
+      {
+        "id": "p_tlu_14",
+        "name": "左转向上",
+        "corner": 14
+      },
+      {
+        "id": "p_tlu_12",
+        "name": "左转向上",
+        "corner": 12
+      }
+    ],
+    "turn-left-down": [
+      {
+        "id": "p_tld_14",
+        "name": "左转向下",
+        "corner": 14
+      },
+      {
+        "id": "p_tld_12",
+        "name": "左转向下",
+        "corner": 12
+      }
+    ]
+  },
+  "palette": "soft",
+  "view": {
+    "x": 0,
+    "y": 0,
+    "w": 1672,
+    "h": 941
+  }
+}

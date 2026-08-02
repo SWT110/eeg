@@ -8,7 +8,9 @@ this project:
 * Auto-discovers subject_ids from ``subject_ids.npy`` in the dataset root
 * ``--subject-ids`` to restrict which folds to run
 * ``--skip-existing`` to skip folds whose output dir already contains
-  ``metrics.json`` or ``best_model.pt``
+  ``metrics.json`` or a legacy complete ``best_model.pt``
+* ``--resume`` to continue incomplete folds from ``last_checkpoint.pt`` with
+  model, Adam optimizer, history, best-metric, and RNG state restored
 * Automatic rerun inside the project conda env when CUDA is requested but
   unavailable in the current interpreter
 
@@ -17,12 +19,14 @@ Usage
     python train_activity_loso_batch.py \\
         --subject-ids 1,2,3 \\
         --epochs 200 \\
-        --skip-existing
+        --skip-existing \\
+        --resume
 """
 
 from __future__ import annotations
 
 import argparse
+import errno
 import json
 import os
 import subprocess
@@ -45,6 +49,7 @@ from train_activity_loso import (  # noqa: E402
     AUTO_RERUN_ENV_VAR,
     DEFAULT_BATCH_SIZE,
     DEFAULT_BETAS,
+    DEFAULT_BRANCH_LOSS_AUX_WEIGHT,
     DEFAULT_CONV_TYPE,
     DEFAULT_CUMULATIVE_QUERY_ATTENTION,
     DEFAULT_DATASET_ROOT,
@@ -65,12 +70,20 @@ from train_activity_loso import (  # noqa: E402
     DEFAULT_NUM_HEADS,
     DEFAULT_OUTPUT_DIR,
     DEFAULT_TRANSFORMER_BRANCHES,
+    DEFAULT_TRANSFORMER_BRANCH_FUSION,
+    DEFAULT_TRANSFORMER_BRANCH_QKV,
+    RESUME_CHECKPOINT_FILENAME,
+    TRANSFORMER_FUSION_SINGLE,
+    TRANSFORMER_FUSION_SOFTMAX,
     cuda_is_usable,
     normalize_device_name,
     parse_class_weights,
     project_env_prefix,
     running_inside_project_env,
+    resolve_branch_loss_aux_weight,
     resolve_transformer_branch_depths,
+    resolve_transformer_branch_fusion,
+    resolve_transformer_branch_qkv,
     train_loso_fold,
     validate_conv_type,
     validate_fft_global_for_input_domain,
@@ -134,6 +147,9 @@ def fold_is_complete(
     depth: int = DEFAULT_DEPTH,
     transformer_branches: int = DEFAULT_TRANSFORMER_BRANCHES,
     transformer_depths: list[int] | tuple[int, ...] | None = None,
+    transformer_branch_fusion: str = DEFAULT_TRANSFORMER_BRANCH_FUSION,
+    branch_loss_aux_weight: float = DEFAULT_BRANCH_LOSS_AUX_WEIGHT,
+    transformer_branch_qkv: str = DEFAULT_TRANSFORMER_BRANCH_QKV,
 ) -> bool:
     """Return True if the fold directory already contains a matching result artifact."""
     fold_dir = fold_output_dir(output_dir, subject_id)
@@ -155,6 +171,21 @@ def fold_is_complete(
         input_domain=expected_input_domain,
     )
     expected_transformer_branches = len(expected_transformer_depths)
+    expected_transformer_fusion = resolve_transformer_branch_fusion(
+        transformer_branch_fusion,
+        transformer_branches=expected_transformer_branches,
+        input_domain=expected_input_domain,
+    )
+    expected_branch_loss_aux_weight = resolve_branch_loss_aux_weight(
+        branch_loss_aux_weight,
+        expected_transformer_fusion,
+    )
+    expected_transformer_branch_qkv = resolve_transformer_branch_qkv(
+        transformer_branch_qkv,
+        transformer_branch_fusion=expected_transformer_fusion,
+        transformer_branches=expected_transformer_branches,
+        input_domain=expected_input_domain,
+    )
     if metrics_path.exists():
         with open(metrics_path, encoding="utf-8") as fh:
             metrics = json.load(fh)
@@ -180,6 +211,26 @@ def fold_is_complete(
             int(value)
             for value in metrics.get("transformer_branch_depths", [actual_depth])
         )
+        actual_transformer_fusion = resolve_transformer_branch_fusion(
+            metrics.get(
+                "transformer_branch_fusion",
+                TRANSFORMER_FUSION_SOFTMAX
+                if actual_transformer_branches > 1
+                else TRANSFORMER_FUSION_SINGLE,
+            ),
+            transformer_branches=actual_transformer_branches,
+            input_domain=actual_input_domain,
+        )
+        actual_branch_loss_aux_weight = resolve_branch_loss_aux_weight(
+            metrics.get("branch_loss_aux_weight", DEFAULT_BRANCH_LOSS_AUX_WEIGHT),
+            actual_transformer_fusion,
+        )
+        actual_transformer_branch_qkv = resolve_transformer_branch_qkv(
+            metrics.get("transformer_branch_qkv", DEFAULT_TRANSFORMER_BRANCH_QKV),
+            transformer_branch_fusion=actual_transformer_fusion,
+            transformer_branches=actual_transformer_branches,
+            input_domain=actual_input_domain,
+        )
         qkv_params_match = True
         if expected_input_qkv != DEFAULT_INPUT_QKV or actual_input_qkv != DEFAULT_INPUT_QKV:
             qkv_params_match = (
@@ -197,6 +248,9 @@ def fold_is_complete(
             and actual_depth == expected_depth
             and actual_transformer_branches == expected_transformer_branches
             and actual_transformer_depths == expected_transformer_depths
+            and actual_transformer_fusion == expected_transformer_fusion
+            and actual_branch_loss_aux_weight == expected_branch_loss_aux_weight
+            and actual_transformer_branch_qkv == expected_transformer_branch_qkv
             and qkv_params_match
         )
 
@@ -212,12 +266,33 @@ def fold_is_complete(
         and expected_depth == DEFAULT_DEPTH
         and expected_transformer_branches == DEFAULT_TRANSFORMER_BRANCHES
         and expected_transformer_depths == (DEFAULT_DEPTH,)
+        and expected_transformer_fusion == TRANSFORMER_FUSION_SINGLE
+        and expected_branch_loss_aux_weight == DEFAULT_BRANCH_LOSS_AUX_WEIGHT
+        and expected_transformer_branch_qkv == DEFAULT_TRANSFORMER_BRANCH_QKV
     )
 
 
 # ---------------------------------------------------------------------------
 # Batch runner
 # ---------------------------------------------------------------------------
+
+def is_storage_exhaustion_error(exc: BaseException) -> bool:
+    """Recognize disk-full/quota errors through wrapped exception chains."""
+    current: BaseException | None = exc
+    visited: set[int] = set()
+    while current is not None and id(current) not in visited:
+        visited.add(id(current))
+        if isinstance(current, OSError) and current.errno in {
+            errno.ENOSPC,
+            getattr(errno, "EDQUOT", -1),
+        }:
+            return True
+        message = str(current).lower()
+        if "no space left on device" in message or "disk quota exceeded" in message:
+            return True
+        current = current.__cause__ or current.__context__
+    return False
+
 
 def run_loso_batch(
     subject_ids: list[int],
@@ -242,6 +317,10 @@ def run_loso_batch(
     transformer_branches: int = DEFAULT_TRANSFORMER_BRANCHES,
     transformer_depths: list[int] | tuple[int, ...] | None = None,
     class_weights: list[float] | None = None,
+    transformer_branch_fusion: str = DEFAULT_TRANSFORMER_BRANCH_FUSION,
+    branch_loss_aux_weight: float = DEFAULT_BRANCH_LOSS_AUX_WEIGHT,
+    transformer_branch_qkv: str = DEFAULT_TRANSFORMER_BRANCH_QKV,
+    resume: bool = False,
 ) -> list[LosoFoldResult]:
     resolved_device = validate_device(device)
     resolved_input_domain = validate_input_domain(input_domain)
@@ -261,11 +340,27 @@ def run_loso_batch(
         input_domain=resolved_input_domain,
     )
     resolved_transformer_branches = len(resolved_transformer_depths)
+    resolved_transformer_fusion = resolve_transformer_branch_fusion(
+        transformer_branch_fusion,
+        transformer_branches=resolved_transformer_branches,
+        input_domain=resolved_input_domain,
+    )
+    resolved_branch_loss_aux_weight = resolve_branch_loss_aux_weight(
+        branch_loss_aux_weight,
+        resolved_transformer_fusion,
+    )
+    resolved_transformer_branch_qkv = resolve_transformer_branch_qkv(
+        transformer_branch_qkv,
+        transformer_branch_fusion=resolved_transformer_fusion,
+        transformer_branches=resolved_transformer_branches,
+        input_domain=resolved_input_domain,
+    )
     results: list[LosoFoldResult] = []
 
     print(f"Planned LOSO folds: {len(subject_ids)}")
     for subject_id in subject_ids:
-        if skip_existing and fold_is_complete(
+        fold_dir = fold_output_dir(output_dir, subject_id)
+        fold_complete = skip_existing and fold_is_complete(
             output_dir,
             subject_id,
             resolved_input_domain,
@@ -280,8 +375,24 @@ def run_loso_batch(
             resolved_depth,
             resolved_transformer_branches,
             resolved_transformer_depths,
-        ):
-            fold_dir = fold_output_dir(output_dir, subject_id)
+            transformer_branch_fusion=resolved_transformer_fusion,
+            branch_loss_aux_weight=resolved_branch_loss_aux_weight,
+            transformer_branch_qkv=resolved_transformer_branch_qkv,
+        )
+        # A legacy bare best_model.pt may represent only an interrupted fold.
+        # In resume mode, metrics.json is the only completion marker.
+        if resume and not (fold_dir / "metrics.json").exists():
+            fold_complete = False
+        if fold_complete:
+            if resume:
+                for stale_name in (
+                    RESUME_CHECKPOINT_FILENAME,
+                    f".{RESUME_CHECKPOINT_FILENAME}.tmp",
+                ):
+                    try:
+                        (fold_dir / stale_name).unlink()
+                    except FileNotFoundError:
+                        pass
             print(f"[SKIP] subject={subject_id}  fold_dir={fold_dir}")
             results.append(
                 LosoFoldResult(
@@ -316,6 +427,10 @@ def run_loso_batch(
                 transformer_branches=resolved_transformer_branches,
                 transformer_depths=resolved_transformer_depths,
                 class_weights=class_weights,
+                transformer_branch_fusion=resolved_transformer_fusion,
+                branch_loss_aux_weight=resolved_branch_loss_aux_weight,
+                transformer_branch_qkv=resolved_transformer_branch_qkv,
+                resume=bool(resume),
             )
         except Exception as exc:
             print(f"[FAIL] subject={subject_id}  error={exc}")
@@ -327,6 +442,11 @@ def run_loso_batch(
                     error=str(exc),
                 )
             )
+            if is_storage_exhaustion_error(exc):
+                raise RuntimeError(
+                    f"Storage exhausted while training subject {subject_id}; "
+                    "aborting remaining folds so resumable checkpoints are not put at risk"
+                ) from exc
             continue
 
         print(f"[DONE] subject={subject_id}  metrics={metrics_path}")
@@ -433,6 +553,30 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=None,
         help="Block counts for parallel encoders, e.g. 11 10 8",
     )
+    parser.add_argument(
+        "--transformer-branch-fusion",
+        type=str,
+        default=DEFAULT_TRANSFORMER_BRANCH_FUSION,
+        help=(
+            "Parallel-depth fusion: feature_softmax (legacy/default) or "
+            "loss_softmax (independent classifier/loss per depth)"
+        ),
+    )
+    parser.add_argument(
+        "--branch-loss-aux-weight",
+        type=float,
+        default=DEFAULT_BRANCH_LOSS_AUX_WEIGHT,
+        help="Mean branch-loss coefficient used only with loss_softmax (default: 0.0)",
+    )
+    parser.add_argument(
+        "--transformer-branch-qkv",
+        type=str,
+        default=DEFAULT_TRANSFORMER_BRANCH_QKV,
+        help=(
+            "QKV communication between parallel depth outputs: none (default) "
+            "or cross_depth"
+        ),
+    )
     parser.add_argument("--device", type=str, default=DEFAULT_DEVICE)
     parser.add_argument(
         "--input-domain",
@@ -503,7 +647,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--skip-existing",
         action="store_true",
-        help="Skip a fold if its output dir already contains metrics.json or best_model.pt",
+        help="Skip a fold when a matching completed metrics.json exists",
+    )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help=(
+            "Resume incomplete folds from last_checkpoint.pt; use with "
+            "--skip-existing to skip completed folds"
+        ),
     )
     parser.add_argument("--seed", type=int, default=42)
     return parser.parse_args(argv)
@@ -559,6 +711,10 @@ def main(argv: list[str] | None = None) -> None:
         transformer_branches=args.transformer_branches,
         transformer_depths=args.transformer_depths,
         class_weights=class_weights,
+        transformer_branch_fusion=args.transformer_branch_fusion,
+        branch_loss_aux_weight=args.branch_loss_aux_weight,
+        transformer_branch_qkv=args.transformer_branch_qkv,
+        resume=bool(args.resume),
     )
 
 

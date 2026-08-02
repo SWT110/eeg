@@ -194,6 +194,84 @@ class TestFoldIsComplete(unittest.TestCase):
             )
         )
 
+    def test_loss_fusion_config_must_match_metrics(self) -> None:
+        fold_dir = self.output_dir / "fold_subject_9"
+        fold_dir.mkdir()
+        (fold_dir / "metrics.json").write_text(
+            json.dumps(
+                {
+                    "input_domain": "time_fft",
+                    "depth": 6,
+                    "transformer_branches": 3,
+                    "transformer_branch_depths": [11, 10, 8],
+                    "transformer_branch_fusion": "loss_softmax",
+                    "branch_loss_aux_weight": 0.2,
+                }
+            )
+        )
+        common = {
+            "input_domain": "time_fft",
+            "transformer_branches": 3,
+            "transformer_depths": [11, 10, 8],
+            "transformer_branch_fusion": "loss_softmax",
+        }
+        self.assertTrue(
+            self.module.fold_is_complete(
+                self.output_dir,
+                subject_id=9,
+                branch_loss_aux_weight=0.2,
+                **common,
+            )
+        )
+        self.assertFalse(
+            self.module.fold_is_complete(
+                self.output_dir,
+                subject_id=9,
+                branch_loss_aux_weight=0.1,
+                **common,
+            )
+        )
+
+    def test_cross_depth_qkv_config_must_match_metrics(self) -> None:
+        fold_dir = self.output_dir / "fold_subject_10"
+        fold_dir.mkdir()
+        (fold_dir / "metrics.json").write_text(
+            json.dumps(
+                {
+                    "input_domain": "time_fft",
+                    "depth": 6,
+                    "transformer_branches": 3,
+                    "transformer_branch_depths": [11, 10, 8],
+                    "transformer_branch_fusion": "loss_softmax",
+                    "branch_loss_aux_weight": 0.2,
+                    "transformer_branch_qkv": "cross_depth",
+                }
+            )
+        )
+        common = {
+            "input_domain": "time_fft",
+            "transformer_branches": 3,
+            "transformer_depths": [11, 10, 8],
+            "transformer_branch_fusion": "loss_softmax",
+            "branch_loss_aux_weight": 0.2,
+        }
+        self.assertTrue(
+            self.module.fold_is_complete(
+                self.output_dir,
+                subject_id=10,
+                transformer_branch_qkv="cross_depth",
+                **common,
+            )
+        )
+        self.assertFalse(
+            self.module.fold_is_complete(
+                self.output_dir,
+                subject_id=10,
+                transformer_branch_qkv="none",
+                **common,
+            )
+        )
+
 
 class TestRunLosoBatch(unittest.TestCase):
     def setUp(self) -> None:
@@ -281,6 +359,27 @@ class TestRunLosoBatch(unittest.TestCase):
                 )
         self.assertIn("failed folds", str(ctx.exception))
 
+    def test_storage_exhaustion_aborts_remaining_folds_immediately(self) -> None:
+        with patch.object(
+            self.module,
+            "train_loso_fold",
+            side_effect=OSError(28, "No space left on device"),
+        ) as mock_train:
+            with self.assertRaisesRegex(RuntimeError, "Storage exhausted"):
+                self.module.run_loso_batch(
+                    subject_ids=[1, 2, 3],
+                    dataset_root=self.dataset_root,
+                    epochs=1,
+                    batch_size=8,
+                    lr=2e-4,
+                    device="cpu",
+                    output_dir=self.output_dir,
+                    skip_existing=False,
+                    resume=True,
+                )
+
+        self.assertEqual(mock_train.call_count, 1)
+
     def test_passes_depth_to_fold_runner(self) -> None:
         with patch.object(
             self.module,
@@ -323,6 +422,85 @@ class TestRunLosoBatch(unittest.TestCase):
 
         self.assertEqual(mock_train.call_args.kwargs["transformer_branches"], 3)
         self.assertEqual(mock_train.call_args.kwargs["transformer_depths"], (11, 10, 8))
+
+    def test_passes_loss_softmax_config_to_fold_runner(self) -> None:
+        with patch.object(
+            self.module,
+            "train_loso_fold",
+            return_value=self.output_dir / "fold_subject_1" / "metrics.json",
+        ) as mock_train:
+            self.module.run_loso_batch(
+                subject_ids=[1],
+                dataset_root=self.dataset_root,
+                epochs=1,
+                batch_size=8,
+                lr=2e-4,
+                device="cpu",
+                output_dir=self.output_dir,
+                skip_existing=False,
+                input_domain="time_fft",
+                transformer_branches=3,
+                transformer_depths=[11, 10, 8],
+                transformer_branch_fusion="loss_softmax",
+                branch_loss_aux_weight=0.2,
+            )
+
+        kwargs = mock_train.call_args.kwargs
+        self.assertEqual(kwargs["transformer_branch_fusion"], "loss_softmax")
+        self.assertAlmostEqual(kwargs["branch_loss_aux_weight"], 0.2)
+
+    def test_passes_cross_depth_qkv_to_fold_runner(self) -> None:
+        with patch.object(
+            self.module,
+            "train_loso_fold",
+            return_value=self.output_dir / "fold_subject_1" / "metrics.json",
+        ) as mock_train:
+            self.module.run_loso_batch(
+                subject_ids=[1],
+                dataset_root=self.dataset_root,
+                epochs=1,
+                batch_size=8,
+                lr=2e-4,
+                device="cpu",
+                output_dir=self.output_dir,
+                skip_existing=False,
+                input_domain="time_fft",
+                transformer_branches=3,
+                transformer_depths=[11, 10, 8],
+                transformer_branch_fusion="loss_softmax",
+                branch_loss_aux_weight=0.2,
+                transformer_branch_qkv="cross_depth",
+            )
+
+        self.assertEqual(
+            mock_train.call_args.kwargs["transformer_branch_qkv"],
+            "cross_depth",
+        )
+
+    def test_resume_runs_bare_best_model_fold_and_passes_flag(self) -> None:
+        fold_dir = self.output_dir / "fold_subject_1"
+        fold_dir.mkdir()
+        (fold_dir / "best_model.pt").write_bytes(b"legacy-or-partial")
+
+        with patch.object(
+            self.module,
+            "train_loso_fold",
+            return_value=fold_dir / "metrics.json",
+        ) as mock_train:
+            results = self.module.run_loso_batch(
+                subject_ids=[1],
+                dataset_root=self.dataset_root,
+                epochs=2,
+                batch_size=8,
+                lr=2e-4,
+                device="cpu",
+                output_dir=self.output_dir,
+                skip_existing=True,
+                resume=True,
+            )
+
+        self.assertEqual(results[0].status, "trained")
+        self.assertTrue(mock_train.call_args.kwargs["resume"])
 
     def test_passes_class_weights_to_fold_runner(self) -> None:
         with patch.object(
@@ -434,6 +612,24 @@ class TestParseArgs(unittest.TestCase):
         self.assertEqual(args.transformer_branches, 3)
         self.assertEqual(args.transformer_depths, [11, 10, 8])
 
+    def test_accepts_loss_softmax_arguments(self) -> None:
+        args = self.module.parse_args(
+            [
+                "--transformer-branch-fusion",
+                "loss_softmax",
+                "--branch-loss-aux-weight",
+                "0.2",
+            ]
+        )
+        self.assertEqual(args.transformer_branch_fusion, "loss_softmax")
+        self.assertAlmostEqual(args.branch_loss_aux_weight, 0.2)
+
+    def test_accepts_cross_depth_qkv_argument(self) -> None:
+        args = self.module.parse_args(
+            ["--transformer-branch-qkv", "cross_depth"]
+        )
+        self.assertEqual(args.transformer_branch_qkv, "cross_depth")
+
     def test_skip_existing_defaults_to_false(self) -> None:
         args = self.module.parse_args([])
         self.assertFalse(args.skip_existing)
@@ -441,6 +637,10 @@ class TestParseArgs(unittest.TestCase):
     def test_skip_existing_flag_sets_true(self) -> None:
         args = self.module.parse_args(["--skip-existing"])
         self.assertTrue(args.skip_existing)
+
+    def test_resume_is_opt_in(self) -> None:
+        self.assertFalse(self.module.parse_args([]).resume)
+        self.assertTrue(self.module.parse_args(["--resume"]).resume)
 
     def test_subject_ids_defaults_to_none(self) -> None:
         args = self.module.parse_args([])

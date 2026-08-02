@@ -300,6 +300,32 @@ def build_model_info(
         ),
         "time_transformer_branch_weights": fold_metrics.get("time_transformer_branch_weights"),
         "fft_transformer_branch_weights": fold_metrics.get("fft_transformer_branch_weights"),
+        "transformer_branch_loss_weights": fold_metrics.get(
+            "transformer_branch_loss_weights",
+            cfg.get("transformer_branch_loss_weights"),
+        ),
+        "branch_loss_aux_weight": fold_metrics.get(
+            "branch_loss_aux_weight",
+            cfg.get("branch_loss_aux_weight", 0.0),
+        ),
+        "transformer_branch_qkv": fold_metrics.get(
+            "transformer_branch_qkv",
+            cfg.get("transformer_branch_qkv", "none"),
+        ),
+        "transformer_branch_qkv_dropout": fold_metrics.get(
+            "transformer_branch_qkv_dropout",
+            cfg.get("transformer_branch_qkv_dropout"),
+        ),
+        "transformer_branch_qkv_res_scale": fold_metrics.get(
+            "transformer_branch_qkv_res_scale",
+            cfg.get("transformer_branch_qkv_res_scale"),
+        ),
+        "time_transformer_branch_qkv_gamma": fold_metrics.get(
+            "time_transformer_branch_qkv_gamma"
+        ),
+        "fft_transformer_branch_qkv_gamma": fold_metrics.get(
+            "fft_transformer_branch_qkv_gamma"
+        ),
         "n_classes": fold_metrics.get("n_classes", cfg.get("n_classes", n_classes_from_dataset)),
         "emb_size": fold_metrics.get("emb_size", cfg.get("emb_size")),
         "depth": fold_metrics.get("depth", cfg.get("depth")),
@@ -314,8 +340,20 @@ def build_model_info(
                 "fft_n_times": fold_metrics.get("fft_n_times", fft_n_times),
                 "time_branch_model": "ConformerFeatureBranch",
                 "fft_branch_model": "ConformerFeatureBranch",
-                "fusion_method": "concat",
-                "fusion_head": "FusionClassificationHead",
+                "fusion_method": (
+                    "cross_depth_qkv_then_learnable_softmax_weighted_logits"
+                    if info["transformer_branch_qkv"] == "cross_depth"
+                    else (
+                        "learnable_softmax_weighted_logits"
+                        if info["transformer_branch_fusion"] == "loss_softmax"
+                        else "concat"
+                    )
+                ),
+                "fusion_head": (
+                    "PerDepthFusionClassificationHeads"
+                    if info["transformer_branch_fusion"] == "loss_softmax"
+                    else "FusionClassificationHead"
+                ),
             }
         )
     else:
@@ -385,6 +423,13 @@ def build_markdown(manifest: dict[str, Any]) -> str:
         f"- transformer_weights_independent_by_domain: `{model.get('transformer_weights_independent_by_domain')}`",
         f"- time_transformer_branch_weights: `{model.get('time_transformer_branch_weights')}`",
         f"- fft_transformer_branch_weights: `{model.get('fft_transformer_branch_weights')}`",
+        f"- transformer_branch_loss_weights: `{model.get('transformer_branch_loss_weights')}`",
+        f"- branch_loss_aux_weight: `{model.get('branch_loss_aux_weight')}`",
+        f"- transformer_branch_qkv: `{model.get('transformer_branch_qkv')}`",
+        f"- transformer_branch_qkv_dropout: `{model.get('transformer_branch_qkv_dropout')}`",
+        f"- transformer_branch_qkv_res_scale: `{model.get('transformer_branch_qkv_res_scale')}`",
+        f"- time_transformer_branch_qkv_gamma: `{model.get('time_transformer_branch_qkv_gamma')}`",
+        f"- fft_transformer_branch_qkv_gamma: `{model.get('fft_transformer_branch_qkv_gamma')}`",
         f"- n_classes: `{model.get('n_classes')}`",
         f"- emb_size: `{model.get('emb_size')}`",
         f"- depth: `{model.get('depth')}`",

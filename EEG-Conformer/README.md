@@ -75,6 +75,61 @@ python train_activity_loso_batch.py \
   --device cuda:0
 ```
 
+三个并行深度分支分别分类并使用可学习 loss 权重：
+
+```bash
+python train_activity_loso_batch.py \
+  --dataset-root ../local_artifacts/data_to_list/global_activity_dataset/window_15_stride_3 \
+  --input-domain time_fft \
+  --transformer-branches 3 \
+  --transformer-depths 11 10 8 \
+  --transformer-branch-fusion loss_softmax \
+  --branch-loss-aux-weight 0.2 \
+  --device cuda:1
+```
+
+`loss_softmax` 为每个对应深度的 time/FFT 特征配置独立分类头，并学习三个
+softmax loss 权重；辅助系数用于保证低权重分支仍能得到监督。不传这两个参数时，
+仍使用原有的特征级 softmax 融合。
+
+在三个深度编码器输出与分类头之间启用 Cross-Depth QKV：
+
+```bash
+--transformer-branch-qkv cross_depth
+```
+
+该选项要求同时使用 `time_fft`、并行深度分支和 `loss_softmax`。Time 与 FFT
+分别拥有独立的 QKV 模块；默认值为 `none`，因此旧命令和旧 checkpoint 结构不变。
+
+### 中断后恢复训练（含 Adam optimizer）
+
+单 fold 和批量 LOSO 均支持 `--resume`。批量训练建议同时使用：
+
+```bash
+python train_activity_loso_batch.py \
+  ...原实验参数... \
+  --skip-existing \
+  --resume
+```
+
+启用后，每个未完成 fold 会在每个完整 epoch 后原子更新
+`fold_subject_<id>/last_checkpoint.pt`，其中包含：
+
+- 模型 `state_dict`
+- Adam `optimizer_state_dict`（包括一阶、二阶动量）
+- 已完成 epoch、累计测试准确率和完整 epoch history
+- 当前最佳指标、预测及分支权重元数据
+- Python、NumPy、PyTorch CPU/CUDA RNG 状态
+
+重启时会校验数据形状、模型结构、batch size、学习率、seed、融合方式等配置；
+配置不一致会拒绝恢复。可以增大 `--epochs`，但不能将其设为小于已完成 epoch。
+fold 成功生成 `metrics.json` 后会删除较大的 `last_checkpoint.pt`，只保留
+`best_model.pt` 和结果文件。原子写入保证保存失败时不会覆盖上一个有效的恢复点；
+批量脚本检测到磁盘写满或 quota 超限后会立即终止剩余 folds，不再逐个制造失败目录。
+
+旧实验产生的 `best_model.pt` 不含 optimizer 状态，不能真正续接到原 epoch；若没有
+新版 `last_checkpoint.pt`，`--resume` 会明确提示并从该 fold 的 epoch 1 重跑。
+
 批量比较多套 window/stride：
 
 ```bash

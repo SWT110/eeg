@@ -436,6 +436,144 @@ class TestActivityConformerForward(unittest.TestCase):
         self.assertIsNotNone(model.time_branch.depth_weight_logits.grad)
         self.assertIsNotNone(model.fft_branch.depth_weight_logits.grad)
 
+    def test_loss_softmax_uses_per_depth_heads_and_learnable_loss_weights(self) -> None:
+        model = self.module.DualBranchActivityConformer(
+            n_channels=3,
+            time_n_times=120,
+            fft_n_times=101,
+            n_classes=3,
+            emb_size=10,
+            num_heads=5,
+            dropout=0.0,
+            transformer_depths=[1, 2, 1],
+            transformer_branch_fusion="loss_softmax",
+            branch_loss_aux_weight=0.2,
+        ).eval()
+
+        self.assertTrue(model.uses_branch_loss_fusion)
+        self.assertEqual(len(model.branch_cls_heads), 3)
+        self.assertFalse(hasattr(model, "cls_head"))
+        self.assertFalse(hasattr(model.time_branch, "depth_weight_logits"))
+        self.assertFalse(hasattr(model.fft_branch, "depth_weight_logits"))
+        self.assertFalse(hasattr(model, "time_cross_depth_qkv"))
+        self.assertFalse(hasattr(model, "fft_cross_depth_qkv"))
+        torch.testing.assert_close(
+            model.normalized_branch_loss_weights(),
+            torch.full((3,), 1.0 / 3.0),
+        )
+        with torch.no_grad():
+            model.branch_loss_weight_logits.copy_(torch.tensor([0.5, -0.5, 1.0]))
+        learned_weights = model.normalized_branch_loss_weights()
+
+        features, fused_logits, branch_logits = model.forward_with_branch_logits(
+            torch.randn(2, 1, 3, 120),
+            torch.randn(2, 1, 3, 101),
+        )
+        self.assertEqual(features.shape[0], 2)
+        self.assertEqual(tuple(fused_logits.shape), (2, 3))
+        self.assertEqual([tuple(value.shape) for value in branch_logits], [(2, 3)] * 3)
+        torch.testing.assert_close(
+            fused_logits,
+            (
+                learned_weights.view(-1, 1, 1)
+                * torch.stack(branch_logits)
+            ).sum(dim=0),
+        )
+
+        labels = torch.tensor([0, 2])
+        criterion = torch.nn.CrossEntropyLoss(weight=torch.tensor([3.0, 3.0, 1.0]))
+        total_loss, branch_losses = self.module.compute_model_batch_loss(
+            model,
+            fused_logits,
+            labels,
+            criterion,
+            branch_logits,
+        )
+        stacked = torch.stack(branch_losses)
+        expected = (learned_weights * stacked).sum() + 0.2 * stacked.mean()
+        torch.testing.assert_close(total_loss, expected)
+        total_loss.backward()
+
+        self.assertIsNotNone(model.branch_loss_weight_logits.grad)
+        for head in model.branch_cls_heads:
+            self.assertIsNotNone(head.fc[-1].weight.grad)
+
+    def test_cross_depth_qkv_links_parallel_depth_features(self) -> None:
+        model = self.module.DualBranchActivityConformer(
+            n_channels=3,
+            time_n_times=120,
+            fft_n_times=101,
+            n_classes=3,
+            emb_size=10,
+            num_heads=5,
+            dropout=0.0,
+            transformer_depths=[1, 1, 1],
+            transformer_branch_fusion="loss_softmax",
+            branch_loss_aux_weight=0.2,
+            transformer_branch_qkv="cross_depth",
+        ).eval()
+
+        self.assertTrue(model.uses_cross_depth_qkv)
+        self.assertIsNot(model.time_cross_depth_qkv, model.fft_cross_depth_qkv)
+        self.assertAlmostEqual(float(model.time_cross_depth_qkv.gamma.item()), 0.1)
+        self.assertEqual(tuple(model.time_cross_depth_qkv.depth_embeddings.shape), (3, 10))
+
+        features, fused_logits, branch_logits = model.forward_with_branch_logits(
+            torch.randn(2, 1, 3, 120),
+            torch.randn(2, 1, 3, 101),
+        )
+        self.assertEqual(features.shape[0], 2)
+        self.assertEqual(tuple(fused_logits.shape), (2, 3))
+        self.assertEqual([tuple(value.shape) for value in branch_logits], [(2, 3)] * 3)
+
+        # A loss from head 0 reaches another depth encoder through cross-depth K/V.
+        branch_logits[0].sum().backward()
+        other_time_encoder_parameter = next(
+            model.time_branch.depth_encoders[1].parameters()
+        )
+        other_fft_encoder_parameter = next(
+            model.fft_branch.depth_encoders[2].parameters()
+        )
+        self.assertIsNotNone(other_time_encoder_parameter.grad)
+        self.assertIsNotNone(other_fft_encoder_parameter.grad)
+        self.assertIsNotNone(model.time_cross_depth_qkv.attention.in_proj_weight.grad)
+        self.assertIsNotNone(model.fft_cross_depth_qkv.attention.in_proj_weight.grad)
+        self.assertIsNotNone(model.time_cross_depth_qkv.gamma.grad)
+        self.assertIsNotNone(model.fft_cross_depth_qkv.gamma.grad)
+
+        metadata = model.transformer_weight_metadata()
+        self.assertIn("time_transformer_branch_qkv_gamma", metadata)
+        self.assertIn("fft_transformer_branch_qkv_gamma", metadata)
+
+    def test_loss_softmax_rejects_incompatible_configurations(self) -> None:
+        with self.assertRaisesRegex(ValueError, "at least two"):
+            self.module.resolve_transformer_branch_fusion(
+                "loss_softmax",
+                transformer_branches=1,
+                input_domain="time_fft",
+            )
+        with self.assertRaisesRegex(ValueError, "applies only"):
+            self.module.resolve_branch_loss_aux_weight(
+                0.2,
+                self.module.TRANSFORMER_FUSION_SOFTMAX,
+            )
+        with self.assertRaisesRegex(ValueError, "loss_softmax"):
+            self.module.resolve_transformer_branch_qkv(
+                "cross_depth",
+                transformer_branch_fusion=self.module.TRANSFORMER_FUSION_SOFTMAX,
+                transformer_branches=3,
+                input_domain="time_fft",
+            )
+        self.assertEqual(
+            self.module.resolve_transformer_branch_qkv(
+                "cross_depth",
+                transformer_branch_fusion=self.module.TRANSFORMER_FUSION_LOSS_SOFTMAX,
+                transformer_branches=3,
+                input_domain="time_fft",
+            ),
+            "cross_depth",
+        )
+
     def test_default_dual_branch_keeps_legacy_encoder_state_dict_layout(self) -> None:
         model = self.module.DualBranchActivityConformer(
             n_channels=3,
@@ -576,6 +714,28 @@ class TestParseArgsDefaults(unittest.TestCase):
             ),
             (11, 10, 8),
         )
+
+    def test_accepts_loss_softmax_arguments(self) -> None:
+        args = self.module.parse_args(
+            [
+                "--transformer-branch-fusion",
+                "loss_softmax",
+                "--branch-loss-aux-weight",
+                "0.2",
+            ]
+        )
+        self.assertEqual(args.transformer_branch_fusion, "loss_softmax")
+        self.assertAlmostEqual(args.branch_loss_aux_weight, 0.2)
+
+    def test_accepts_cross_depth_qkv_argument(self) -> None:
+        args = self.module.parse_args(
+            ["--transformer-branch-qkv", "cross_depth"]
+        )
+        self.assertEqual(args.transformer_branch_qkv, "cross_depth")
+
+    def test_resume_is_opt_in(self) -> None:
+        self.assertFalse(self.module.parse_args([]).resume)
+        self.assertTrue(self.module.parse_args(["--resume"]).resume)
 
     def test_parallel_transformer_arguments_require_matching_count_and_dual_input(self) -> None:
         with self.assertRaisesRegex(ValueError, "must equal"):
@@ -826,7 +986,132 @@ class TestMainWiring(unittest.TestCase):
             seed=None,
             input_domain=None,
             class_weights=None,
+            resume=False,
         )
+
+
+class TestOptimizerResume(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temp_dir = Path(tempfile.mkdtemp(prefix="activity-loso-resume-"))
+        self.dataset_root = self.temp_dir / "dataset"
+        self.dataset_root.mkdir()
+        self.module = load_module()
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.temp_dir)
+
+    @staticmethod
+    def _tiny_model_class():
+        class TinyActivityModel(torch.nn.Module):
+            def __init__(self, n_classes: int, **kwargs) -> None:
+                super().__init__()
+                initial = torch.zeros(n_classes, dtype=torch.float32)
+                initial[0] = 1.0
+                self.class_logits = torch.nn.Parameter(initial)
+
+            def forward(self, inputs):
+                features = inputs.flatten(start_dim=1)
+                logits = self.class_logits.unsqueeze(0).expand(inputs.shape[0], -1)
+                return features, logits
+
+        return TinyActivityModel
+
+    @staticmethod
+    def _tiny_dataloaders(*args, **kwargs):
+        inputs = torch.arange(48, dtype=torch.float32).reshape(6, 1, 2, 4) / 48.0
+        labels = torch.zeros(6, dtype=torch.long)
+        dataset = torch.utils.data.TensorDataset(inputs, labels)
+        train_loader = torch.utils.data.DataLoader(dataset, batch_size=2, shuffle=True)
+        test_loader = torch.utils.data.DataLoader(dataset, batch_size=3, shuffle=False)
+        return train_loader, test_loader, 2, 4, 3, 6, 6
+
+    def test_interrupted_fold_restores_model_adam_history_and_rng(self) -> None:
+        output_dir = self.temp_dir / "outputs"
+        real_history_writer = self.module.write_epoch_history_files
+
+        def interrupt_after_checkpoint(*, fold_dir, history, metadata):
+            self.assertEqual(len(history), 1)
+            raise OSError(28, "simulated no space")
+
+        common = {
+            "dataset_root": self.dataset_root,
+            "test_subject_id": 1,
+            "epochs": 2,
+            "batch_size": 2,
+            "lr": 2e-4,
+            "device": "cpu",
+            "output_dir": output_dir,
+            "seed": 43,
+            "resume": True,
+        }
+        with patch.object(
+            self.module, "build_dataloaders", side_effect=self._tiny_dataloaders
+        ), patch.object(
+            self.module, "ActivityConformer", self._tiny_model_class()
+        ), patch.object(
+            self.module, "write_epoch_history_files", side_effect=interrupt_after_checkpoint
+        ):
+            with self.assertRaisesRegex(OSError, "simulated no space"):
+                self.module.train_loso_fold(**common)
+
+        fold_dir = output_dir / "fold_subject_1"
+        resume_path = fold_dir / self.module.RESUME_CHECKPOINT_FILENAME
+        self.assertTrue(resume_path.exists())
+        checkpoint = self.module.load_torch_checkpoint(resume_path, torch.device("cpu"))
+        self.assertEqual(checkpoint["completed_epoch"], 1)
+        self.assertTrue(checkpoint["optimizer_state_dict"]["state"])
+        self.assertEqual(len(checkpoint["epoch_history"]), 1)
+
+        with patch.object(
+            self.module, "build_dataloaders", side_effect=self._tiny_dataloaders
+        ), patch.object(
+            self.module, "ActivityConformer", self._tiny_model_class()
+        ), patch.object(
+            self.module, "write_epoch_history_files", wraps=real_history_writer
+        ):
+            metrics_path = self.module.train_loso_fold(**common)
+
+        self.assertTrue(metrics_path.exists())
+        self.assertFalse(resume_path.exists())
+        metrics = json.loads(metrics_path.read_text(encoding="ascii"))
+        self.assertEqual(metrics["resumed_from_epoch"], 1)
+        history_payload = json.loads(
+            (fold_dir / "epoch_history.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual([row["epoch"] for row in history_payload["history"]], [1, 2])
+        self.assertIn("restored model + Adam optimizer", (fold_dir / "train.log").read_text())
+
+    def test_atomic_torch_save_keeps_previous_target_on_failure(self) -> None:
+        target = self.temp_dir / "checkpoint.pt"
+        target.write_bytes(b"previous-valid-checkpoint")
+        with patch.object(
+            self.module.torch,
+            "save",
+            side_effect=OSError(28, "simulated no space"),
+        ):
+            with self.assertRaisesRegex(OSError, "simulated no space"):
+                self.module.atomic_torch_save({"value": 1}, target)
+
+        self.assertEqual(target.read_bytes(), b"previous-valid-checkpoint")
+        self.assertFalse(self.module.temporary_artifact_path(target).exists())
+
+    def test_resume_rejects_changed_training_configuration(self) -> None:
+        checkpoint = {
+            "resume_checkpoint_version": self.module.RESUME_CHECKPOINT_VERSION,
+            "completed_epoch": 1,
+            "model_state_dict": {},
+            "optimizer_state_dict": {},
+            "rng_state": {},
+            "epoch_history": [{"epoch": 1}],
+            "training_config": {"batch_size": 72, "epochs": 200},
+            "average_test_acc_sum": 0.5,
+        }
+        with self.assertRaisesRegex(ValueError, "configuration mismatch"):
+            self.module.validate_resume_checkpoint(
+                checkpoint,
+                expected_training_config={"batch_size": 64, "epochs": 300},
+                target_epochs=300,
+            )
 
 
 if __name__ == "__main__":

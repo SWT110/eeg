@@ -1,0 +1,1494 @@
+{
+  "nodes": [
+    {
+      "id": "g1",
+      "type": "rect",
+      "x": 35,
+      "y": 140,
+      "w": 1930,
+      "h": 205,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 18
+    },
+    {
+      "id": "s_in",
+      "type": "rect",
+      "x": 70,
+      "y": 220,
+      "w": 150,
+      "h": 72,
+      "label": "输入 tokens",
+      "fill": "#dfe4eb",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "b1",
+      "type": "rect",
+      "x": 300,
+      "y": 205,
+      "w": 205,
+      "h": 102,
+      "label": "EncoderBlock 1",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "b2",
+      "type": "rect",
+      "x": 570,
+      "y": 205,
+      "w": 205,
+      "h": 102,
+      "label": "EncoderBlock 2",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "sd",
+      "type": "ellipsis",
+      "x": 845,
+      "y": 240,
+      "w": 65,
+      "h": 30,
+      "label": "•••",
+      "fill": "transparent",
+      "textColor": "#111820",
+      "orientation": "horizontal",
+      "radius": 0
+    },
+    {
+      "id": "b5",
+      "type": "rect",
+      "x": 990,
+      "y": 205,
+      "w": 205,
+      "h": 102,
+      "label": "EncoderBlock 5",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "b6",
+      "type": "rect",
+      "x": 1260,
+      "y": 205,
+      "w": 205,
+      "h": 102,
+      "label": "EncoderBlock 6",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "s_out",
+      "type": "rect",
+      "x": 1540,
+      "y": 220,
+      "w": 160,
+      "h": 72,
+      "label": "输出 tokens",
+      "fill": "#9edfe3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "g2",
+      "type": "rect",
+      "x": 35,
+      "y": 365,
+      "w": 1930,
+      "h": 315,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 18
+    },
+    {
+      "id": "x",
+      "type": "rect",
+      "x": 65,
+      "y": 490,
+      "w": 130,
+      "h": 70,
+      "label": "输入 x",
+      "fill": "#dfe4eb",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ln1",
+      "type": "rect",
+      "x": 255,
+      "y": 480,
+      "w": 105,
+      "h": 90,
+      "label": "LayerNorm 40",
+      "fill": "#c9ddf5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "mha",
+      "type": "rect",
+      "x": 420,
+      "y": 470,
+      "w": 175,
+      "h": 110,
+      "label": "MultiHeadAttention",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ad",
+      "type": "rect",
+      "x": 655,
+      "y": 480,
+      "w": 115,
+      "h": 90,
+      "label": "Dropout 0.5",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "p1",
+      "type": "residual",
+      "x": 816,
+      "y": 501,
+      "w": 48,
+      "h": 48,
+      "label": "+",
+      "fill": "#f4f6f9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 24
+    },
+    {
+      "id": "ln2",
+      "type": "rect",
+      "x": 920,
+      "y": 480,
+      "w": 105,
+      "h": 90,
+      "label": "LayerNorm 40",
+      "fill": "#c9ddf5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ffn",
+      "type": "rect",
+      "x": 1085,
+      "y": 470,
+      "w": 195,
+      "h": 110,
+      "label": "FeedForwardBlock",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "fd",
+      "type": "rect",
+      "x": 1340,
+      "y": 480,
+      "w": 115,
+      "h": 90,
+      "label": "Dropout 0.5",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "p2",
+      "type": "residual",
+      "x": 1501,
+      "y": 501,
+      "w": 48,
+      "h": 48,
+      "label": "+",
+      "fill": "#f4f6f9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 24
+    },
+    {
+      "id": "y",
+      "type": "rect",
+      "x": 1610,
+      "y": 490,
+      "w": 145,
+      "h": 70,
+      "label": "Block 输出",
+      "fill": "#9edfe3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "g3",
+      "type": "rect",
+      "x": 35,
+      "y": 700,
+      "w": 1930,
+      "h": 410,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 18
+    },
+    {
+      "id": "mi",
+      "type": "rect",
+      "x": 65,
+      "y": 855,
+      "w": 145,
+      "h": 72,
+      "label": "MHA 输入",
+      "fill": "#dfe4eb",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "q",
+      "type": "rect",
+      "x": 280,
+      "y": 760,
+      "w": 150,
+      "h": 66,
+      "label": "Q Linear 40→40",
+      "fill": "#c9ddf5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "k",
+      "type": "rect",
+      "x": 280,
+      "y": 855,
+      "w": 150,
+      "h": 66,
+      "label": "K Linear 40→40",
+      "fill": "#c9ddf5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "v",
+      "type": "rect",
+      "x": 280,
+      "y": 950,
+      "w": 150,
+      "h": 66,
+      "label": "V Linear 40→40",
+      "fill": "#c9ddf5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "qh",
+      "type": "rect",
+      "x": 485,
+      "y": 760,
+      "w": 150,
+      "h": 66,
+      "label": "Q 拆分 5 头",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "kh",
+      "type": "rect",
+      "x": 485,
+      "y": 855,
+      "w": 150,
+      "h": 66,
+      "label": "K 拆分 5 头",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "vh",
+      "type": "rect",
+      "x": 485,
+      "y": 950,
+      "w": 150,
+      "h": 66,
+      "label": "V 拆分 5 头",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "energy",
+      "type": "rect",
+      "x": 700,
+      "y": 790,
+      "w": 155,
+      "h": 82,
+      "label": "Energy = QKᵀ",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "scale",
+      "type": "rect",
+      "x": 910,
+      "y": 790,
+      "w": 120,
+      "h": 82,
+      "label": "÷ √40",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "soft",
+      "type": "rect",
+      "x": 1085,
+      "y": 790,
+      "w": 125,
+      "h": 82,
+      "label": "Softmax",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "atd",
+      "type": "rect",
+      "x": 1265,
+      "y": 790,
+      "w": 135,
+      "h": 82,
+      "label": "Att Dropout 0.5",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "wv",
+      "type": "rect",
+      "x": 1450,
+      "y": 895,
+      "w": 150,
+      "h": 82,
+      "label": "Attention × V",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "merge",
+      "type": "rect",
+      "x": 1650,
+      "y": 895,
+      "w": 125,
+      "h": 82,
+      "label": "合并 5 头",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "proj",
+      "type": "rect",
+      "x": 1815,
+      "y": 895,
+      "w": 130,
+      "h": 82,
+      "label": "Projection 40→40",
+      "fill": "#c9ddf5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "info",
+      "type": "rect",
+      "x": 350,
+      "y": 1025,
+      "w": 1300,
+      "h": 105,
+      "label": "",
+      "fill": "#ffffff",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    }
+  ],
+  "edges": [
+    {
+      "id": "se1",
+      "from": {
+        "nodeId": "s_in",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "b1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "se2",
+      "from": {
+        "nodeId": "b1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "b2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "se3a",
+      "from": {
+        "nodeId": "b2",
+        "port": "right"
+      },
+      "to": {
+        "x": 835,
+        "y": 256
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "se3b",
+      "from": {
+        "x": 920,
+        "y": 256
+      },
+      "to": {
+        "nodeId": "b5",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "se4",
+      "from": {
+        "nodeId": "b5",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "b6",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "se5",
+      "from": {
+        "nodeId": "b6",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "s_out",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "be1",
+      "from": {
+        "nodeId": "x",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ln1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "be2",
+      "from": {
+        "nodeId": "ln1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "mha",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "be3",
+      "from": {
+        "nodeId": "mha",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ad",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "be4",
+      "from": {
+        "nodeId": "ad",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "p1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "be5",
+      "from": {
+        "nodeId": "p1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ln2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "be6",
+      "from": {
+        "nodeId": "ln2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ffn",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "be7",
+      "from": {
+        "nodeId": "ffn",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "fd",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "be8",
+      "from": {
+        "nodeId": "fd",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "p2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "be9",
+      "from": {
+        "nodeId": "p2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "y",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "skip1",
+      "from": {
+        "edgeId": "be1",
+        "anchor": "mid"
+      },
+      "to": {
+        "nodeId": "p1",
+        "port": "top"
+      },
+      "route": "arch-top",
+      "arrow": false,
+      "bulge": 75,
+      "corner": 12,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "skip2",
+      "from": {
+        "edgeId": "be5",
+        "anchor": "mid"
+      },
+      "to": {
+        "nodeId": "p2",
+        "port": "bottom"
+      },
+      "route": "arch-bottom",
+      "arrow": false,
+      "bulge": 72,
+      "corner": 12,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "miq",
+      "from": {
+        "nodeId": "mi",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "q",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 12,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "mik",
+      "from": {
+        "nodeId": "mi",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "k",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "miv",
+      "from": {
+        "nodeId": "mi",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "v",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 12,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "qhe",
+      "from": {
+        "nodeId": "q",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "qh",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "khe",
+      "from": {
+        "nodeId": "k",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "kh",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "vhe",
+      "from": {
+        "nodeId": "v",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "vh",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "qe",
+      "from": {
+        "nodeId": "qh",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "energy",
+        "port": "top"
+      },
+      "route": "auto",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 12,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "ke",
+      "from": {
+        "nodeId": "kh",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "energy",
+        "port": "bottom"
+      },
+      "route": "auto",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 12,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "es",
+      "from": {
+        "nodeId": "energy",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "scale",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "ss",
+      "from": {
+        "nodeId": "scale",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "soft",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "sa",
+      "from": {
+        "nodeId": "soft",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "atd",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "aw",
+      "from": {
+        "nodeId": "atd",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "wv",
+        "port": "top"
+      },
+      "route": "turn-right-down",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 12,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "vw",
+      "from": {
+        "nodeId": "vh",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "wv",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 12,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "wm",
+      "from": {
+        "nodeId": "wv",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "merge",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    },
+    {
+      "id": "mp",
+      "from": {
+        "nodeId": "merge",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "proj",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 90,
+      "corner": 0,
+      "width": 2,
+      "color": "#111820"
+    }
+  ],
+  "notes": [
+    {
+      "id": "title",
+      "x": 1000,
+      "y": 42,
+      "text": "TransformerEncoder 详细结构图",
+      "fontSize": 42,
+      "color": "#111111",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "subtitle",
+      "x": 1000,
+      "y": 88,
+      "text": "来自 train_activity_loso.py：E=40，depth=6，heads=5，dropout=0.5，FFN expansion=4",
+      "fontSize": 21,
+      "color": "#555d68",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "shape_rule",
+      "x": 1000,
+      "y": 116,
+      "text": "输入/输出保持 (B,N,40)；Time: N=122，FFT: N=58；默认 B=72",
+      "fontSize": 18,
+      "color": "#555d68",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "h1",
+      "x": 1000,
+      "y": 164,
+      "text": "① TransformerEncoder：6 个独立参数的 EncoderBlock 顺序堆叠",
+      "fontSize": 23,
+      "color": "#111111",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "sinsh",
+      "x": 145,
+      "y": 312,
+      "text": "(B,N,40)",
+      "fontSize": 17,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "b1n",
+      "x": 402,
+      "y": 322,
+      "text": "Attention 残差 + FFN 残差",
+      "fontSize": 15,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "b2n",
+      "x": 672,
+      "y": 322,
+      "text": "输出形状不变",
+      "fontSize": 15,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "soutsh",
+      "x": 1620,
+      "y": 312,
+      "text": "(B,N,40)",
+      "fontSize": 17,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "ind",
+      "x": 1815,
+      "y": 252,
+      "text": "6 个 Block 不共享参数",
+      "fontSize": 17,
+      "color": "#555d68",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "h2",
+      "x": 1000,
+      "y": 390,
+      "text": "② 单个 EncoderBlock：Pre-LN 自注意力残差 → Pre-LN 前馈网络残差",
+      "fontSize": 23,
+      "color": "#111111",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "xsh",
+      "x": 130,
+      "y": 586,
+      "text": "(B,N,40)",
+      "fontSize": 16,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "ln1sh",
+      "x": 307,
+      "y": 596,
+      "text": "(B,N,40)",
+      "fontSize": 15,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "mhash",
+      "x": 507,
+      "y": 596,
+      "text": "(B,N,40)",
+      "fontSize": 15,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "p1eq",
+      "x": 840,
+      "y": 618,
+      "text": "x₁ = x + Dropout(MHA(LN(x)))",
+      "fontSize": 17,
+      "color": "#333943",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "ln2sh",
+      "x": 972,
+      "y": 596,
+      "text": "(B,N,40)",
+      "fontSize": 15,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "ffnsh",
+      "x": 1182,
+      "y": 596,
+      "text": "40 → 160 → 40",
+      "fontSize": 16,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "p2eq",
+      "x": 1525,
+      "y": 618,
+      "text": "y = x₁ + Dropout(FFN(LN(x₁)))",
+      "fontSize": 17,
+      "color": "#333943",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "ysh",
+      "x": 1682,
+      "y": 586,
+      "text": "(B,N,40)",
+      "fontSize": 16,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "preln",
+      "x": 1850,
+      "y": 525,
+      "text": "LayerNorm 位于子层之前（Pre-LN）",
+      "fontSize": 16,
+      "color": "#555d68",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "h3",
+      "x": 1000,
+      "y": 726,
+      "text": "③ MultiHeadAttention：Q/K/V 独立映射 → 5 头注意力 → 合并 → 输出投影",
+      "fontSize": 23,
+      "color": "#111111",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "mish",
+      "x": 137,
+      "y": 947,
+      "text": "(B,N,40)",
+      "fontSize": 16,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "qsh",
+      "x": 560,
+      "y": 742,
+      "text": "(B,5,N,8)",
+      "fontSize": 15,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "ksh",
+      "x": 560,
+      "y": 837,
+      "text": "(B,5,N,8)",
+      "fontSize": 15,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "vsh",
+      "x": 560,
+      "y": 932,
+      "text": "(B,5,N,8)",
+      "fontSize": 15,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "esh",
+      "x": 777,
+      "y": 888,
+      "text": "(B,5,N,N)",
+      "fontSize": 16,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "sfn",
+      "x": 1147,
+      "y": 888,
+      "text": "沿 key 维 Softmax",
+      "fontSize": 14,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "wvsh",
+      "x": 1525,
+      "y": 993,
+      "text": "(B,5,N,8)",
+      "fontSize": 15,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "msh",
+      "x": 1712,
+      "y": 993,
+      "text": "(B,N,40)",
+      "fontSize": 15,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "psh",
+      "x": 1880,
+      "y": 993,
+      "text": "(B,N,40)",
+      "fontSize": 15,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "i1",
+      "x": 1000,
+      "y": 1050,
+      "text": "• Q、K、V 是三套独立 Linear(40,40)；每头 d = 40 ÷ 5 = 8",
+      "fontSize": 17,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "i2",
+      "x": 1000,
+      "y": 1080,
+      "text": "• energy 按 √emb_size = √40 缩放，再经过 Softmax 与 Attention Dropout(0.5)",
+      "fontSize": 17,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "i3",
+      "x": 1000,
+      "y": 1110,
+      "text": "• FFN：Linear 40→160 → GELU → Dropout(0.5) → Linear 160→40",
+      "fontSize": 17,
+      "color": "#20242c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    }
+  ],
+  "settings": {
+    "corner": 12,
+    "gridSize": 5,
+    "snap": true,
+    "lastBulge": 90,
+    "lastRoute": "auto",
+    "dragDelay": 180,
+    "routeMemory": {
+      "arch": {
+        "bulge": 90,
+        "corner": 12
+      },
+      "turn-right-up": {
+        "corner": 12
+      },
+      "turn-right-down": {
+        "corner": 12
+      },
+      "turn-left-up": {
+        "corner": 12
+      },
+      "turn-left-down": {
+        "corner": 12
+      },
+      "auto": {
+        "corner": 12
+      },
+      "straight": {
+        "corner": 0
+      }
+    }
+  },
+  "profileGroups": {
+    "arch": [
+      {
+        "id": "p_arch_72",
+        "name": "标准绕行",
+        "bulge": 72,
+        "corner": 14
+      },
+      {
+        "id": "p_arch_90",
+        "name": "Transformer 残差绕行",
+        "bulge": 90,
+        "corner": 12
+      }
+    ],
+    "turn-right-up": [
+      {
+        "id": "p_tru_14",
+        "name": "右转向上",
+        "corner": 14
+      },
+      {
+        "id": "p_tru_12",
+        "name": "右转向上",
+        "corner": 12
+      }
+    ],
+    "turn-right-down": [
+      {
+        "id": "p_trd_14",
+        "name": "右转向下",
+        "corner": 14
+      },
+      {
+        "id": "p_trd_12",
+        "name": "右转向下",
+        "corner": 12
+      }
+    ],
+    "turn-left-up": [
+      {
+        "id": "p_tlu_14",
+        "name": "左转向上",
+        "corner": 14
+      },
+      {
+        "id": "p_tlu_12",
+        "name": "左转向上",
+        "corner": 12
+      }
+    ],
+    "turn-left-down": [
+      {
+        "id": "p_tld_14",
+        "name": "左转向下",
+        "corner": 14
+      },
+      {
+        "id": "p_tld_12",
+        "name": "左转向下",
+        "corner": 12
+      }
+    ]
+  },
+  "palette": "soft",
+  "view": {
+    "x": 0,
+    "y": 0,
+    "w": 2000,
+    "h": 1160
+  }
+}

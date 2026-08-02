@@ -1,0 +1,7182 @@
+{
+  "nodes": [
+    {
+      "id": "panel_overview",
+      "type": "rect",
+      "x": 35,
+      "y": 125,
+      "w": 7930,
+      "h": 775,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 18
+    },
+    {
+      "id": "panel_patch",
+      "type": "rect",
+      "x": 35,
+      "y": 930,
+      "w": 7930,
+      "h": 710,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 18
+    },
+    {
+      "id": "panel_transformer",
+      "type": "rect",
+      "x": 35,
+      "y": 1670,
+      "w": 7930,
+      "h": 860,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 18
+    },
+    {
+      "id": "panel_crossdepth",
+      "type": "rect",
+      "x": 35,
+      "y": 2560,
+      "w": 7930,
+      "h": 1030,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 18
+    },
+    {
+      "id": "panel_headloss",
+      "type": "rect",
+      "x": 35,
+      "y": 3620,
+      "w": 7930,
+      "h": 830,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 18
+    },
+    {
+      "id": "raw_window",
+      "type": "rect",
+      "x": 75,
+      "y": 452,
+      "w": 250,
+      "h": 86,
+      "label": "EEG window (B,1,21,1920)",
+      "fill": "#dfe4eb",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "time_zscore",
+      "type": "rect",
+      "x": 380,
+      "y": 225,
+      "w": 330,
+      "h": 86,
+      "label": "Time train-only Z-score",
+      "fill": "#c9dcf3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "time_input_qkv_off",
+      "type": "rect",
+      "x": 765,
+      "y": 225,
+      "w": 300,
+      "h": 86,
+      "label": "Input QKV = none (Identity)",
+      "fill": "#eeeeee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "time_patch_summary",
+      "type": "rect",
+      "x": 1120,
+      "y": 215,
+      "w": 330,
+      "h": 106,
+      "label": "Time PatchEmbedding -> (B,122,40)",
+      "fill": "#bfd2ee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_time_enc_11",
+      "type": "rect",
+      "x": 1510,
+      "y": 145,
+      "w": 300,
+      "h": 72,
+      "label": "Time Encoder depth=11",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_time_enc_10",
+      "type": "rect",
+      "x": 1510,
+      "y": 255,
+      "w": 300,
+      "h": 72,
+      "label": "Time Encoder depth=10",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_time_enc_8",
+      "type": "rect",
+      "x": 1510,
+      "y": 365,
+      "w": 300,
+      "h": 72,
+      "label": "Time Encoder depth=8",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_time_cross",
+      "type": "rect",
+      "x": 1870,
+      "y": 235,
+      "w": 340,
+      "h": 105,
+      "label": "Time CrossDepthQKVResidual",
+      "fill": "#e8d5aa",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_time_updated",
+      "type": "rect",
+      "x": 2270,
+      "y": 235,
+      "w": 330,
+      "h": 105,
+      "label": "T11', T10', T8' (B,122,40)",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_time_flat",
+      "type": "rect",
+      "x": 2660,
+      "y": 235,
+      "w": 350,
+      "h": 105,
+      "label": "Flatten each Time depth -> (B,4880)",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "fft_transform",
+      "type": "rect",
+      "x": 380,
+      "y": 665,
+      "w": 330,
+      "h": 90,
+      "label": "rFFT -> abs(.)^2 -> log1p",
+      "fill": "#ddcbea",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "fft_zscore",
+      "type": "rect",
+      "x": 765,
+      "y": 665,
+      "w": 300,
+      "h": 90,
+      "label": "FFT train-only Z-score",
+      "fill": "#ddcbea",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "fft_global_off",
+      "type": "rect",
+      "x": 1120,
+      "y": 665,
+      "w": 250,
+      "h": 90,
+      "label": "FFT global = none",
+      "fill": "#eeeeee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "fft_input_qkv_off",
+      "type": "rect",
+      "x": 1425,
+      "y": 665,
+      "w": 255,
+      "h": 90,
+      "label": "Input QKV = none",
+      "fill": "#eeeeee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "fft_patch_summary",
+      "type": "rect",
+      "x": 1735,
+      "y": 655,
+      "w": 330,
+      "h": 110,
+      "label": "FFT PatchEmbedding -> (B,58,40)",
+      "fill": "#bfd2ee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_fft_enc_11",
+      "type": "rect",
+      "x": 2125,
+      "y": 575,
+      "w": 300,
+      "h": 72,
+      "label": "FFT Encoder depth=11",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_fft_enc_10",
+      "type": "rect",
+      "x": 2125,
+      "y": 685,
+      "w": 300,
+      "h": 72,
+      "label": "FFT Encoder depth=10",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_fft_enc_8",
+      "type": "rect",
+      "x": 2125,
+      "y": 795,
+      "w": 300,
+      "h": 72,
+      "label": "FFT Encoder depth=8",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_fft_cross",
+      "type": "rect",
+      "x": 2485,
+      "y": 665,
+      "w": 340,
+      "h": 105,
+      "label": "FFT CrossDepthQKVResidual",
+      "fill": "#e8d5aa",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_fft_updated",
+      "type": "rect",
+      "x": 2885,
+      "y": 665,
+      "w": 330,
+      "h": 105,
+      "label": "F11', F10', F8' (B,58,40)",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_fft_flat",
+      "type": "rect",
+      "x": 3275,
+      "y": 665,
+      "w": 350,
+      "h": 105,
+      "label": "Flatten each FFT depth -> (B,2320)",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_concat_11",
+      "type": "rect",
+      "x": 3685,
+      "y": 235,
+      "w": 300,
+      "h": 88,
+      "label": "Concat d11 -> f11(B,7200)",
+      "fill": "#b9dcf1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_head_11",
+      "type": "rect",
+      "x": 4045,
+      "y": 235,
+      "w": 310,
+      "h": 88,
+      "label": "Head 11: 7200->256->32->3",
+      "fill": "#9be1e5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_branch_11",
+      "type": "rect",
+      "x": 4415,
+      "y": 235,
+      "w": 285,
+      "h": 88,
+      "label": "z11 (B,3), weighted CE L11",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_concat_10",
+      "type": "rect",
+      "x": 3685,
+      "y": 450,
+      "w": 300,
+      "h": 88,
+      "label": "Concat d10 -> f10(B,7200)",
+      "fill": "#b9dcf1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_head_10",
+      "type": "rect",
+      "x": 4045,
+      "y": 450,
+      "w": 310,
+      "h": 88,
+      "label": "Head 10: 7200->256->32->3",
+      "fill": "#9be1e5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_branch_10",
+      "type": "rect",
+      "x": 4415,
+      "y": 450,
+      "w": 285,
+      "h": 88,
+      "label": "z10 (B,3), weighted CE L10",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_concat_8",
+      "type": "rect",
+      "x": 3685,
+      "y": 665,
+      "w": 300,
+      "h": 88,
+      "label": "Concat d8 -> f8(B,7200)",
+      "fill": "#b9dcf1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_head_8",
+      "type": "rect",
+      "x": 4045,
+      "y": 665,
+      "w": 310,
+      "h": 88,
+      "label": "Head 8: 7200->256->32->3",
+      "fill": "#9be1e5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_branch_8",
+      "type": "rect",
+      "x": 4415,
+      "y": 665,
+      "w": 285,
+      "h": 88,
+      "label": "z8 (B,3), weighted CE L8",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_softmax_weights",
+      "type": "rect",
+      "x": 4760,
+      "y": 795,
+      "w": 330,
+      "h": 72,
+      "label": "Softmax(alpha) -> w11,w10,w8",
+      "fill": "#d7c7ee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_fused_logits",
+      "type": "rect",
+      "x": 5150,
+      "y": 230,
+      "w": 335,
+      "h": 98,
+      "label": "z_fused = sum(wi * zi)",
+      "fill": "#f2c2c5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_prediction",
+      "type": "rect",
+      "x": 5545,
+      "y": 230,
+      "w": 270,
+      "h": 98,
+      "label": "argmax(z_fused) -> class",
+      "fill": "#9edfe3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_fused_features",
+      "type": "rect",
+      "x": 5150,
+      "y": 445,
+      "w": 335,
+      "h": 98,
+      "label": "f_fused = sum(wi * fi), returned",
+      "fill": "#b9dcf1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_total_loss",
+      "type": "rect",
+      "x": 5150,
+      "y": 660,
+      "w": 435,
+      "h": 105,
+      "label": "Ltotal = sum(wi*Li) + 0.2*mean(Li)",
+      "fill": "#f2c2c5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_backprop",
+      "type": "rect",
+      "x": 5645,
+      "y": 665,
+      "w": 240,
+      "h": 95,
+      "label": "Adam + Backprop",
+      "fill": "#9edfe3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "panel_overview_config",
+      "type": "rect",
+      "x": 5940,
+      "y": 190,
+      "w": 1965,
+      "h": 650,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 14
+    },
+    {
+      "id": "cfg_arch",
+      "type": "rect",
+      "x": 5990,
+      "y": 255,
+      "w": 900,
+      "h": 110,
+      "label": "C=21 | T=1920 | FFT F=961 | emb=40 | heads=5 | classes=3",
+      "fill": "#ffffff",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cfg_depth",
+      "type": "rect",
+      "x": 6940,
+      "y": 255,
+      "w": 900,
+      "h": 110,
+      "label": "parallel depths=[11,10,8] | fusion=loss_softmax | cross_depth=on",
+      "fill": "#ffffff",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cfg_drop",
+      "type": "rect",
+      "x": 5990,
+      "y": 405,
+      "w": 900,
+      "h": 110,
+      "label": "Dropout: stem=.5 | encoder=.5 | CrossDepth=.1 | head=.5/.3",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cfg_train",
+      "type": "rect",
+      "x": 6940,
+      "y": 405,
+      "w": 900,
+      "h": 110,
+      "label": "epochs=200 | batch=72 | lr=0.0002 | Adam betas=(0.5,0.999)",
+      "fill": "#ffffff",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cfg_init",
+      "type": "rect",
+      "x": 5990,
+      "y": 555,
+      "w": 900,
+      "h": 110,
+      "label": "alpha init=[0,0,0] -> w init=[1/3,1/3,1/3] | gamma init=.1",
+      "fill": "#d7c7ee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cfg_loss",
+      "type": "rect",
+      "x": 6940,
+      "y": 555,
+      "w": 900,
+      "h": 110,
+      "label": "class weights=[3,3,1] | branch_loss_aux_weight=.2 | seed=42",
+      "fill": "#f2c2c5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "panel_patch_time",
+      "type": "rect",
+      "x": 65,
+      "y": 1000,
+      "w": 3890,
+      "h": 570,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 14
+    },
+    {
+      "id": "panel_patch_fft",
+      "type": "rect",
+      "x": 4045,
+      "y": 1000,
+      "w": 3890,
+      "h": 570,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 14
+    },
+    {
+      "id": "pt_in",
+      "type": "rect",
+      "x": 95,
+      "y": 1115,
+      "w": 250,
+      "h": 92,
+      "label": "Input",
+      "fill": "#dfe4eb",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pt_conv_t",
+      "type": "rect",
+      "x": 400,
+      "y": 1115,
+      "w": 390,
+      "h": 92,
+      "label": "Conv2d 1->40, k=(1,25), s=1, pad=0",
+      "fill": "#bfd2ee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pt_conv_s",
+      "type": "rect",
+      "x": 845,
+      "y": 1115,
+      "w": 420,
+      "h": 92,
+      "label": "Conv2d 40->40, k=(21,1), groups=1",
+      "fill": "#bfd2ee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pt_bn",
+      "type": "rect",
+      "x": 1320,
+      "y": 1115,
+      "w": 360,
+      "h": 92,
+      "label": "BatchNorm2d(40), eps=1e-5, mom=.1",
+      "fill": "#edf1f5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pt_elu",
+      "type": "rect",
+      "x": 1735,
+      "y": 1115,
+      "w": 210,
+      "h": 92,
+      "label": "ELU",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pt_pool",
+      "type": "rect",
+      "x": 2000,
+      "y": 1115,
+      "w": 390,
+      "h": 92,
+      "label": "AvgPool2d k=(1,75), s=(1,15)",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pt_drop",
+      "type": "rect",
+      "x": 2445,
+      "y": 1115,
+      "w": 260,
+      "h": 92,
+      "label": "Dropout p=0.5",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pt_proj",
+      "type": "rect",
+      "x": 2760,
+      "y": 1115,
+      "w": 340,
+      "h": 92,
+      "label": "Projection Conv2d 40->40, k=1",
+      "fill": "#bfd2ee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pt_squeeze",
+      "type": "rect",
+      "x": 3155,
+      "y": 1115,
+      "w": 250,
+      "h": 92,
+      "label": "Squeeze H=1",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pt_transpose",
+      "type": "rect",
+      "x": 3460,
+      "y": 1115,
+      "w": 300,
+      "h": 92,
+      "label": "Transpose C/Patch",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pf_in",
+      "type": "rect",
+      "x": 4075,
+      "y": 1115,
+      "w": 250,
+      "h": 92,
+      "label": "Input",
+      "fill": "#dfe4eb",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pf_conv_t",
+      "type": "rect",
+      "x": 4380,
+      "y": 1115,
+      "w": 390,
+      "h": 92,
+      "label": "Conv2d 1->40, k=(1,25), s=1, pad=0",
+      "fill": "#bfd2ee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pf_conv_s",
+      "type": "rect",
+      "x": 4825,
+      "y": 1115,
+      "w": 420,
+      "h": 92,
+      "label": "Conv2d 40->40, k=(21,1), groups=1",
+      "fill": "#bfd2ee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pf_bn",
+      "type": "rect",
+      "x": 5300,
+      "y": 1115,
+      "w": 360,
+      "h": 92,
+      "label": "BatchNorm2d(40), eps=1e-5, mom=.1",
+      "fill": "#edf1f5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pf_elu",
+      "type": "rect",
+      "x": 5715,
+      "y": 1115,
+      "w": 210,
+      "h": 92,
+      "label": "ELU",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pf_pool",
+      "type": "rect",
+      "x": 5980,
+      "y": 1115,
+      "w": 390,
+      "h": 92,
+      "label": "AvgPool2d k=(1,75), s=(1,15)",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pf_drop",
+      "type": "rect",
+      "x": 6425,
+      "y": 1115,
+      "w": 260,
+      "h": 92,
+      "label": "Dropout p=0.5",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pf_proj",
+      "type": "rect",
+      "x": 6740,
+      "y": 1115,
+      "w": 340,
+      "h": 92,
+      "label": "Projection Conv2d 40->40, k=1",
+      "fill": "#bfd2ee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pf_squeeze",
+      "type": "rect",
+      "x": 7135,
+      "y": 1115,
+      "w": 250,
+      "h": 92,
+      "label": "Squeeze H=1",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pf_transpose",
+      "type": "rect",
+      "x": 7440,
+      "y": 1115,
+      "w": 300,
+      "h": 92,
+      "label": "Transpose C/Patch",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "panel_encoder_repeats",
+      "type": "rect",
+      "x": 65,
+      "y": 1750,
+      "w": 2680,
+      "h": 710,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 14
+    },
+    {
+      "id": "panel_encoder_block",
+      "type": "rect",
+      "x": 2785,
+      "y": 1750,
+      "w": 5150,
+      "h": 710,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 14
+    },
+    {
+      "id": "enc_time_source",
+      "type": "rect",
+      "x": 95,
+      "y": 1925,
+      "w": 260,
+      "h": 100,
+      "label": "E_time (B,122,40)",
+      "fill": "#c9dcf3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "enc_fft_source",
+      "type": "rect",
+      "x": 95,
+      "y": 2260,
+      "w": 260,
+      "h": 100,
+      "label": "E_fft (B,58,40)",
+      "fill": "#ddcbea",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "et11_b1",
+      "type": "rect",
+      "x": 430,
+      "y": 1870,
+      "w": 270,
+      "h": 68,
+      "label": "EncoderBlock #1",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "et11_b2",
+      "type": "rect",
+      "x": 755,
+      "y": 1870,
+      "w": 270,
+      "h": 68,
+      "label": "EncoderBlock #2",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "et11_mid",
+      "type": "rect",
+      "x": 1080,
+      "y": 1870,
+      "w": 300,
+      "h": 68,
+      "label": "Blocks #3...#10",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "et11_bn",
+      "type": "rect",
+      "x": 1435,
+      "y": 1870,
+      "w": 280,
+      "h": 68,
+      "label": "EncoderBlock #11",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "et11_out",
+      "type": "rect",
+      "x": 1770,
+      "y": 1870,
+      "w": 280,
+      "h": 68,
+      "label": "T11 (B,122,40)",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "et10_b1",
+      "type": "rect",
+      "x": 430,
+      "y": 1990,
+      "w": 270,
+      "h": 68,
+      "label": "EncoderBlock #1",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "et10_b2",
+      "type": "rect",
+      "x": 755,
+      "y": 1990,
+      "w": 270,
+      "h": 68,
+      "label": "EncoderBlock #2",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "et10_mid",
+      "type": "rect",
+      "x": 1080,
+      "y": 1990,
+      "w": 300,
+      "h": 68,
+      "label": "Blocks #3...#9",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "et10_bn",
+      "type": "rect",
+      "x": 1435,
+      "y": 1990,
+      "w": 280,
+      "h": 68,
+      "label": "EncoderBlock #10",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "et10_out",
+      "type": "rect",
+      "x": 1770,
+      "y": 1990,
+      "w": 280,
+      "h": 68,
+      "label": "T10 (B,122,40)",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "et8_b1",
+      "type": "rect",
+      "x": 430,
+      "y": 2110,
+      "w": 270,
+      "h": 68,
+      "label": "EncoderBlock #1",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "et8_b2",
+      "type": "rect",
+      "x": 755,
+      "y": 2110,
+      "w": 270,
+      "h": 68,
+      "label": "EncoderBlock #2",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "et8_mid",
+      "type": "rect",
+      "x": 1080,
+      "y": 2110,
+      "w": 300,
+      "h": 68,
+      "label": "Blocks #3...#7",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "et8_bn",
+      "type": "rect",
+      "x": 1435,
+      "y": 2110,
+      "w": 280,
+      "h": 68,
+      "label": "EncoderBlock #8",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "et8_out",
+      "type": "rect",
+      "x": 1770,
+      "y": 2110,
+      "w": 280,
+      "h": 68,
+      "label": "T8 (B,122,40)",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ef11_b1",
+      "type": "rect",
+      "x": 430,
+      "y": 2210,
+      "w": 270,
+      "h": 68,
+      "label": "EncoderBlock #1",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ef11_b2",
+      "type": "rect",
+      "x": 755,
+      "y": 2210,
+      "w": 270,
+      "h": 68,
+      "label": "EncoderBlock #2",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ef11_mid",
+      "type": "rect",
+      "x": 1080,
+      "y": 2210,
+      "w": 300,
+      "h": 68,
+      "label": "Blocks #3...#10",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ef11_bn",
+      "type": "rect",
+      "x": 1435,
+      "y": 2210,
+      "w": 280,
+      "h": 68,
+      "label": "EncoderBlock #11",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ef11_out",
+      "type": "rect",
+      "x": 1770,
+      "y": 2210,
+      "w": 280,
+      "h": 68,
+      "label": "F11 (B,58,40)",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ef10_b1",
+      "type": "rect",
+      "x": 430,
+      "y": 2330,
+      "w": 270,
+      "h": 68,
+      "label": "EncoderBlock #1",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ef10_b2",
+      "type": "rect",
+      "x": 755,
+      "y": 2330,
+      "w": 270,
+      "h": 68,
+      "label": "EncoderBlock #2",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ef10_mid",
+      "type": "rect",
+      "x": 1080,
+      "y": 2330,
+      "w": 300,
+      "h": 68,
+      "label": "Blocks #3...#9",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ef10_bn",
+      "type": "rect",
+      "x": 1435,
+      "y": 2330,
+      "w": 280,
+      "h": 68,
+      "label": "EncoderBlock #10",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ef10_out",
+      "type": "rect",
+      "x": 1770,
+      "y": 2330,
+      "w": 280,
+      "h": 68,
+      "label": "F10 (B,58,40)",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ef8_b1",
+      "type": "rect",
+      "x": 430,
+      "y": 2450,
+      "w": 270,
+      "h": 68,
+      "label": "EncoderBlock #1",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ef8_b2",
+      "type": "rect",
+      "x": 755,
+      "y": 2450,
+      "w": 270,
+      "h": 68,
+      "label": "EncoderBlock #2",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ef8_mid",
+      "type": "rect",
+      "x": 1080,
+      "y": 2450,
+      "w": 300,
+      "h": 68,
+      "label": "Blocks #3...#7",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ef8_bn",
+      "type": "rect",
+      "x": 1435,
+      "y": 2450,
+      "w": 280,
+      "h": 68,
+      "label": "EncoderBlock #8",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ef8_out",
+      "type": "rect",
+      "x": 1770,
+      "y": 2450,
+      "w": 280,
+      "h": 68,
+      "label": "F8 (B,58,40)",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_x",
+      "type": "rect",
+      "x": 2835,
+      "y": 1860,
+      "w": 210,
+      "h": 76,
+      "label": "Block input X",
+      "fill": "#dfe4eb",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_ln1",
+      "type": "rect",
+      "x": 3090,
+      "y": 1860,
+      "w": 220,
+      "h": 76,
+      "label": "LayerNorm(40)",
+      "fill": "#edf1f5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_qkv",
+      "type": "rect",
+      "x": 3355,
+      "y": 1860,
+      "w": 405,
+      "h": 76,
+      "label": "Q/K/V: three Linear 40->40",
+      "fill": "#e8d5aa",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_heads",
+      "type": "rect",
+      "x": 3805,
+      "y": 1860,
+      "w": 270,
+      "h": 76,
+      "label": "Split 5 heads x 8",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_score",
+      "type": "rect",
+      "x": 4120,
+      "y": 1860,
+      "w": 365,
+      "h": 76,
+      "label": "Scores = Q*K^T / sqrt(40)",
+      "fill": "#e8d5aa",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_softmax",
+      "type": "rect",
+      "x": 4530,
+      "y": 1860,
+      "w": 250,
+      "h": 76,
+      "label": "Softmax over keys",
+      "fill": "#d7c7ee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_attdrop",
+      "type": "rect",
+      "x": 4825,
+      "y": 1860,
+      "w": 270,
+      "h": 76,
+      "label": "Attention Dropout p=.5",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_av",
+      "type": "rect",
+      "x": 5140,
+      "y": 1860,
+      "w": 220,
+      "h": 76,
+      "label": "A * V",
+      "fill": "#e8d5aa",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_concat",
+      "type": "rect",
+      "x": 5405,
+      "y": 1860,
+      "w": 250,
+      "h": 76,
+      "label": "Concat heads -> 40",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_outlinear",
+      "type": "rect",
+      "x": 5700,
+      "y": 1860,
+      "w": 280,
+      "h": 76,
+      "label": "Output Linear 40->40",
+      "fill": "#e8d5aa",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_postattdrop",
+      "type": "rect",
+      "x": 6025,
+      "y": 1860,
+      "w": 270,
+      "h": 76,
+      "label": "Post-MHA Dropout p=.5",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_add1",
+      "type": "residual",
+      "x": 6345,
+      "y": 1872,
+      "w": 52,
+      "h": 52,
+      "label": "+",
+      "fill": "#ffffff",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 26
+    },
+    {
+      "id": "blk_x1",
+      "type": "rect",
+      "x": 6445,
+      "y": 1860,
+      "w": 240,
+      "h": 76,
+      "label": "X1 = X + Attn",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ff_x1",
+      "type": "rect",
+      "x": 3355,
+      "y": 2180,
+      "w": 230,
+      "h": 76,
+      "label": "X1",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ff_ln",
+      "type": "rect",
+      "x": 3630,
+      "y": 2180,
+      "w": 220,
+      "h": 76,
+      "label": "LayerNorm(40)",
+      "fill": "#edf1f5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ff_l1",
+      "type": "rect",
+      "x": 3895,
+      "y": 2180,
+      "w": 290,
+      "h": 76,
+      "label": "Linear 40->160",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ff_gelu",
+      "type": "rect",
+      "x": 4230,
+      "y": 2180,
+      "w": 200,
+      "h": 76,
+      "label": "GELU",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ff_innerdrop",
+      "type": "rect",
+      "x": 4475,
+      "y": 2180,
+      "w": 260,
+      "h": 76,
+      "label": "FFN Dropout p=.5",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ff_l2",
+      "type": "rect",
+      "x": 4780,
+      "y": 2180,
+      "w": 290,
+      "h": 76,
+      "label": "Linear 160->40",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ff_outerdrop",
+      "type": "rect",
+      "x": 5115,
+      "y": 2180,
+      "w": 285,
+      "h": 76,
+      "label": "Post-FFN Dropout p=.5",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ff_add",
+      "type": "residual",
+      "x": 5450,
+      "y": 2192,
+      "w": 52,
+      "h": 52,
+      "label": "+",
+      "fill": "#ffffff",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 26
+    },
+    {
+      "id": "ff_out",
+      "type": "rect",
+      "x": 5550,
+      "y": 2180,
+      "w": 330,
+      "h": 76,
+      "label": "Block output (B,N,40)",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_params",
+      "type": "rect",
+      "x": 6080,
+      "y": 2130,
+      "w": 1740,
+      "h": 115,
+      "label": "Block params: emb=40 | heads=5 | head_dim=8 | FFN expansion=4 | all encoder dropout=.5",
+      "fill": "#ffffff",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_flags",
+      "type": "rect",
+      "x": 6080,
+      "y": 2280,
+      "w": 1740,
+      "h": 115,
+      "label": "cumulative_query_attention=false | no cross-block Q accumulation | score scale is sqrt(40), matching source code",
+      "fill": "#eeeeee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "panel_cross_generic",
+      "type": "rect",
+      "x": 65,
+      "y": 2645,
+      "w": 7870,
+      "h": 430,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 14
+    },
+    {
+      "id": "panel_cross_t11",
+      "type": "rect",
+      "x": 65,
+      "y": 3100,
+      "w": 7870,
+      "h": 420,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 14
+    },
+    {
+      "id": "cd_input",
+      "type": "rect",
+      "x": 95,
+      "y": 2780,
+      "w": 330,
+      "h": 78,
+      "label": "Tuple: X11,X10,X8 each (B,N,40)",
+      "fill": "#dfe4eb",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cd_stack",
+      "type": "rect",
+      "x": 475,
+      "y": 2780,
+      "w": 330,
+      "h": 78,
+      "label": "Stack depth axis -> (B,N,3,40)",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cd_add_depth",
+      "type": "residual",
+      "x": 900,
+      "y": 2793,
+      "w": 52,
+      "h": 52,
+      "label": "+",
+      "fill": "#ffffff",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 26
+    },
+    {
+      "id": "cd_depth_emb",
+      "type": "rect",
+      "x": 800,
+      "y": 2688,
+      "w": 300,
+      "h": 65,
+      "label": "DepthEmbedding (3,40), init std=.02",
+      "fill": "#d7c7ee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cd_ln",
+      "type": "rect",
+      "x": 1010,
+      "y": 2780,
+      "w": 230,
+      "h": 78,
+      "label": "LayerNorm(40)",
+      "fill": "#edf1f5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cd_reshape_in",
+      "type": "rect",
+      "x": 1290,
+      "y": 2780,
+      "w": 330,
+      "h": 78,
+      "label": "Reshape -> (B*N,3,40)",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cd_qkv_proj",
+      "type": "rect",
+      "x": 1670,
+      "y": 2780,
+      "w": 360,
+      "h": 78,
+      "label": "MHA Q/K/V projections 40->40",
+      "fill": "#e8d5aa",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cd_heads",
+      "type": "rect",
+      "x": 2080,
+      "y": 2780,
+      "w": 270,
+      "h": 78,
+      "label": "5 heads x 8",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cd_scores",
+      "type": "rect",
+      "x": 2400,
+      "y": 2780,
+      "w": 390,
+      "h": 78,
+      "label": "Scores = Q*K^T/sqrt(8), shape 3x3/head",
+      "fill": "#e8d5aa",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cd_softmax",
+      "type": "rect",
+      "x": 2840,
+      "y": 2780,
+      "w": 260,
+      "h": 78,
+      "label": "Softmax over 3 depths",
+      "fill": "#d7c7ee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cd_attdrop",
+      "type": "rect",
+      "x": 3150,
+      "y": 2780,
+      "w": 300,
+      "h": 78,
+      "label": "MHA attention Dropout p=.1",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cd_av",
+      "type": "rect",
+      "x": 3500,
+      "y": 2780,
+      "w": 250,
+      "h": 78,
+      "label": "A * V",
+      "fill": "#e8d5aa",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cd_concat",
+      "type": "rect",
+      "x": 3800,
+      "y": 2780,
+      "w": 280,
+      "h": 78,
+      "label": "Concat 5 heads -> 40",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cd_outproj",
+      "type": "rect",
+      "x": 4130,
+      "y": 2780,
+      "w": 300,
+      "h": 78,
+      "label": "MHA Out Linear 40->40",
+      "fill": "#e8d5aa",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cd_reshape_out",
+      "type": "rect",
+      "x": 4480,
+      "y": 2780,
+      "w": 350,
+      "h": 78,
+      "label": "Reshape -> (B,N,3,40)",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cd_outdrop",
+      "type": "rect",
+      "x": 4880,
+      "y": 2780,
+      "w": 300,
+      "h": 78,
+      "label": "Output Dropout p=.1",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cd_gamma",
+      "type": "rect",
+      "x": 5230,
+      "y": 2780,
+      "w": 330,
+      "h": 78,
+      "label": "Multiply learnable gamma, init=.1",
+      "fill": "#d7c7ee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cd_resadd",
+      "type": "residual",
+      "x": 5620,
+      "y": 2793,
+      "w": 52,
+      "h": 52,
+      "label": "+",
+      "fill": "#ffffff",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 26
+    },
+    {
+      "id": "cd_split",
+      "type": "rect",
+      "x": 5730,
+      "y": 2780,
+      "w": 280,
+      "h": 78,
+      "label": "Split depth axis",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cd_output",
+      "type": "rect",
+      "x": 6060,
+      "y": 2780,
+      "w": 440,
+      "h": 78,
+      "label": "X11',X10',X8' each (B,N,40)",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cd_time_instance",
+      "type": "rect",
+      "x": 6590,
+      "y": 2685,
+      "w": 610,
+      "h": 105,
+      "label": "Time: N=122 | own QKV, depth_emb and gamma_time",
+      "fill": "#c9dcf3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cd_fft_instance",
+      "type": "rect",
+      "x": 6590,
+      "y": 2870,
+      "w": 610,
+      "h": 105,
+      "label": "FFT: N=58 | own QKV, depth_emb and gamma_fft",
+      "fill": "#ddcbea",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "t11_patch",
+      "type": "rect",
+      "x": 95,
+      "y": 3240,
+      "w": 520,
+      "h": 78,
+      "label": "Same patch: t11,t10,t8, each [40]",
+      "fill": "#c9dcf3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "t11_project",
+      "type": "rect",
+      "x": 675,
+      "y": 3240,
+      "w": 900,
+      "h": 78,
+      "label": "u=LN(t+depth_emb); form q11 and k11/k10/k8 and v11/v10/v8",
+      "fill": "#e8d5aa",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "t11_scores",
+      "type": "rect",
+      "x": 1635,
+      "y": 3240,
+      "w": 850,
+      "h": 78,
+      "label": "scores11=[dot(q11,k11), dot(q11,k10), dot(q11,k8)]/sqrt(8)",
+      "fill": "#e8d5aa",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "t11_softmax",
+      "type": "rect",
+      "x": 2545,
+      "y": 3240,
+      "w": 550,
+      "h": 78,
+      "label": "[a11,a10,a8]=Softmax(scores11)",
+      "fill": "#d7c7ee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "t11_weighted_v",
+      "type": "rect",
+      "x": 3155,
+      "y": 3240,
+      "w": 970,
+      "h": 78,
+      "label": "head_o11 = a11*v11 + a10*v10 + a8*v8 (matching V, not all v11)",
+      "fill": "#e8d5aa",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "t11_concat_heads",
+      "type": "rect",
+      "x": 4185,
+      "y": 3240,
+      "w": 470,
+      "h": 78,
+      "label": "Concat 5 heads -> [40]",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "t11_outlinear",
+      "type": "rect",
+      "x": 4715,
+      "y": 3240,
+      "w": 430,
+      "h": 78,
+      "label": "Out Linear 40->40",
+      "fill": "#e8d5aa",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "t11_dropgamma",
+      "type": "rect",
+      "x": 5205,
+      "y": 3240,
+      "w": 560,
+      "h": 78,
+      "label": "Dropout p=.1 then x gamma_time",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "t11_resadd",
+      "type": "residual",
+      "x": 5825,
+      "y": 3253,
+      "w": 52,
+      "h": 52,
+      "label": "+",
+      "fill": "#ffffff",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 26
+    },
+    {
+      "id": "t11_original",
+      "type": "rect",
+      "x": 5685,
+      "y": 3138,
+      "w": 330,
+      "h": 65,
+      "label": "Original residual t11 [40]",
+      "fill": "#c9dcf3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "t11_prime",
+      "type": "rect",
+      "x": 5935,
+      "y": 3240,
+      "w": 330,
+      "h": 78,
+      "label": "t11' [40]",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "t11_collect",
+      "type": "rect",
+      "x": 6325,
+      "y": 3240,
+      "w": 630,
+      "h": 78,
+      "label": "Repeat p=0...121 -> T11' (B,122,40)",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "t11_view",
+      "type": "rect",
+      "x": 7015,
+      "y": 3240,
+      "w": 440,
+      "h": 78,
+      "label": "contiguous().view(B,-1)",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "t11_flat",
+      "type": "rect",
+      "x": 7515,
+      "y": 3240,
+      "w": 350,
+      "h": 78,
+      "label": "Flatten T11' (B,4880)",
+      "fill": "#9edfe3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "panel_heads_detail",
+      "type": "rect",
+      "x": 65,
+      "y": 3710,
+      "w": 4290,
+      "h": 650,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 14
+    },
+    {
+      "id": "panel_loss_detail",
+      "type": "rect",
+      "x": 4395,
+      "y": 3710,
+      "w": 3540,
+      "h": 650,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 14
+    },
+    {
+      "id": "h11_tf",
+      "type": "rect",
+      "x": 85,
+      "y": 3820,
+      "w": 300,
+      "h": 68,
+      "label": "Flatten T11' (B,4880)",
+      "fill": "#c9dcf3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h11_ff",
+      "type": "rect",
+      "x": 430,
+      "y": 3820,
+      "w": 300,
+      "h": 68,
+      "label": "Flatten F11' (B,2320)",
+      "fill": "#ddcbea",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h11_cat",
+      "type": "rect",
+      "x": 775,
+      "y": 3820,
+      "w": 300,
+      "h": 68,
+      "label": "Concat f11 (B,7200)",
+      "fill": "#b9dcf1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h11_l1",
+      "type": "rect",
+      "x": 1120,
+      "y": 3820,
+      "w": 290,
+      "h": 68,
+      "label": "Linear 7200->256",
+      "fill": "#9be1e5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h11_elu1",
+      "type": "rect",
+      "x": 1455,
+      "y": 3820,
+      "w": 170,
+      "h": 68,
+      "label": "ELU",
+      "fill": "#9be1e5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h11_d1",
+      "type": "rect",
+      "x": 1670,
+      "y": 3820,
+      "w": 240,
+      "h": 68,
+      "label": "Dropout p=.5",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h11_l2",
+      "type": "rect",
+      "x": 1955,
+      "y": 3820,
+      "w": 270,
+      "h": 68,
+      "label": "Linear 256->32",
+      "fill": "#9be1e5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h11_elu2",
+      "type": "rect",
+      "x": 2270,
+      "y": 3820,
+      "w": 170,
+      "h": 68,
+      "label": "ELU",
+      "fill": "#9be1e5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h11_d2",
+      "type": "rect",
+      "x": 2485,
+      "y": 3820,
+      "w": 240,
+      "h": 68,
+      "label": "Dropout p=.3",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h11_l3",
+      "type": "rect",
+      "x": 2770,
+      "y": 3820,
+      "w": 250,
+      "h": 68,
+      "label": "Linear 32->3",
+      "fill": "#9be1e5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h11_z",
+      "type": "rect",
+      "x": 3065,
+      "y": 3820,
+      "w": 230,
+      "h": 68,
+      "label": "z11 (B,3)",
+      "fill": "#9edfe3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h11_ce",
+      "type": "rect",
+      "x": 3340,
+      "y": 3820,
+      "w": 530,
+      "h": 68,
+      "label": "Weighted CrossEntropy, class weights=[3,3,1]",
+      "fill": "#f2c2c5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h11_loss",
+      "type": "rect",
+      "x": 3915,
+      "y": 3820,
+      "w": 310,
+      "h": 68,
+      "label": "L11 scalar",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h10_tf",
+      "type": "rect",
+      "x": 85,
+      "y": 4010,
+      "w": 300,
+      "h": 68,
+      "label": "Flatten T10' (B,4880)",
+      "fill": "#c9dcf3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h10_ff",
+      "type": "rect",
+      "x": 430,
+      "y": 4010,
+      "w": 300,
+      "h": 68,
+      "label": "Flatten F10' (B,2320)",
+      "fill": "#ddcbea",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h10_cat",
+      "type": "rect",
+      "x": 775,
+      "y": 4010,
+      "w": 300,
+      "h": 68,
+      "label": "Concat f10 (B,7200)",
+      "fill": "#b9dcf1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h10_l1",
+      "type": "rect",
+      "x": 1120,
+      "y": 4010,
+      "w": 290,
+      "h": 68,
+      "label": "Linear 7200->256",
+      "fill": "#9be1e5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h10_elu1",
+      "type": "rect",
+      "x": 1455,
+      "y": 4010,
+      "w": 170,
+      "h": 68,
+      "label": "ELU",
+      "fill": "#9be1e5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h10_d1",
+      "type": "rect",
+      "x": 1670,
+      "y": 4010,
+      "w": 240,
+      "h": 68,
+      "label": "Dropout p=.5",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h10_l2",
+      "type": "rect",
+      "x": 1955,
+      "y": 4010,
+      "w": 270,
+      "h": 68,
+      "label": "Linear 256->32",
+      "fill": "#9be1e5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h10_elu2",
+      "type": "rect",
+      "x": 2270,
+      "y": 4010,
+      "w": 170,
+      "h": 68,
+      "label": "ELU",
+      "fill": "#9be1e5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h10_d2",
+      "type": "rect",
+      "x": 2485,
+      "y": 4010,
+      "w": 240,
+      "h": 68,
+      "label": "Dropout p=.3",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h10_l3",
+      "type": "rect",
+      "x": 2770,
+      "y": 4010,
+      "w": 250,
+      "h": 68,
+      "label": "Linear 32->3",
+      "fill": "#9be1e5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h10_z",
+      "type": "rect",
+      "x": 3065,
+      "y": 4010,
+      "w": 230,
+      "h": 68,
+      "label": "z10 (B,3)",
+      "fill": "#9edfe3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h10_ce",
+      "type": "rect",
+      "x": 3340,
+      "y": 4010,
+      "w": 530,
+      "h": 68,
+      "label": "Weighted CrossEntropy, class weights=[3,3,1]",
+      "fill": "#f2c2c5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h10_loss",
+      "type": "rect",
+      "x": 3915,
+      "y": 4010,
+      "w": 310,
+      "h": 68,
+      "label": "L10 scalar",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h8_tf",
+      "type": "rect",
+      "x": 85,
+      "y": 4200,
+      "w": 300,
+      "h": 68,
+      "label": "Flatten T8' (B,4880)",
+      "fill": "#c9dcf3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h8_ff",
+      "type": "rect",
+      "x": 430,
+      "y": 4200,
+      "w": 300,
+      "h": 68,
+      "label": "Flatten F8' (B,2320)",
+      "fill": "#ddcbea",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h8_cat",
+      "type": "rect",
+      "x": 775,
+      "y": 4200,
+      "w": 300,
+      "h": 68,
+      "label": "Concat f8 (B,7200)",
+      "fill": "#b9dcf1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h8_l1",
+      "type": "rect",
+      "x": 1120,
+      "y": 4200,
+      "w": 290,
+      "h": 68,
+      "label": "Linear 7200->256",
+      "fill": "#9be1e5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h8_elu1",
+      "type": "rect",
+      "x": 1455,
+      "y": 4200,
+      "w": 170,
+      "h": 68,
+      "label": "ELU",
+      "fill": "#9be1e5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h8_d1",
+      "type": "rect",
+      "x": 1670,
+      "y": 4200,
+      "w": 240,
+      "h": 68,
+      "label": "Dropout p=.5",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h8_l2",
+      "type": "rect",
+      "x": 1955,
+      "y": 4200,
+      "w": 270,
+      "h": 68,
+      "label": "Linear 256->32",
+      "fill": "#9be1e5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h8_elu2",
+      "type": "rect",
+      "x": 2270,
+      "y": 4200,
+      "w": 170,
+      "h": 68,
+      "label": "ELU",
+      "fill": "#9be1e5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h8_d2",
+      "type": "rect",
+      "x": 2485,
+      "y": 4200,
+      "w": 240,
+      "h": 68,
+      "label": "Dropout p=.3",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h8_l3",
+      "type": "rect",
+      "x": 2770,
+      "y": 4200,
+      "w": 250,
+      "h": 68,
+      "label": "Linear 32->3",
+      "fill": "#9be1e5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h8_z",
+      "type": "rect",
+      "x": 3065,
+      "y": 4200,
+      "w": 230,
+      "h": 68,
+      "label": "z8 (B,3)",
+      "fill": "#9edfe3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h8_ce",
+      "type": "rect",
+      "x": 3340,
+      "y": 4200,
+      "w": 530,
+      "h": 68,
+      "label": "Weighted CrossEntropy, class weights=[3,3,1]",
+      "fill": "#f2c2c5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h8_loss",
+      "type": "rect",
+      "x": 3915,
+      "y": 4200,
+      "w": 310,
+      "h": 68,
+      "label": "L8 scalar",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "loss_z_stack",
+      "type": "rect",
+      "x": 4440,
+      "y": 3805,
+      "w": 350,
+      "h": 82,
+      "label": "Stack [z11,z10,z8]",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "loss_alpha",
+      "type": "rect",
+      "x": 4850,
+      "y": 3805,
+      "w": 340,
+      "h": 82,
+      "label": "Trainable alpha=[0,0,0]",
+      "fill": "#d7c7ee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "loss_softmax",
+      "type": "rect",
+      "x": 5250,
+      "y": 3805,
+      "w": 390,
+      "h": 82,
+      "label": "w=Softmax(alpha), init=1/3",
+      "fill": "#d7c7ee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "loss_fused_logits",
+      "type": "rect",
+      "x": 5700,
+      "y": 3795,
+      "w": 540,
+      "h": 102,
+      "label": "z_fused=w11*z11+w10*z10+w8*z8",
+      "fill": "#f2c2c5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "loss_argmax",
+      "type": "rect",
+      "x": 6300,
+      "y": 3795,
+      "w": 390,
+      "h": 102,
+      "label": "argmax -> class 0/1/2",
+      "fill": "#9edfe3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "loss_f_stack",
+      "type": "rect",
+      "x": 4440,
+      "y": 3970,
+      "w": 350,
+      "h": 82,
+      "label": "Stack [f11,f10,f8]",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "loss_fused_features",
+      "type": "rect",
+      "x": 5700,
+      "y": 3960,
+      "w": 750,
+      "h": 102,
+      "label": "f_fused=w11*f11+w10*f10+w8*f8 (returned; no extra classifier)",
+      "fill": "#b9dcf1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "loss_l_stack",
+      "type": "rect",
+      "x": 4440,
+      "y": 4140,
+      "w": 350,
+      "h": 92,
+      "label": "Stack [L11,L10,L8]",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "loss_weighted",
+      "type": "rect",
+      "x": 4850,
+      "y": 4140,
+      "w": 650,
+      "h": 92,
+      "label": "Lweighted=w11*L11+w10*L10+w8*L8",
+      "fill": "#f2c2c5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "loss_aux",
+      "type": "rect",
+      "x": 5560,
+      "y": 4140,
+      "w": 570,
+      "h": 92,
+      "label": "Laux=0.2*(L11+L10+L8)/3",
+      "fill": "#f2c2c5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "loss_add",
+      "type": "residual",
+      "x": 6190,
+      "y": 4160,
+      "w": 52,
+      "h": 52,
+      "label": "+",
+      "fill": "#ffffff",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 26
+    },
+    {
+      "id": "loss_total",
+      "type": "rect",
+      "x": 6300,
+      "y": 4140,
+      "w": 450,
+      "h": 92,
+      "label": "Ltotal=Lweighted+Laux",
+      "fill": "#f2c2c5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "loss_adam",
+      "type": "rect",
+      "x": 6810,
+      "y": 4115,
+      "w": 1000,
+      "h": 117,
+      "label": "Adam: lr=.0002, betas=(.5,.999), eps=1e-8, weight_decay=0 | Backprop all modules",
+      "fill": "#9edfe3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    }
+  ],
+  "edges": [
+    {
+      "id": "e001_raw_window_time_zscore",
+      "from": {
+        "nodeId": "raw_window",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "time_zscore",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e002_raw_window_fft_transform",
+      "from": {
+        "nodeId": "raw_window",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "fft_transform",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e003_time_zscore_time_input_qkv_off",
+      "from": {
+        "nodeId": "time_zscore",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "time_input_qkv_off",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e004_time_input_qkv_off_time_patch_summary",
+      "from": {
+        "nodeId": "time_input_qkv_off",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "time_patch_summary",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e005_time_patch_summary_ov_time_enc_11",
+      "from": {
+        "nodeId": "time_patch_summary",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_time_enc_11",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e006_ov_time_enc_11_ov_time_cross",
+      "from": {
+        "nodeId": "ov_time_enc_11",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_time_cross",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e007_time_patch_summary_ov_time_enc_10",
+      "from": {
+        "nodeId": "time_patch_summary",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_time_enc_10",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e008_ov_time_enc_10_ov_time_cross",
+      "from": {
+        "nodeId": "ov_time_enc_10",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_time_cross",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e009_time_patch_summary_ov_time_enc_8",
+      "from": {
+        "nodeId": "time_patch_summary",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_time_enc_8",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e010_ov_time_enc_8_ov_time_cross",
+      "from": {
+        "nodeId": "ov_time_enc_8",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_time_cross",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e011_ov_time_cross_ov_time_updated",
+      "from": {
+        "nodeId": "ov_time_cross",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_time_updated",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e012_ov_time_updated_ov_time_flat",
+      "from": {
+        "nodeId": "ov_time_updated",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_time_flat",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e013_fft_transform_fft_zscore",
+      "from": {
+        "nodeId": "fft_transform",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "fft_zscore",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e014_fft_zscore_fft_global_off",
+      "from": {
+        "nodeId": "fft_zscore",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "fft_global_off",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e015_fft_global_off_fft_input_qkv_off",
+      "from": {
+        "nodeId": "fft_global_off",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "fft_input_qkv_off",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e016_fft_input_qkv_off_fft_patch_summary",
+      "from": {
+        "nodeId": "fft_input_qkv_off",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "fft_patch_summary",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e017_fft_patch_summary_ov_fft_enc_11",
+      "from": {
+        "nodeId": "fft_patch_summary",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_fft_enc_11",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e018_ov_fft_enc_11_ov_fft_cross",
+      "from": {
+        "nodeId": "ov_fft_enc_11",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_fft_cross",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e019_fft_patch_summary_ov_fft_enc_10",
+      "from": {
+        "nodeId": "fft_patch_summary",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_fft_enc_10",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e020_ov_fft_enc_10_ov_fft_cross",
+      "from": {
+        "nodeId": "ov_fft_enc_10",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_fft_cross",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e021_fft_patch_summary_ov_fft_enc_8",
+      "from": {
+        "nodeId": "fft_patch_summary",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_fft_enc_8",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e022_ov_fft_enc_8_ov_fft_cross",
+      "from": {
+        "nodeId": "ov_fft_enc_8",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_fft_cross",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e023_ov_fft_cross_ov_fft_updated",
+      "from": {
+        "nodeId": "ov_fft_cross",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_fft_updated",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e024_ov_fft_updated_ov_fft_flat",
+      "from": {
+        "nodeId": "ov_fft_updated",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_fft_flat",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e025_ov_time_flat_ov_concat_11",
+      "from": {
+        "nodeId": "ov_time_flat",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_concat_11",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e026_ov_fft_flat_ov_concat_11",
+      "from": {
+        "nodeId": "ov_fft_flat",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_concat_11",
+        "port": "left"
+      },
+      "route": "turn-right-up",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e027_ov_concat_11_ov_head_11",
+      "from": {
+        "nodeId": "ov_concat_11",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_head_11",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e028_ov_head_11_ov_branch_11",
+      "from": {
+        "nodeId": "ov_head_11",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_branch_11",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e029_ov_branch_11_ov_fused_logits",
+      "from": {
+        "nodeId": "ov_branch_11",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_fused_logits",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e030_ov_branch_11_ov_total_loss",
+      "from": {
+        "nodeId": "ov_branch_11",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_total_loss",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e031_ov_time_flat_ov_concat_10",
+      "from": {
+        "nodeId": "ov_time_flat",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_concat_10",
+        "port": "left"
+      },
+      "route": "turn-right-down",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e032_ov_fft_flat_ov_concat_10",
+      "from": {
+        "nodeId": "ov_fft_flat",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_concat_10",
+        "port": "left"
+      },
+      "route": "turn-right-up",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e033_ov_concat_10_ov_head_10",
+      "from": {
+        "nodeId": "ov_concat_10",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_head_10",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e034_ov_head_10_ov_branch_10",
+      "from": {
+        "nodeId": "ov_head_10",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_branch_10",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e035_ov_branch_10_ov_fused_logits",
+      "from": {
+        "nodeId": "ov_branch_10",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_fused_logits",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e036_ov_branch_10_ov_total_loss",
+      "from": {
+        "nodeId": "ov_branch_10",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_total_loss",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e037_ov_time_flat_ov_concat_8",
+      "from": {
+        "nodeId": "ov_time_flat",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_concat_8",
+        "port": "left"
+      },
+      "route": "turn-right-down",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e038_ov_fft_flat_ov_concat_8",
+      "from": {
+        "nodeId": "ov_fft_flat",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_concat_8",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e039_ov_concat_8_ov_head_8",
+      "from": {
+        "nodeId": "ov_concat_8",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_head_8",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e040_ov_head_8_ov_branch_8",
+      "from": {
+        "nodeId": "ov_head_8",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_branch_8",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e041_ov_branch_8_ov_fused_logits",
+      "from": {
+        "nodeId": "ov_branch_8",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_fused_logits",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e042_ov_branch_8_ov_total_loss",
+      "from": {
+        "nodeId": "ov_branch_8",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_total_loss",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e043_ov_softmax_weights_ov_fused_logits",
+      "from": {
+        "nodeId": "ov_softmax_weights",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_fused_logits",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#7652a6"
+    },
+    {
+      "id": "e044_ov_softmax_weights_ov_fused_features",
+      "from": {
+        "nodeId": "ov_softmax_weights",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_fused_features",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#7652a6"
+    },
+    {
+      "id": "e045_ov_softmax_weights_ov_total_loss",
+      "from": {
+        "nodeId": "ov_softmax_weights",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_total_loss",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#7652a6"
+    },
+    {
+      "id": "e046_ov_fused_logits_ov_prediction",
+      "from": {
+        "nodeId": "ov_fused_logits",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_prediction",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e047_ov_total_loss_ov_backprop",
+      "from": {
+        "nodeId": "ov_total_loss",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_backprop",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e048_pt_in_pt_conv_t",
+      "from": {
+        "nodeId": "pt_in",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pt_conv_t",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e049_pt_conv_t_pt_conv_s",
+      "from": {
+        "nodeId": "pt_conv_t",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pt_conv_s",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e050_pt_conv_s_pt_bn",
+      "from": {
+        "nodeId": "pt_conv_s",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pt_bn",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e051_pt_bn_pt_elu",
+      "from": {
+        "nodeId": "pt_bn",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pt_elu",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e052_pt_elu_pt_pool",
+      "from": {
+        "nodeId": "pt_elu",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pt_pool",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e053_pt_pool_pt_drop",
+      "from": {
+        "nodeId": "pt_pool",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pt_drop",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e054_pt_drop_pt_proj",
+      "from": {
+        "nodeId": "pt_drop",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pt_proj",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e055_pt_proj_pt_squeeze",
+      "from": {
+        "nodeId": "pt_proj",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pt_squeeze",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e056_pt_squeeze_pt_transpose",
+      "from": {
+        "nodeId": "pt_squeeze",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pt_transpose",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e057_pf_in_pf_conv_t",
+      "from": {
+        "nodeId": "pf_in",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pf_conv_t",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e058_pf_conv_t_pf_conv_s",
+      "from": {
+        "nodeId": "pf_conv_t",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pf_conv_s",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e059_pf_conv_s_pf_bn",
+      "from": {
+        "nodeId": "pf_conv_s",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pf_bn",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e060_pf_bn_pf_elu",
+      "from": {
+        "nodeId": "pf_bn",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pf_elu",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e061_pf_elu_pf_pool",
+      "from": {
+        "nodeId": "pf_elu",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pf_pool",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e062_pf_pool_pf_drop",
+      "from": {
+        "nodeId": "pf_pool",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pf_drop",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e063_pf_drop_pf_proj",
+      "from": {
+        "nodeId": "pf_drop",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pf_proj",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e064_pf_proj_pf_squeeze",
+      "from": {
+        "nodeId": "pf_proj",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pf_squeeze",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e065_pf_squeeze_pf_transpose",
+      "from": {
+        "nodeId": "pf_squeeze",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pf_transpose",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e066_enc_time_source_et11_b1",
+      "from": {
+        "nodeId": "enc_time_source",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "et11_b1",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e067_et11_b1_et11_b2",
+      "from": {
+        "nodeId": "et11_b1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "et11_b2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e068_et11_b2_et11_mid",
+      "from": {
+        "nodeId": "et11_b2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "et11_mid",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e069_et11_mid_et11_bn",
+      "from": {
+        "nodeId": "et11_mid",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "et11_bn",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e070_et11_bn_et11_out",
+      "from": {
+        "nodeId": "et11_bn",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "et11_out",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e071_enc_time_source_et10_b1",
+      "from": {
+        "nodeId": "enc_time_source",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "et10_b1",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e072_et10_b1_et10_b2",
+      "from": {
+        "nodeId": "et10_b1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "et10_b2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e073_et10_b2_et10_mid",
+      "from": {
+        "nodeId": "et10_b2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "et10_mid",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e074_et10_mid_et10_bn",
+      "from": {
+        "nodeId": "et10_mid",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "et10_bn",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e075_et10_bn_et10_out",
+      "from": {
+        "nodeId": "et10_bn",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "et10_out",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e076_enc_time_source_et8_b1",
+      "from": {
+        "nodeId": "enc_time_source",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "et8_b1",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e077_et8_b1_et8_b2",
+      "from": {
+        "nodeId": "et8_b1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "et8_b2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e078_et8_b2_et8_mid",
+      "from": {
+        "nodeId": "et8_b2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "et8_mid",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e079_et8_mid_et8_bn",
+      "from": {
+        "nodeId": "et8_mid",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "et8_bn",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e080_et8_bn_et8_out",
+      "from": {
+        "nodeId": "et8_bn",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "et8_out",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e081_enc_fft_source_ef11_b1",
+      "from": {
+        "nodeId": "enc_fft_source",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ef11_b1",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e082_ef11_b1_ef11_b2",
+      "from": {
+        "nodeId": "ef11_b1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ef11_b2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e083_ef11_b2_ef11_mid",
+      "from": {
+        "nodeId": "ef11_b2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ef11_mid",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e084_ef11_mid_ef11_bn",
+      "from": {
+        "nodeId": "ef11_mid",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ef11_bn",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e085_ef11_bn_ef11_out",
+      "from": {
+        "nodeId": "ef11_bn",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ef11_out",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e086_enc_fft_source_ef10_b1",
+      "from": {
+        "nodeId": "enc_fft_source",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ef10_b1",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e087_ef10_b1_ef10_b2",
+      "from": {
+        "nodeId": "ef10_b1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ef10_b2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e088_ef10_b2_ef10_mid",
+      "from": {
+        "nodeId": "ef10_b2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ef10_mid",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e089_ef10_mid_ef10_bn",
+      "from": {
+        "nodeId": "ef10_mid",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ef10_bn",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e090_ef10_bn_ef10_out",
+      "from": {
+        "nodeId": "ef10_bn",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ef10_out",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e091_enc_fft_source_ef8_b1",
+      "from": {
+        "nodeId": "enc_fft_source",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ef8_b1",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e092_ef8_b1_ef8_b2",
+      "from": {
+        "nodeId": "ef8_b1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ef8_b2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e093_ef8_b2_ef8_mid",
+      "from": {
+        "nodeId": "ef8_b2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ef8_mid",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e094_ef8_mid_ef8_bn",
+      "from": {
+        "nodeId": "ef8_mid",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ef8_bn",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e095_ef8_bn_ef8_out",
+      "from": {
+        "nodeId": "ef8_bn",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ef8_out",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e096_blk_x_blk_ln1",
+      "from": {
+        "nodeId": "blk_x",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "blk_ln1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e097_blk_ln1_blk_qkv",
+      "from": {
+        "nodeId": "blk_ln1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "blk_qkv",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e098_blk_qkv_blk_heads",
+      "from": {
+        "nodeId": "blk_qkv",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "blk_heads",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e099_blk_heads_blk_score",
+      "from": {
+        "nodeId": "blk_heads",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "blk_score",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e100_blk_score_blk_softmax",
+      "from": {
+        "nodeId": "blk_score",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "blk_softmax",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e101_blk_softmax_blk_attdrop",
+      "from": {
+        "nodeId": "blk_softmax",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "blk_attdrop",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e102_blk_attdrop_blk_av",
+      "from": {
+        "nodeId": "blk_attdrop",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "blk_av",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e103_blk_av_blk_concat",
+      "from": {
+        "nodeId": "blk_av",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "blk_concat",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e104_blk_concat_blk_outlinear",
+      "from": {
+        "nodeId": "blk_concat",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "blk_outlinear",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e105_blk_outlinear_blk_postattdrop",
+      "from": {
+        "nodeId": "blk_outlinear",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "blk_postattdrop",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e106_blk_postattdrop_blk_add1",
+      "from": {
+        "nodeId": "blk_postattdrop",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "blk_add1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e107_blk_add1_blk_x1",
+      "from": {
+        "nodeId": "blk_add1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "blk_x1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e108_blk_x_blk_add1",
+      "from": {
+        "nodeId": "blk_x",
+        "port": "top"
+      },
+      "to": {
+        "nodeId": "blk_add1",
+        "port": "top"
+      },
+      "route": "arch-top",
+      "arrow": false,
+      "bulge": 115,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#5e6875"
+    },
+    {
+      "id": "e109_ff_x1_ff_ln",
+      "from": {
+        "nodeId": "ff_x1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ff_ln",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e110_ff_ln_ff_l1",
+      "from": {
+        "nodeId": "ff_ln",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ff_l1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e111_ff_l1_ff_gelu",
+      "from": {
+        "nodeId": "ff_l1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ff_gelu",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e112_ff_gelu_ff_innerdrop",
+      "from": {
+        "nodeId": "ff_gelu",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ff_innerdrop",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e113_ff_innerdrop_ff_l2",
+      "from": {
+        "nodeId": "ff_innerdrop",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ff_l2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e114_ff_l2_ff_outerdrop",
+      "from": {
+        "nodeId": "ff_l2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ff_outerdrop",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e115_ff_outerdrop_ff_add",
+      "from": {
+        "nodeId": "ff_outerdrop",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ff_add",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e116_ff_add_ff_out",
+      "from": {
+        "nodeId": "ff_add",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ff_out",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e117_ff_x1_ff_add",
+      "from": {
+        "nodeId": "ff_x1",
+        "port": "bottom"
+      },
+      "to": {
+        "nodeId": "ff_add",
+        "port": "bottom"
+      },
+      "route": "arch-bottom",
+      "arrow": false,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#5e6875"
+    },
+    {
+      "id": "e118_blk_x1_ff_x1",
+      "from": {
+        "nodeId": "blk_x1",
+        "port": "bottom"
+      },
+      "to": {
+        "nodeId": "ff_x1",
+        "port": "top"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e119_cd_input_cd_stack",
+      "from": {
+        "nodeId": "cd_input",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "cd_stack",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "e120_cd_stack_cd_add_depth",
+      "from": {
+        "nodeId": "cd_stack",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "cd_add_depth",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "e121_cd_add_depth_cd_ln",
+      "from": {
+        "nodeId": "cd_add_depth",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "cd_ln",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "e122_cd_ln_cd_reshape_in",
+      "from": {
+        "nodeId": "cd_ln",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "cd_reshape_in",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "e123_cd_reshape_in_cd_qkv_proj",
+      "from": {
+        "nodeId": "cd_reshape_in",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "cd_qkv_proj",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "e124_cd_qkv_proj_cd_heads",
+      "from": {
+        "nodeId": "cd_qkv_proj",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "cd_heads",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "e125_cd_heads_cd_scores",
+      "from": {
+        "nodeId": "cd_heads",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "cd_scores",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "e126_cd_scores_cd_softmax",
+      "from": {
+        "nodeId": "cd_scores",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "cd_softmax",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "e127_cd_softmax_cd_attdrop",
+      "from": {
+        "nodeId": "cd_softmax",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "cd_attdrop",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "e128_cd_attdrop_cd_av",
+      "from": {
+        "nodeId": "cd_attdrop",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "cd_av",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "e129_cd_av_cd_concat",
+      "from": {
+        "nodeId": "cd_av",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "cd_concat",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "e130_cd_concat_cd_outproj",
+      "from": {
+        "nodeId": "cd_concat",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "cd_outproj",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "e131_cd_outproj_cd_reshape_out",
+      "from": {
+        "nodeId": "cd_outproj",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "cd_reshape_out",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "e132_cd_reshape_out_cd_outdrop",
+      "from": {
+        "nodeId": "cd_reshape_out",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "cd_outdrop",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "e133_cd_outdrop_cd_gamma",
+      "from": {
+        "nodeId": "cd_outdrop",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "cd_gamma",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "e134_cd_gamma_cd_resadd",
+      "from": {
+        "nodeId": "cd_gamma",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "cd_resadd",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "e135_cd_resadd_cd_split",
+      "from": {
+        "nodeId": "cd_resadd",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "cd_split",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "e136_cd_split_cd_output",
+      "from": {
+        "nodeId": "cd_split",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "cd_output",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "e137_cd_depth_emb_cd_add_depth",
+      "from": {
+        "nodeId": "cd_depth_emb",
+        "port": "bottom"
+      },
+      "to": {
+        "nodeId": "cd_add_depth",
+        "port": "top"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#7652a6"
+    },
+    {
+      "id": "e138_cd_stack_cd_resadd",
+      "from": {
+        "nodeId": "cd_stack",
+        "port": "bottom"
+      },
+      "to": {
+        "nodeId": "cd_resadd",
+        "port": "bottom"
+      },
+      "route": "arch-bottom",
+      "arrow": false,
+      "bulge": 115,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#5e6875"
+    },
+    {
+      "id": "e139_cd_output_cd_time_instance",
+      "from": {
+        "nodeId": "cd_output",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "cd_time_instance",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e140_cd_output_cd_fft_instance",
+      "from": {
+        "nodeId": "cd_output",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "cd_fft_instance",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e141_t11_patch_t11_project",
+      "from": {
+        "nodeId": "t11_patch",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "t11_project",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e142_t11_project_t11_scores",
+      "from": {
+        "nodeId": "t11_project",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "t11_scores",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e143_t11_scores_t11_softmax",
+      "from": {
+        "nodeId": "t11_scores",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "t11_softmax",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e144_t11_softmax_t11_weighted_v",
+      "from": {
+        "nodeId": "t11_softmax",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "t11_weighted_v",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e145_t11_weighted_v_t11_concat_heads",
+      "from": {
+        "nodeId": "t11_weighted_v",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "t11_concat_heads",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e146_t11_concat_heads_t11_outlinear",
+      "from": {
+        "nodeId": "t11_concat_heads",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "t11_outlinear",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e147_t11_outlinear_t11_dropgamma",
+      "from": {
+        "nodeId": "t11_outlinear",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "t11_dropgamma",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e148_t11_dropgamma_t11_resadd",
+      "from": {
+        "nodeId": "t11_dropgamma",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "t11_resadd",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e149_t11_resadd_t11_prime",
+      "from": {
+        "nodeId": "t11_resadd",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "t11_prime",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e150_t11_prime_t11_collect",
+      "from": {
+        "nodeId": "t11_prime",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "t11_collect",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e151_t11_collect_t11_view",
+      "from": {
+        "nodeId": "t11_collect",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "t11_view",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e152_t11_view_t11_flat",
+      "from": {
+        "nodeId": "t11_view",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "t11_flat",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e153_t11_original_t11_resadd",
+      "from": {
+        "nodeId": "t11_original",
+        "port": "bottom"
+      },
+      "to": {
+        "nodeId": "t11_resadd",
+        "port": "top"
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#5e6875"
+    },
+    {
+      "id": "e154_h11_tf_h11_cat",
+      "from": {
+        "nodeId": "h11_tf",
+        "port": "top"
+      },
+      "to": {
+        "nodeId": "h11_cat",
+        "port": "top"
+      },
+      "route": "arch-top",
+      "arrow": true,
+      "bulge": 42,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e155_h11_ff_h11_cat",
+      "from": {
+        "nodeId": "h11_ff",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h11_cat",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e156_h11_cat_h11_l1",
+      "from": {
+        "nodeId": "h11_cat",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h11_l1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e157_h11_l1_h11_elu1",
+      "from": {
+        "nodeId": "h11_l1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h11_elu1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e158_h11_elu1_h11_d1",
+      "from": {
+        "nodeId": "h11_elu1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h11_d1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e159_h11_d1_h11_l2",
+      "from": {
+        "nodeId": "h11_d1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h11_l2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e160_h11_l2_h11_elu2",
+      "from": {
+        "nodeId": "h11_l2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h11_elu2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e161_h11_elu2_h11_d2",
+      "from": {
+        "nodeId": "h11_elu2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h11_d2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e162_h11_d2_h11_l3",
+      "from": {
+        "nodeId": "h11_d2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h11_l3",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e163_h11_l3_h11_z",
+      "from": {
+        "nodeId": "h11_l3",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h11_z",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e164_h11_z_h11_ce",
+      "from": {
+        "nodeId": "h11_z",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h11_ce",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e165_h11_ce_h11_loss",
+      "from": {
+        "nodeId": "h11_ce",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h11_loss",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e166_h10_tf_h10_cat",
+      "from": {
+        "nodeId": "h10_tf",
+        "port": "top"
+      },
+      "to": {
+        "nodeId": "h10_cat",
+        "port": "top"
+      },
+      "route": "arch-top",
+      "arrow": true,
+      "bulge": 42,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e167_h10_ff_h10_cat",
+      "from": {
+        "nodeId": "h10_ff",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h10_cat",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e168_h10_cat_h10_l1",
+      "from": {
+        "nodeId": "h10_cat",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h10_l1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e169_h10_l1_h10_elu1",
+      "from": {
+        "nodeId": "h10_l1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h10_elu1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e170_h10_elu1_h10_d1",
+      "from": {
+        "nodeId": "h10_elu1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h10_d1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e171_h10_d1_h10_l2",
+      "from": {
+        "nodeId": "h10_d1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h10_l2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e172_h10_l2_h10_elu2",
+      "from": {
+        "nodeId": "h10_l2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h10_elu2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e173_h10_elu2_h10_d2",
+      "from": {
+        "nodeId": "h10_elu2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h10_d2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e174_h10_d2_h10_l3",
+      "from": {
+        "nodeId": "h10_d2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h10_l3",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e175_h10_l3_h10_z",
+      "from": {
+        "nodeId": "h10_l3",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h10_z",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e176_h10_z_h10_ce",
+      "from": {
+        "nodeId": "h10_z",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h10_ce",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e177_h10_ce_h10_loss",
+      "from": {
+        "nodeId": "h10_ce",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h10_loss",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e178_h8_tf_h8_cat",
+      "from": {
+        "nodeId": "h8_tf",
+        "port": "top"
+      },
+      "to": {
+        "nodeId": "h8_cat",
+        "port": "top"
+      },
+      "route": "arch-top",
+      "arrow": true,
+      "bulge": 42,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e179_h8_ff_h8_cat",
+      "from": {
+        "nodeId": "h8_ff",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h8_cat",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e180_h8_cat_h8_l1",
+      "from": {
+        "nodeId": "h8_cat",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h8_l1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e181_h8_l1_h8_elu1",
+      "from": {
+        "nodeId": "h8_l1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h8_elu1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e182_h8_elu1_h8_d1",
+      "from": {
+        "nodeId": "h8_elu1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h8_d1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e183_h8_d1_h8_l2",
+      "from": {
+        "nodeId": "h8_d1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h8_l2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e184_h8_l2_h8_elu2",
+      "from": {
+        "nodeId": "h8_l2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h8_elu2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e185_h8_elu2_h8_d2",
+      "from": {
+        "nodeId": "h8_elu2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h8_d2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e186_h8_d2_h8_l3",
+      "from": {
+        "nodeId": "h8_d2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h8_l3",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e187_h8_l3_h8_z",
+      "from": {
+        "nodeId": "h8_l3",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h8_z",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e188_h8_z_h8_ce",
+      "from": {
+        "nodeId": "h8_z",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h8_ce",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e189_h8_ce_h8_loss",
+      "from": {
+        "nodeId": "h8_ce",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h8_loss",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e190_loss_alpha_loss_softmax",
+      "from": {
+        "nodeId": "loss_alpha",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "loss_softmax",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#7652a6"
+    },
+    {
+      "id": "e191_loss_z_stack_loss_fused_logits",
+      "from": {
+        "nodeId": "loss_z_stack",
+        "port": "top"
+      },
+      "to": {
+        "nodeId": "loss_fused_logits",
+        "port": "top"
+      },
+      "route": "arch-top",
+      "arrow": true,
+      "bulge": 42,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e192_loss_softmax_loss_fused_logits",
+      "from": {
+        "nodeId": "loss_softmax",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "loss_fused_logits",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#7652a6"
+    },
+    {
+      "id": "e193_loss_fused_logits_loss_argmax",
+      "from": {
+        "nodeId": "loss_fused_logits",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "loss_argmax",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e194_loss_f_stack_loss_fused_features",
+      "from": {
+        "nodeId": "loss_f_stack",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "loss_fused_features",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#2c8870"
+    },
+    {
+      "id": "e195_loss_softmax_loss_fused_features",
+      "from": {
+        "nodeId": "loss_softmax",
+        "port": "bottom"
+      },
+      "to": {
+        "nodeId": "loss_fused_features",
+        "port": "top"
+      },
+      "route": "arch-bottom",
+      "arrow": true,
+      "bulge": 58,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#7652a6"
+    },
+    {
+      "id": "e196_loss_l_stack_loss_weighted",
+      "from": {
+        "nodeId": "loss_l_stack",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "loss_weighted",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e197_loss_l_stack_loss_aux",
+      "from": {
+        "nodeId": "loss_l_stack",
+        "port": "top"
+      },
+      "to": {
+        "nodeId": "loss_aux",
+        "port": "top"
+      },
+      "route": "arch-top",
+      "arrow": true,
+      "bulge": 42,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e198_loss_softmax_loss_weighted",
+      "from": {
+        "nodeId": "loss_softmax",
+        "port": "bottom"
+      },
+      "to": {
+        "nodeId": "loss_weighted",
+        "port": "top"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#7652a6"
+    },
+    {
+      "id": "e199_h11_z_loss_z_stack",
+      "from": {
+        "nodeId": "h11_z",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "loss_z_stack",
+        "port": "top"
+      },
+      "route": "arch-top",
+      "arrow": true,
+      "bulge": 55,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e200_h11_cat_loss_f_stack",
+      "from": {
+        "nodeId": "h11_cat",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "loss_f_stack",
+        "port": "left"
+      },
+      "route": "arch-top",
+      "arrow": true,
+      "bulge": 48,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#2c8870"
+    },
+    {
+      "id": "e201_h11_loss_loss_l_stack",
+      "from": {
+        "nodeId": "h11_loss",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "loss_l_stack",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e202_h10_z_loss_z_stack",
+      "from": {
+        "nodeId": "h10_z",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "loss_z_stack",
+        "port": "top"
+      },
+      "route": "arch-top",
+      "arrow": true,
+      "bulge": 55,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e203_h10_cat_loss_f_stack",
+      "from": {
+        "nodeId": "h10_cat",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "loss_f_stack",
+        "port": "left"
+      },
+      "route": "arch-top",
+      "arrow": true,
+      "bulge": 48,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#2c8870"
+    },
+    {
+      "id": "e204_h10_loss_loss_l_stack",
+      "from": {
+        "nodeId": "h10_loss",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "loss_l_stack",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e205_h8_z_loss_z_stack",
+      "from": {
+        "nodeId": "h8_z",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "loss_z_stack",
+        "port": "top"
+      },
+      "route": "arch-top",
+      "arrow": true,
+      "bulge": 55,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e206_h8_cat_loss_f_stack",
+      "from": {
+        "nodeId": "h8_cat",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "loss_f_stack",
+        "port": "left"
+      },
+      "route": "arch-top",
+      "arrow": true,
+      "bulge": 48,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#2c8870"
+    },
+    {
+      "id": "e207_h8_loss_loss_l_stack",
+      "from": {
+        "nodeId": "h8_loss",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "loss_l_stack",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e208_loss_weighted_loss_add",
+      "from": {
+        "nodeId": "loss_weighted",
+        "port": "top"
+      },
+      "to": {
+        "nodeId": "loss_add",
+        "port": "top"
+      },
+      "route": "arch-top",
+      "arrow": true,
+      "bulge": 42,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e209_loss_aux_loss_add",
+      "from": {
+        "nodeId": "loss_aux",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "loss_add",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e210_loss_add_loss_total",
+      "from": {
+        "nodeId": "loss_add",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "loss_total",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e211_loss_total_loss_adam",
+      "from": {
+        "nodeId": "loss_total",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "loss_adam",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#c04b54"
+    }
+  ],
+  "notes": [
+    {
+      "id": "title",
+      "x": 4000,
+      "y": 38,
+      "text": "超详细结构框图：Time + FFT 多深度 EEG-Conformer + Cross-Depth QKV + Branch Loss",
+      "fontSize": 36,
+      "color": "#111111",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "subtitle",
+      "x": 4000,
+      "y": 86,
+      "text": "activity_loso_time_fft_branchloss_crossdepthqkv_11_10_8_seed42 | window=15s, stride=3s | depth=11/10/8 | seed=42",
+      "fontSize": 19,
+      "color": "#555d68",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "overview_title",
+      "x": 4000,
+      "y": 151,
+      "text": "① 端到端总流程（详细模块在下方逐项展开）",
+      "fontSize": 23,
+      "color": "#111111",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "overview_time",
+      "x": 1450,
+      "y": 188,
+      "text": "Time 域",
+      "fontSize": 19,
+      "color": "#315f9b",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "overview_fft",
+      "x": 1450,
+      "y": 585,
+      "text": "FFT 域",
+      "fontSize": 19,
+      "color": "#7d487f",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "overview_config_title",
+      "x": 6920,
+      "y": 218,
+      "text": "本实验固定参数",
+      "fontSize": 20,
+      "color": "#111111",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "cfg_result_note",
+      "x": 6920,
+      "y": 710,
+      "text": "11-fold best-epoch mean: w=[0.2920,0.3425,0.3655], gamma_time=0.2819, gamma_fft=0.2664（训练结果，不是固定超参数）",
+      "fontSize": 14,
+      "color": "#6b4a18",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "cfg_disabled_note",
+      "x": 6920,
+      "y": 785,
+      "text": "conv_type=standard(groups=1) | fft_global=none | input_qkv=none | cumulative_query_attention=false",
+      "fontSize": 14,
+      "color": "#555d68",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "patch_title",
+      "x": 4000,
+      "y": 958,
+      "text": "② PatchEmbedding 全步骤（Time / FFT 两套模块参数独立）",
+      "fontSize": 23,
+      "color": "#111111",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "patch_time_title",
+      "x": 2010,
+      "y": 1030,
+      "text": "Time PatchEmbedding: (B,1,21,1920) -> (B,122,40)",
+      "fontSize": 19,
+      "color": "#315f9b",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "patch_fft_title",
+      "x": 5990,
+      "y": 1030,
+      "text": "FFT PatchEmbedding: (B,1,21,961) -> (B,58,40)",
+      "fontSize": 19,
+      "color": "#7d487f",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_in_shape",
+      "x": 220.0,
+      "y": 1240,
+      "text": "(B,1,21,1920)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_conv_t_shape",
+      "x": 595.0,
+      "y": 1240,
+      "text": "(B,40,21,1896)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_conv_s_shape",
+      "x": 1055.0,
+      "y": 1240,
+      "text": "(B,40,1,1896)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_bn_shape",
+      "x": 1500.0,
+      "y": 1240,
+      "text": "same shape",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_elu_shape",
+      "x": 1840.0,
+      "y": 1240,
+      "text": "same shape",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_pool_shape",
+      "x": 2195.0,
+      "y": 1240,
+      "text": "(B,40,1,122)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_drop_shape",
+      "x": 2575.0,
+      "y": 1240,
+      "text": "(B,40,1,122)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_proj_shape",
+      "x": 2930.0,
+      "y": 1240,
+      "text": "(B,40,1,122)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_squeeze_shape",
+      "x": 3280.0,
+      "y": 1240,
+      "text": "(B,40,122)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_transpose_shape",
+      "x": 3610.0,
+      "y": 1240,
+      "text": "(B,122,40)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pf_in_shape",
+      "x": 4200.0,
+      "y": 1240,
+      "text": "(B,1,21,961)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pf_conv_t_shape",
+      "x": 4575.0,
+      "y": 1240,
+      "text": "(B,40,21,937)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pf_conv_s_shape",
+      "x": 5035.0,
+      "y": 1240,
+      "text": "(B,40,1,937)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pf_bn_shape",
+      "x": 5480.0,
+      "y": 1240,
+      "text": "same shape",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pf_elu_shape",
+      "x": 5820.0,
+      "y": 1240,
+      "text": "same shape",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pf_pool_shape",
+      "x": 6175.0,
+      "y": 1240,
+      "text": "(B,40,1,58)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pf_drop_shape",
+      "x": 6555.0,
+      "y": 1240,
+      "text": "(B,40,1,58)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pf_proj_shape",
+      "x": 6910.0,
+      "y": 1240,
+      "text": "(B,40,1,58)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pf_squeeze_shape",
+      "x": 7260.0,
+      "y": 1240,
+      "text": "(B,40,58)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pf_transpose_shape",
+      "x": 7590.0,
+      "y": 1240,
+      "text": "(B,58,40)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "patch_formula_time",
+      "x": 2010,
+      "y": 1510,
+      "text": "Time patch count: ((1920-24)-75)//15 + 1 = 122 | temporal Conv and spatial Conv both use bias=True (PyTorch default)",
+      "fontSize": 14,
+      "color": "#555d68",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "patch_formula_fft",
+      "x": 5990,
+      "y": 1510,
+      "text": "FFT patch count: ((961-24)-75)//15 + 1 = 58 | FFT stem has the same layers but independent learnable parameters",
+      "fontSize": 14,
+      "color": "#555d68",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "patch_preprocess_note",
+      "x": 4000,
+      "y": 1602,
+      "text": "FFT input is log1p(abs(rFFT(x))^2); Time and FFT are independently standardized using training-split mean/std only",
+      "fontSize": 15,
+      "color": "#555d68",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "transformer_title",
+      "x": 4000,
+      "y": 1698,
+      "text": "③ 三个并行深度 Encoder + 单个 TransformerEncoderBlock 的完整内部流程",
+      "fontSize": 23,
+      "color": "#111111",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "encoder_repeats_title",
+      "x": 1405,
+      "y": 1780,
+      "text": "六个独立 Encoder：同域共享输入，但 Encoder 参数互不共享",
+      "fontSize": 18,
+      "color": "#314c35",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "encoder_block_title",
+      "x": 5360,
+      "y": 1780,
+      "text": "TransformerEncoderBlock 模板（每个 Block 都按此执行）",
+      "fontSize": 18,
+      "color": "#314c35",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "encoder_repeat_note1",
+      "x": 2365,
+      "y": 2020,
+      "text": "Time: 11+10+8 = 29 Blocks",
+      "fontSize": 14,
+      "color": "#315f9b",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "encoder_repeat_note2",
+      "x": 2365,
+      "y": 2300,
+      "text": "FFT: 11+10+8 = 29 Blocks",
+      "fontSize": 14,
+      "color": "#7d487f",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "encoder_repeat_note3",
+      "x": 1405,
+      "y": 2422,
+      "text": "总计 58 个 EncoderBlock；Time/FFT PatchEmbedding 与全部 Encoder 均不共享参数",
+      "fontSize": 14,
+      "color": "#555d68",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "blk_dropout_note",
+      "x": 5360,
+      "y": 2425,
+      "text": "Encoder 中共有四处 p=.5：attention-weight dropout、MHA 输出 dropout、FFN 内部 dropout、FFN 输出 dropout",
+      "fontSize": 14,
+      "color": "#934047",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "cross_title",
+      "x": 4000,
+      "y": 2588,
+      "text": "④ CrossDepthQKVResidual 全步骤 + Time depth=11 Query 的逐项展开",
+      "fontSize": 23,
+      "color": "#111111",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "cross_generic_title",
+      "x": 4000,
+      "y": 2673,
+      "text": "通用模块：Time 使用 N=122；FFT 使用 N=58；两套 QKV/DepthEmbedding/gamma 参数完全独立",
+      "fontSize": 17,
+      "color": "#6b4a18",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "cross_generic_note",
+      "x": 4000,
+      "y": 3025,
+      "text": "残差公式（纯文本）：updated = original_stack + gamma * Dropout(MHA(LayerNorm(original_stack + depth_embedding)))",
+      "fontSize": 14,
+      "color": "#6b4a18",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "cross_t11_title",
+      "x": 4000,
+      "y": 3128,
+      "text": "放大一个 Time Patch：只追踪 q11 如何得到 t11'，然后收集 122 个 Patch 并 Flatten",
+      "fontSize": 17,
+      "color": "#315f9b",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "t11_key_note",
+      "x": 4000,
+      "y": 3458,
+      "text": "对 T11'：q11 只负责 Query；k10/v10 与 k8/v8 把其他深度信息送入 T11'。q10/q8 分别用于生成 T10'/T8'。",
+      "fontSize": 14,
+      "color": "#315f9b",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "cross_scope_note",
+      "x": 4000,
+      "y": 3515,
+      "text": "CrossDepth 只在相同 Patch 的 depth=11/10/8 之间注意；不跨 Patch，也不做 Time<->FFT 跨域注意力",
+      "fontSize": 14,
+      "color": "#6b4a18",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "headloss_title",
+      "x": 4000,
+      "y": 3648,
+      "text": "⑤ 三个独立分类头、Logit/Feature 融合、加权 Branch Loss 与训练参数",
+      "fontSize": 23,
+      "color": "#111111",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "heads_detail_title",
+      "x": 2210,
+      "y": 3740,
+      "text": "每个 depth 都完整执行一套独立 MLP Head（参数不共享）",
+      "fontSize": 17,
+      "color": "#116066",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "loss_detail_title",
+      "x": 6165,
+      "y": 3740,
+      "text": "全局可学习分支权重同时用于 feature、logit 和 branch-loss 加权",
+      "fontSize": 17,
+      "color": "#5b3c83",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "head_loss_note",
+      "x": 6165,
+      "y": 4320,
+      "text": "训练 Loss 不再对 z_fused 额外计算 CE；z_fused 用于最终预测，Ltotal 只由三个独立 branch CE 构成",
+      "fontSize": 14,
+      "color": "#934047",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "training_note",
+      "x": 6165,
+      "y": 4380,
+      "text": "epochs=200 | batch_size=72 | seed=42 | LOSO 11 folds | test 每 epoch 评估并按 best_test_acc 保存最佳模型",
+      "fontSize": 14,
+      "color": "#555d68",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    }
+  ],
+  "settings": {
+    "corner": 12,
+    "gridSize": 5,
+    "snap": true,
+    "lastBulge": 100,
+    "lastRoute": "auto",
+    "dragDelay": 180,
+    "routeMemory": {
+      "arch": {
+        "bulge": 110,
+        "corner": 12
+      },
+      "turn-right-up": {
+        "corner": 12
+      },
+      "turn-right-down": {
+        "corner": 12
+      },
+      "turn-left-up": {
+        "corner": 12
+      },
+      "turn-left-down": {
+        "corner": 12
+      },
+      "auto": {
+        "corner": 12
+      },
+      "straight": {
+        "corner": 0
+      }
+    }
+  },
+  "profileGroups": {
+    "arch": [
+      {
+        "id": "p_arch_72",
+        "name": "标准绕行",
+        "bulge": 72,
+        "corner": 14
+      },
+      {
+        "id": "p_arch_110",
+        "name": "结构图绕行",
+        "bulge": 110,
+        "corner": 12
+      }
+    ],
+    "turn-right-up": [
+      {
+        "id": "p_tru_14",
+        "name": "右转向上",
+        "corner": 14
+      },
+      {
+        "id": "p_tru_12",
+        "name": "右转向上",
+        "corner": 12
+      }
+    ],
+    "turn-right-down": [
+      {
+        "id": "p_trd_14",
+        "name": "右转向下",
+        "corner": 14
+      },
+      {
+        "id": "p_trd_12",
+        "name": "右转向下",
+        "corner": 12
+      }
+    ],
+    "turn-left-up": [
+      {
+        "id": "p_tlu_14",
+        "name": "左转向上",
+        "corner": 14
+      },
+      {
+        "id": "p_tlu_12",
+        "name": "左转向上",
+        "corner": 12
+      }
+    ],
+    "turn-left-down": [
+      {
+        "id": "p_tld_14",
+        "name": "左转向下",
+        "corner": 14
+      },
+      {
+        "id": "p_tld_12",
+        "name": "左转向下",
+        "corner": 12
+      }
+    ]
+  },
+  "palette": "soft",
+  "view": {
+    "x": 0,
+    "y": 0,
+    "w": 8000,
+    "h": 4500
+  }
+}
