@@ -138,6 +138,7 @@ def build_model_from_artifacts(
         depth=cfg.get("depth", 6),
         num_heads=cfg.get("num_heads", 5),
         dropout=cfg.get("dropout", 0.5),
+        transformer_encoder_dropout=cfg.get("transformer_encoder_dropout", 0.5),
         input_qkv=cfg.get("input_qkv", "none"),
         input_qkv_dim=cfg.get("input_qkv_dim", 64),
         input_qkv_heads=cfg.get("input_qkv_heads", 4),

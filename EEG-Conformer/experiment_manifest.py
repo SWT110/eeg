@@ -291,6 +291,10 @@ def build_model_info(
             "transformer_branch_depths",
             cfg.get("transformer_branch_depths", [fold_metrics.get("depth", cfg.get("depth"))]),
         ),
+        "transformer_encoder_dropout": fold_metrics.get(
+            "transformer_encoder_dropout",
+            cfg.get("transformer_encoder_dropout", 0.5),
+        ),
         "transformer_branch_fusion": fold_metrics.get(
             "transformer_branch_fusion", cfg.get("transformer_branch_fusion", "single")
         ),
@@ -419,6 +423,7 @@ def build_markdown(manifest: dict[str, Any]) -> str:
         f"- cumulative_query_attention: `{model.get('cumulative_query_attention')}`",
         f"- transformer_branches: `{model.get('transformer_branches')}`",
         f"- transformer_branch_depths: `{model.get('transformer_branch_depths')}`",
+        f"- transformer_encoder_dropout: `{model.get('transformer_encoder_dropout')}`",
         f"- transformer_branch_fusion: `{model.get('transformer_branch_fusion')}`",
         f"- transformer_weights_independent_by_domain: `{model.get('transformer_weights_independent_by_domain')}`",
         f"- time_transformer_branch_weights: `{model.get('time_transformer_branch_weights')}`",

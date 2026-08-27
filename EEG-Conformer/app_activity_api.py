@@ -75,6 +75,7 @@ class FoldCheckpoint(NamedTuple):
     depth: int
     num_heads: int
     dropout: float
+    transformer_encoder_dropout: float = 0.5
     input_qkv: str = "none"
     input_qkv_dim: int = 64
     input_qkv_heads: int = 4
@@ -161,6 +162,12 @@ def discover_best_loso_ensemble(outputs_root: Path = OUTPUTS_ROOT) -> SelectedEn
                 depth=int(checkpoint.get("depth", 6)),
                 num_heads=int(checkpoint.get("num_heads", 5)),
                 dropout=float(checkpoint.get("dropout", 0.5)),
+                transformer_encoder_dropout=float(
+                    checkpoint.get(
+                        "transformer_encoder_dropout",
+                        metrics.get("transformer_encoder_dropout", 0.5),
+                    )
+                ),
                 input_qkv=str(checkpoint.get("input_qkv", metrics.get("input_qkv", "none"))),
                 input_qkv_dim=int(checkpoint.get("input_qkv_dim", metrics.get("input_qkv_dim", 64))),
                 input_qkv_heads=int(checkpoint.get("input_qkv_heads", metrics.get("input_qkv_heads", 4))),
@@ -329,6 +336,7 @@ def build_runtime_bundle(device: str = DEFAULT_DEVICE) -> RuntimeBundle:
             depth=checkpoint_info.depth,
             num_heads=checkpoint_info.num_heads,
             dropout=checkpoint_info.dropout,
+            transformer_encoder_dropout=checkpoint_info.transformer_encoder_dropout,
             input_qkv=checkpoint_info.input_qkv,
             input_qkv_dim=checkpoint_info.input_qkv_dim,
             input_qkv_heads=checkpoint_info.input_qkv_heads,

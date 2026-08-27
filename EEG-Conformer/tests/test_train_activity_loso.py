@@ -321,6 +321,30 @@ class TestCumulativeQueryAttention(unittest.TestCase):
 
         torch.testing.assert_close(first, second)
 
+    def test_encoder_dropout_configures_all_four_block_locations(self) -> None:
+        encoder = self.module.TransformerEncoder(
+            depth=2,
+            emb_size=40,
+            num_heads=5,
+            dropout=0.63,
+        )
+
+        self.assertAlmostEqual(encoder.dropout_p, 0.63)
+        for block in encoder:
+            self.assertAlmostEqual(block[0].fn[1].att_drop.p, 0.63)
+            self.assertAlmostEqual(block[0].fn[2].p, 0.63)
+            self.assertAlmostEqual(block[1].fn[1][2].p, 0.63)
+            self.assertAlmostEqual(block[1].fn[2].p, 0.63)
+
+    def test_encoder_dropout_rejects_invalid_probability(self) -> None:
+        with self.assertRaisesRegex(ValueError, "transformer_encoder_dropout"):
+            self.module.TransformerEncoder(
+                depth=1,
+                emb_size=40,
+                num_heads=5,
+                dropout=1.0,
+            )
+
 
 class TestActivityConformerForward(unittest.TestCase):
     def setUp(self) -> None:
@@ -545,6 +569,36 @@ class TestActivityConformerForward(unittest.TestCase):
         self.assertIn("time_transformer_branch_qkv_gamma", metadata)
         self.assertIn("fft_transformer_branch_qkv_gamma", metadata)
 
+    def test_parallel_encoder_and_cross_depth_dropouts_are_independent(self) -> None:
+        model = self.module.DualBranchActivityConformer(
+            n_channels=3,
+            time_n_times=120,
+            fft_n_times=101,
+            n_classes=3,
+            emb_size=10,
+            num_heads=5,
+            dropout=0.0,
+            transformer_encoder_dropout=0.61,
+            transformer_depths=[1, 1, 1],
+            transformer_branch_fusion="loss_softmax",
+            transformer_branch_qkv="cross_depth",
+            transformer_branch_qkv_dropout=0.37,
+        )
+
+        for feature_branch in (model.time_branch, model.fft_branch):
+            for encoder in feature_branch.depth_encoders:
+                block = encoder[0]
+                self.assertAlmostEqual(block[0].fn[1].att_drop.p, 0.61)
+                self.assertAlmostEqual(block[0].fn[2].p, 0.61)
+                self.assertAlmostEqual(block[1].fn[1][2].p, 0.61)
+                self.assertAlmostEqual(block[1].fn[2].p, 0.61)
+        for cross_depth in (
+            model.time_cross_depth_qkv,
+            model.fft_cross_depth_qkv,
+        ):
+            self.assertAlmostEqual(cross_depth.attention.dropout, 0.37)
+            self.assertAlmostEqual(cross_depth.dropout.p, 0.37)
+
     def test_loss_softmax_rejects_incompatible_configurations(self) -> None:
         with self.assertRaisesRegex(ValueError, "at least two"):
             self.module.resolve_transformer_branch_fusion(
@@ -732,6 +786,18 @@ class TestParseArgsDefaults(unittest.TestCase):
             ["--transformer-branch-qkv", "cross_depth"]
         )
         self.assertEqual(args.transformer_branch_qkv, "cross_depth")
+
+    def test_accepts_transformer_dropout_arguments(self) -> None:
+        args = self.module.parse_args(
+            [
+                "--transformer-encoder-dropout",
+                "0.61",
+                "--transformer-branch-qkv-dropout",
+                "0.37",
+            ]
+        )
+        self.assertAlmostEqual(args.transformer_encoder_dropout, 0.61)
+        self.assertAlmostEqual(args.transformer_branch_qkv_dropout, 0.37)
 
     def test_resume_is_opt_in(self) -> None:
         self.assertFalse(self.module.parse_args([]).resume)

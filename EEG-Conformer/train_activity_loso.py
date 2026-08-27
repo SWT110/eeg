@@ -65,6 +65,7 @@ DEFAULT_EMB_SIZE = 40
 DEFAULT_DEPTH = 6
 DEFAULT_NUM_HEADS = 5
 DEFAULT_DROPOUT = 0.5
+DEFAULT_TRANSFORMER_ENCODER_DROPOUT = 0.5
 DEFAULT_ENV_NAME = "eegconformer310"
 DEFAULT_INPUT_DOMAIN = "time"
 FFT_INPUT_DOMAIN = "fft"
@@ -325,6 +326,14 @@ def resolve_transformer_branch_qkv(
     return resolved
 
 
+def validate_dropout_probability(raw: float, parameter_name: str) -> float:
+    """Return a finite dropout probability in the half-open interval [0, 1)."""
+    value = float(raw)
+    if not np.isfinite(value) or not 0.0 <= value < 1.0:
+        raise ValueError(f"{parameter_name} must be a finite value in [0, 1)")
+    return value
+
+
 # ---------------------------------------------------------------------------
 # Runtime config
 # ---------------------------------------------------------------------------
@@ -355,6 +364,8 @@ class RuntimeConfig(NamedTuple):
     branch_loss_aux_weight: float = DEFAULT_BRANCH_LOSS_AUX_WEIGHT
     transformer_branch_qkv: str = DEFAULT_TRANSFORMER_BRANCH_QKV
     resume: bool = False
+    transformer_encoder_dropout: float = DEFAULT_TRANSFORMER_ENCODER_DROPOUT
+    transformer_branch_qkv_dropout: float = DEFAULT_TRANSFORMER_BRANCH_QKV_DROPOUT
 
 
 # ---------------------------------------------------------------------------
@@ -542,8 +553,21 @@ class TransformerEncoder(nn.Sequential):
         emb_size: int,
         num_heads: int = 5,
         cumulative_query_attention: bool = DEFAULT_CUMULATIVE_QUERY_ATTENTION,
+        dropout: float = DEFAULT_TRANSFORMER_ENCODER_DROPOUT,
     ) -> None:
-        super().__init__(*[TransformerEncoderBlock(emb_size, num_heads) for _ in range(depth)])
+        dropout_p = validate_dropout_probability(dropout, "transformer_encoder_dropout")
+        super().__init__(
+            *[
+                TransformerEncoderBlock(
+                    emb_size,
+                    num_heads,
+                    drop_p=dropout_p,
+                    forward_drop_p=dropout_p,
+                )
+                for _ in range(depth)
+            ]
+        )
+        self.dropout_p = dropout_p
         self.cumulative_query_attention = bool(cumulative_query_attention)
 
     def forward(self, x: Tensor) -> Tensor:
@@ -821,6 +845,7 @@ class ConformerFeatureBranch(nn.Module):
         cumulative_query_attention: bool = DEFAULT_CUMULATIVE_QUERY_ATTENTION,
         transformer_depths: list[int] | tuple[int, ...] | None = None,
         enable_feature_fusion: bool = True,
+        transformer_encoder_dropout: float = DEFAULT_TRANSFORMER_ENCODER_DROPOUT,
     ) -> None:
         super().__init__()
         self.conv_type = validate_conv_type(conv_type)
@@ -871,6 +896,7 @@ class ConformerFeatureBranch(nn.Module):
                         branch_depth,
                         emb_size,
                         num_heads,
+                        dropout=transformer_encoder_dropout,
                         cumulative_query_attention=self.cumulative_query_attention,
                     )
                     for branch_depth in self.transformer_branch_depths
@@ -884,7 +910,11 @@ class ConformerFeatureBranch(nn.Module):
             # Keep the historical attribute/state_dict layout unchanged when
             # the new feature is disabled, so old checkpoints still load.
             self.encoder = TransformerEncoder(
-                depth, emb_size, num_heads, cumulative_query_attention=self.cumulative_query_attention
+                depth,
+                emb_size,
+                num_heads,
+                dropout=transformer_encoder_dropout,
+                cumulative_query_attention=self.cumulative_query_attention,
             )
 
     def normalized_transformer_weights(self) -> Tensor:
@@ -954,6 +984,10 @@ class CrossDepthQKVResidual(nn.Module):
         super().__init__()
         self.n_branches = int(n_branches)
         self.emb_size = int(emb_size)
+        self.dropout_p = validate_dropout_probability(
+            dropout,
+            "transformer_branch_qkv_dropout",
+        )
         if self.n_branches < 2:
             raise ValueError("CrossDepthQKVResidual requires at least two branches")
         self.depth_embeddings = nn.Parameter(
@@ -964,10 +998,10 @@ class CrossDepthQKVResidual(nn.Module):
         self.attention = nn.MultiheadAttention(
             embed_dim=self.emb_size,
             num_heads=int(num_heads),
-            dropout=float(dropout),
+            dropout=self.dropout_p,
             batch_first=True,
         )
-        self.dropout = nn.Dropout(float(dropout))
+        self.dropout = nn.Dropout(self.dropout_p)
         self.gamma = nn.Parameter(torch.tensor(float(res_scale), dtype=torch.float32))
 
     def forward(self, branch_tokens: tuple[Tensor, ...]) -> tuple[Tensor, ...]:
@@ -1055,6 +1089,8 @@ class DualBranchActivityConformer(nn.Module):
         transformer_branch_fusion: str = DEFAULT_TRANSFORMER_BRANCH_FUSION,
         branch_loss_aux_weight: float = DEFAULT_BRANCH_LOSS_AUX_WEIGHT,
         transformer_branch_qkv: str = DEFAULT_TRANSFORMER_BRANCH_QKV,
+        transformer_encoder_dropout: float = DEFAULT_TRANSFORMER_ENCODER_DROPOUT,
+        transformer_branch_qkv_dropout: float = DEFAULT_TRANSFORMER_BRANCH_QKV_DROPOUT,
     ) -> None:
         super().__init__()
         self.conv_type = validate_conv_type(conv_type)
@@ -1092,6 +1128,14 @@ class DualBranchActivityConformer(nn.Module):
         self.uses_cross_depth_qkv = (
             self.transformer_branch_qkv == TRANSFORMER_BRANCH_QKV_CROSS_DEPTH
         )
+        self.transformer_encoder_dropout = validate_dropout_probability(
+            transformer_encoder_dropout,
+            "transformer_encoder_dropout",
+        )
+        self.transformer_branch_qkv_dropout = validate_dropout_probability(
+            transformer_branch_qkv_dropout,
+            "transformer_branch_qkv_dropout",
+        )
         self.fft_global_layer = (
             FFTGlobalMLP(fft_n_times) if self.fft_global == FFT_GLOBAL_MLP else nn.Identity()
         )
@@ -1102,6 +1146,7 @@ class DualBranchActivityConformer(nn.Module):
             depth=depth,
             num_heads=num_heads,
             dropout=dropout,
+            transformer_encoder_dropout=self.transformer_encoder_dropout,
             conv_type=self.conv_type,
             input_qkv=self.input_qkv,
             input_qkv_dim=input_qkv_dim,
@@ -1119,6 +1164,7 @@ class DualBranchActivityConformer(nn.Module):
             depth=depth,
             num_heads=num_heads,
             dropout=dropout,
+            transformer_encoder_dropout=self.transformer_encoder_dropout,
             conv_type=self.conv_type,
             input_qkv=self.input_qkv,
             input_qkv_dim=input_qkv_dim,
@@ -1137,11 +1183,13 @@ class DualBranchActivityConformer(nn.Module):
                 n_branches=self.transformer_branches,
                 emb_size=emb_size,
                 num_heads=num_heads,
+                dropout=self.transformer_branch_qkv_dropout,
             )
             self.fft_cross_depth_qkv = CrossDepthQKVResidual(
                 n_branches=self.transformer_branches,
                 emb_size=emb_size,
                 num_heads=num_heads,
+                dropout=self.transformer_branch_qkv_dropout,
             )
         if self.uses_branch_loss_fusion:
             self.branch_cls_heads = nn.ModuleList(
@@ -1260,6 +1308,7 @@ class ActivityConformer(nn.Module):
         input_qkv_dropout: float = DEFAULT_INPUT_QKV_DROPOUT,
         input_qkv_res_scale: float = DEFAULT_INPUT_QKV_RES_SCALE,
         cumulative_query_attention: bool = DEFAULT_CUMULATIVE_QUERY_ATTENTION,
+        transformer_encoder_dropout: float = DEFAULT_TRANSFORMER_ENCODER_DROPOUT,
     ) -> None:
         super().__init__()
         self.conv_type = validate_conv_type(conv_type)
@@ -1291,7 +1340,11 @@ class ActivityConformer(nn.Module):
         n_patches = compute_n_patches(n_times)
         self.patch_embedding = PatchEmbedding(n_channels, emb_size, dropout, conv_type=self.conv_type)
         self.encoder = TransformerEncoder(
-            depth, emb_size, num_heads, cumulative_query_attention=self.cumulative_query_attention
+            depth,
+            emb_size,
+            num_heads,
+            dropout=transformer_encoder_dropout,
+            cumulative_query_attention=self.cumulative_query_attention,
         )
         self.cls_head = ClassificationHead(emb_size, n_patches, n_classes)
 
@@ -1834,11 +1887,17 @@ def validate_resume_checkpoint(
     if not isinstance(saved_config, dict):
         raise ValueError("Resume checkpoint training_config must be a dict")
     mismatches: list[str] = []
+    legacy_config_defaults = {
+        # Checkpoints created before encoder dropout was parameterized used 0.5.
+        "transformer_encoder_dropout": DEFAULT_TRANSFORMER_ENCODER_DROPOUT,
+    }
     for key, expected_value in expected_training_config.items():
         # Increasing --epochs is allowed; all data/model/optimizer settings must match.
         if key == "epochs":
             continue
         if key not in saved_config:
+            if legacy_config_defaults.get(key) == expected_value:
+                continue
             mismatches.append(f"{key}=<missing> (expected {expected_value!r})")
         elif saved_config[key] != expected_value:
             mismatches.append(
@@ -1976,6 +2035,8 @@ def train_loso_fold(
     branch_loss_aux_weight: float = DEFAULT_BRANCH_LOSS_AUX_WEIGHT,
     transformer_branch_qkv: str = DEFAULT_TRANSFORMER_BRANCH_QKV,
     resume: bool = False,
+    transformer_encoder_dropout: float = DEFAULT_TRANSFORMER_ENCODER_DROPOUT,
+    transformer_branch_qkv_dropout: float = DEFAULT_TRANSFORMER_BRANCH_QKV_DROPOUT,
 ) -> Path:
     """Train one LOSO fold and return path to metrics.json."""
 
@@ -1997,6 +2058,14 @@ def train_loso_fold(
     resolved_input_qkv_dropout = float(input_qkv_dropout)
     resolved_input_qkv_res_scale = float(input_qkv_res_scale)
     resolved_cumulative_query_attention = bool(cumulative_query_attention)
+    resolved_transformer_encoder_dropout = validate_dropout_probability(
+        transformer_encoder_dropout,
+        "transformer_encoder_dropout",
+    )
+    resolved_transformer_branch_qkv_dropout = validate_dropout_probability(
+        transformer_branch_qkv_dropout,
+        "transformer_branch_qkv_dropout",
+    )
     resolved_transformer_depths = resolve_transformer_branch_depths(
         depth=depth,
         transformer_branches=transformer_branches,
@@ -2025,7 +2094,7 @@ def train_loso_fold(
     if resolved_transformer_branch_qkv == TRANSFORMER_BRANCH_QKV_CROSS_DEPTH:
         branch_qkv_config_metadata.update(
             {
-                "transformer_branch_qkv_dropout": DEFAULT_TRANSFORMER_BRANCH_QKV_DROPOUT,
+                "transformer_branch_qkv_dropout": resolved_transformer_branch_qkv_dropout,
                 "transformer_branch_qkv_res_scale": DEFAULT_TRANSFORMER_BRANCH_QKV_RES_SCALE,
             }
         )
@@ -2074,6 +2143,7 @@ def train_loso_fold(
             depth=depth,
             num_heads=num_heads,
             dropout=dropout,
+            transformer_encoder_dropout=resolved_transformer_encoder_dropout,
             conv_type=resolved_conv_type,
             fft_global=resolved_fft_global,
             input_qkv=resolved_input_qkv,
@@ -2090,6 +2160,7 @@ def train_loso_fold(
             transformer_branch_fusion=resolved_transformer_fusion,
             branch_loss_aux_weight=resolved_branch_loss_aux_weight,
             transformer_branch_qkv=resolved_transformer_branch_qkv,
+            transformer_branch_qkv_dropout=resolved_transformer_branch_qkv_dropout,
         ).to(device_obj)
     else:
         if resolved_input_qkv == INPUT_QKV_TIME:
@@ -2103,6 +2174,7 @@ def train_loso_fold(
             depth=depth,
             num_heads=num_heads,
             dropout=dropout,
+            transformer_encoder_dropout=resolved_transformer_encoder_dropout,
             conv_type=resolved_conv_type,
             fft_global=resolved_fft_global,
             input_qkv=resolved_input_qkv,
@@ -2168,6 +2240,7 @@ def train_loso_fold(
         "batch_size": batch_size,
         "lr": lr,
         "seed": seed,
+        "transformer_encoder_dropout": resolved_transformer_encoder_dropout,
         "input_domain": resolved_input_domain,
         "model_type": model_type,
         "conv_type": resolved_conv_type,
@@ -2213,6 +2286,7 @@ def train_loso_fold(
             "epoch": completed_best_epoch - 1,
             "test_subject_id": test_subject_id,
             "state_dict": model.state_dict(),
+            "transformer_encoder_dropout": resolved_transformer_encoder_dropout,
             "n_channels": n_channels,
             "n_times": n_times,
             "n_classes": n_classes,
@@ -2346,9 +2420,11 @@ def train_loso_fold(
         f"input_qkv={resolved_input_qkv}  "
         f"cumulative_query_attention={resolved_cumulative_query_attention}  "
         f"transformer_depths={list(resolved_transformer_depths)}  "
+        f"transformer_encoder_dropout={resolved_transformer_encoder_dropout}  "
         f"transformer_fusion={resolved_transformer_fusion}  "
         f"branch_loss_aux_weight={resolved_branch_loss_aux_weight}  "
-        f"transformer_branch_qkv={resolved_transformer_branch_qkv}"
+        f"transformer_branch_qkv={resolved_transformer_branch_qkv}  "
+        f"transformer_branch_qkv_dropout={resolved_transformer_branch_qkv_dropout}"
         f"{qkv_shape_text}"
     )
     if resume_message is not None:
@@ -2501,6 +2577,7 @@ def train_loso_fold(
         "test_subject_id": test_subject_id,
         "best_test_acc": best_acc,
         "average_test_acc": aver_acc,
+        "transformer_encoder_dropout": resolved_transformer_encoder_dropout,
         "n_train_samples": n_train_samples,
         "n_test_samples": n_test_samples,
         "n_channels": n_channels,
@@ -2787,6 +2864,8 @@ def resolve_runtime_config(
     branch_loss_aux_weight: float = DEFAULT_BRANCH_LOSS_AUX_WEIGHT,
     transformer_branch_qkv: str = DEFAULT_TRANSFORMER_BRANCH_QKV,
     resume: bool = False,
+    transformer_encoder_dropout: float = DEFAULT_TRANSFORMER_ENCODER_DROPOUT,
+    transformer_branch_qkv_dropout: float = DEFAULT_TRANSFORMER_BRANCH_QKV_DROPOUT,
 ) -> RuntimeConfig:
     missing_flags: list[str] = []
     if dataset_root is None:
@@ -2870,6 +2949,14 @@ def resolve_runtime_config(
     resolved_input_qkv_res_scale = (
         DEFAULT_INPUT_QKV_RES_SCALE if input_qkv_res_scale is None else float(input_qkv_res_scale)
     )
+    resolved_transformer_encoder_dropout = validate_dropout_probability(
+        transformer_encoder_dropout,
+        "transformer_encoder_dropout",
+    )
+    resolved_transformer_branch_qkv_dropout = validate_dropout_probability(
+        transformer_branch_qkv_dropout,
+        "transformer_branch_qkv_dropout",
+    )
     resolved_depth = int(depth)
     resolved_transformer_depths = resolve_transformer_branch_depths(
         depth=resolved_depth,
@@ -2914,11 +3001,13 @@ def resolve_runtime_config(
         input_qkv_res_scale=resolved_input_qkv_res_scale,
         cumulative_query_attention=bool(cumulative_query_attention),
         depth=resolved_depth,
+        transformer_encoder_dropout=resolved_transformer_encoder_dropout,
         transformer_branches=len(resolved_transformer_depths),
         transformer_depths=resolved_transformer_depths,
         transformer_branch_fusion=resolved_transformer_fusion,
         branch_loss_aux_weight=resolved_branch_loss_aux_weight,
         transformer_branch_qkv=resolved_transformer_branch_qkv,
+        transformer_branch_qkv_dropout=resolved_transformer_branch_qkv_dropout,
         resume=bool(resume),
     )
 
@@ -2943,6 +3032,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--batch-size", type=int, default=DEFAULT_BATCH_SIZE)
     parser.add_argument("--lr", type=float, default=DEFAULT_LR)
     parser.add_argument("--depth", type=int, default=DEFAULT_DEPTH, help="TransformerEncoder block count (default: 6)")
+    parser.add_argument(
+        "--transformer-encoder-dropout",
+        type=float,
+        default=DEFAULT_TRANSFORMER_ENCODER_DROPOUT,
+        help=(
+            "Shared dropout for attention weights, attention output, FFN internal, "
+            "and FFN output in every TransformerEncoderBlock (default: 0.5)"
+        ),
+    )
     parser.add_argument(
         "--transformer-branches",
         type=int,
@@ -2978,6 +3076,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help=(
             "QKV communication between parallel depth outputs: none (default) "
             "or cross_depth"
+        ),
+    )
+    parser.add_argument(
+        "--transformer-branch-qkv-dropout",
+        type=float,
+        default=DEFAULT_TRANSFORMER_BRANCH_QKV_DROPOUT,
+        help=(
+            "Shared attention/output dropout inside CrossDepthQKVResidual "
+            "(default: 0.1)"
         ),
     )
     parser.add_argument("--device", type=str, default=DEFAULT_DEVICE)
@@ -3085,6 +3192,11 @@ def main(argv: list[str] | None = None) -> None:
                 args, "cumulative_query_attention", DEFAULT_CUMULATIVE_QUERY_ATTENTION
             ),
             depth=getattr(args, "depth", DEFAULT_DEPTH),
+            transformer_encoder_dropout=getattr(
+                args,
+                "transformer_encoder_dropout",
+                DEFAULT_TRANSFORMER_ENCODER_DROPOUT,
+            ),
             transformer_branches=getattr(
                 args, "transformer_branches", DEFAULT_TRANSFORMER_BRANCHES
             ),
@@ -3104,6 +3216,11 @@ def main(argv: list[str] | None = None) -> None:
                 args,
                 "transformer_branch_qkv",
                 DEFAULT_TRANSFORMER_BRANCH_QKV,
+            ),
+            transformer_branch_qkv_dropout=getattr(
+                args,
+                "transformer_branch_qkv_dropout",
+                DEFAULT_TRANSFORMER_BRANCH_QKV_DROPOUT,
             ),
             resume=bool(getattr(args, "resume", False)),
         )
@@ -3142,12 +3259,14 @@ def main(argv: list[str] | None = None) -> None:
         input_qkv_res_scale=config.input_qkv_res_scale,
         cumulative_query_attention=config.cumulative_query_attention,
         depth=config.depth,
+        transformer_encoder_dropout=config.transformer_encoder_dropout,
         transformer_branches=config.transformer_branches,
         transformer_depths=config.transformer_depths,
         class_weights=config.class_weights,
         transformer_branch_fusion=config.transformer_branch_fusion,
         branch_loss_aux_weight=config.branch_loss_aux_weight,
         transformer_branch_qkv=config.transformer_branch_qkv,
+        transformer_branch_qkv_dropout=config.transformer_branch_qkv_dropout,
         resume=config.resume,
     )
 

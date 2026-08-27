@@ -560,6 +560,11 @@ def build_manifest_training_config(
         "cumulative_query_attention": cumulative_query_attention,
         "transformer_branches": transformer_branches,
         "transformer_branch_depths": list(transformer_depths),
+        "transformer_encoder_dropout": getattr(
+            train_batch,
+            "DEFAULT_TRANSFORMER_ENCODER_DROPOUT",
+            0.5,
+        ),
         "transformer_branch_fusion": (
             "softmax_weighted_sum" if transformer_branches > 1 else "single"
         ),

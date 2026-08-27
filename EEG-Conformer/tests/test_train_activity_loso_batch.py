@@ -245,6 +245,7 @@ class TestFoldIsComplete(unittest.TestCase):
                     "transformer_branch_fusion": "loss_softmax",
                     "branch_loss_aux_weight": 0.2,
                     "transformer_branch_qkv": "cross_depth",
+                    "transformer_branch_qkv_dropout": 0.1,
                 }
             )
         )
@@ -267,8 +268,39 @@ class TestFoldIsComplete(unittest.TestCase):
             self.module.fold_is_complete(
                 self.output_dir,
                 subject_id=10,
+                transformer_branch_qkv="cross_depth",
+                transformer_branch_qkv_dropout=0.3,
+                **common,
+            )
+        )
+        self.assertFalse(
+            self.module.fold_is_complete(
+                self.output_dir,
+                subject_id=10,
                 transformer_branch_qkv="none",
                 **common,
+            )
+        )
+
+    def test_transformer_encoder_dropout_must_match_metrics(self) -> None:
+        fold_dir = self.output_dir / "fold_subject_11"
+        fold_dir.mkdir()
+        (fold_dir / "metrics.json").write_text(
+            json.dumps({"transformer_encoder_dropout": 0.6})
+        )
+
+        self.assertTrue(
+            self.module.fold_is_complete(
+                self.output_dir,
+                subject_id=11,
+                transformer_encoder_dropout=0.6,
+            )
+        )
+        self.assertFalse(
+            self.module.fold_is_complete(
+                self.output_dir,
+                subject_id=11,
+                transformer_encoder_dropout=0.5,
             )
         )
 
@@ -470,12 +502,14 @@ class TestRunLosoBatch(unittest.TestCase):
                 transformer_branch_fusion="loss_softmax",
                 branch_loss_aux_weight=0.2,
                 transformer_branch_qkv="cross_depth",
+                transformer_encoder_dropout=0.61,
+                transformer_branch_qkv_dropout=0.37,
             )
 
-        self.assertEqual(
-            mock_train.call_args.kwargs["transformer_branch_qkv"],
-            "cross_depth",
-        )
+        kwargs = mock_train.call_args.kwargs
+        self.assertEqual(kwargs["transformer_branch_qkv"], "cross_depth")
+        self.assertAlmostEqual(kwargs["transformer_encoder_dropout"], 0.61)
+        self.assertAlmostEqual(kwargs["transformer_branch_qkv_dropout"], 0.37)
 
     def test_resume_runs_bare_best_model_fold_and_passes_flag(self) -> None:
         fold_dir = self.output_dir / "fold_subject_1"
@@ -629,6 +663,18 @@ class TestParseArgs(unittest.TestCase):
             ["--transformer-branch-qkv", "cross_depth"]
         )
         self.assertEqual(args.transformer_branch_qkv, "cross_depth")
+
+    def test_accepts_transformer_dropout_arguments(self) -> None:
+        args = self.module.parse_args(
+            [
+                "--transformer-encoder-dropout",
+                "0.61",
+                "--transformer-branch-qkv-dropout",
+                "0.37",
+            ]
+        )
+        self.assertAlmostEqual(args.transformer_encoder_dropout, 0.61)
+        self.assertAlmostEqual(args.transformer_branch_qkv_dropout, 0.37)
 
     def test_skip_existing_defaults_to_false(self) -> None:
         args = self.module.parse_args([])

@@ -72,6 +72,8 @@ from train_activity_loso import (  # noqa: E402
     DEFAULT_TRANSFORMER_BRANCHES,
     DEFAULT_TRANSFORMER_BRANCH_FUSION,
     DEFAULT_TRANSFORMER_BRANCH_QKV,
+    DEFAULT_TRANSFORMER_BRANCH_QKV_DROPOUT,
+    DEFAULT_TRANSFORMER_ENCODER_DROPOUT,
     RESUME_CHECKPOINT_FILENAME,
     TRANSFORMER_FUSION_SINGLE,
     TRANSFORMER_FUSION_SOFTMAX,
@@ -90,6 +92,7 @@ from train_activity_loso import (  # noqa: E402
     validate_input_domain,
     validate_input_qkv,
     validate_device,
+    validate_dropout_probability,
 )
 
 PROJECT_ROOT = _HERE
@@ -150,6 +153,8 @@ def fold_is_complete(
     transformer_branch_fusion: str = DEFAULT_TRANSFORMER_BRANCH_FUSION,
     branch_loss_aux_weight: float = DEFAULT_BRANCH_LOSS_AUX_WEIGHT,
     transformer_branch_qkv: str = DEFAULT_TRANSFORMER_BRANCH_QKV,
+    transformer_encoder_dropout: float = DEFAULT_TRANSFORMER_ENCODER_DROPOUT,
+    transformer_branch_qkv_dropout: float = DEFAULT_TRANSFORMER_BRANCH_QKV_DROPOUT,
 ) -> bool:
     """Return True if the fold directory already contains a matching result artifact."""
     fold_dir = fold_output_dir(output_dir, subject_id)
@@ -163,6 +168,14 @@ def fold_is_complete(
     expected_input_qkv_dropout = float(input_qkv_dropout)
     expected_input_qkv_res_scale = float(input_qkv_res_scale)
     expected_cumulative_query_attention = bool(cumulative_query_attention)
+    expected_transformer_encoder_dropout = validate_dropout_probability(
+        transformer_encoder_dropout,
+        "transformer_encoder_dropout",
+    )
+    expected_transformer_branch_qkv_dropout = validate_dropout_probability(
+        transformer_branch_qkv_dropout,
+        "transformer_branch_qkv_dropout",
+    )
     expected_depth = int(depth)
     expected_transformer_depths = resolve_transformer_branch_depths(
         depth=expected_depth,
@@ -204,6 +217,12 @@ def fold_is_complete(
             metrics.get("cumulative_query_attention", DEFAULT_CUMULATIVE_QUERY_ATTENTION)
         )
         actual_depth = int(metrics.get("depth", DEFAULT_DEPTH))
+        actual_transformer_encoder_dropout = float(
+            metrics.get(
+                "transformer_encoder_dropout",
+                DEFAULT_TRANSFORMER_ENCODER_DROPOUT,
+            )
+        )
         actual_transformer_branches = int(
             metrics.get("transformer_branches", DEFAULT_TRANSFORMER_BRANCHES)
         )
@@ -231,6 +250,21 @@ def fold_is_complete(
             transformer_branches=actual_transformer_branches,
             input_domain=actual_input_domain,
         )
+        actual_transformer_branch_qkv_dropout = float(
+            metrics.get(
+                "transformer_branch_qkv_dropout",
+                DEFAULT_TRANSFORMER_BRANCH_QKV_DROPOUT,
+            )
+        )
+        branch_qkv_dropout_matches = True
+        if (
+            expected_transformer_branch_qkv != DEFAULT_TRANSFORMER_BRANCH_QKV
+            or actual_transformer_branch_qkv != DEFAULT_TRANSFORMER_BRANCH_QKV
+        ):
+            branch_qkv_dropout_matches = (
+                actual_transformer_branch_qkv_dropout
+                == expected_transformer_branch_qkv_dropout
+            )
         qkv_params_match = True
         if expected_input_qkv != DEFAULT_INPUT_QKV or actual_input_qkv != DEFAULT_INPUT_QKV:
             qkv_params_match = (
@@ -246,11 +280,13 @@ def fold_is_complete(
             and actual_input_qkv == expected_input_qkv
             and actual_cumulative_query_attention == expected_cumulative_query_attention
             and actual_depth == expected_depth
+            and actual_transformer_encoder_dropout == expected_transformer_encoder_dropout
             and actual_transformer_branches == expected_transformer_branches
             and actual_transformer_depths == expected_transformer_depths
             and actual_transformer_fusion == expected_transformer_fusion
             and actual_branch_loss_aux_weight == expected_branch_loss_aux_weight
             and actual_transformer_branch_qkv == expected_transformer_branch_qkv
+            and branch_qkv_dropout_matches
             and qkv_params_match
         )
 
@@ -264,6 +300,7 @@ def fold_is_complete(
         and expected_input_qkv == DEFAULT_INPUT_QKV
         and expected_cumulative_query_attention == DEFAULT_CUMULATIVE_QUERY_ATTENTION
         and expected_depth == DEFAULT_DEPTH
+        and expected_transformer_encoder_dropout == DEFAULT_TRANSFORMER_ENCODER_DROPOUT
         and expected_transformer_branches == DEFAULT_TRANSFORMER_BRANCHES
         and expected_transformer_depths == (DEFAULT_DEPTH,)
         and expected_transformer_fusion == TRANSFORMER_FUSION_SINGLE
@@ -321,6 +358,8 @@ def run_loso_batch(
     branch_loss_aux_weight: float = DEFAULT_BRANCH_LOSS_AUX_WEIGHT,
     transformer_branch_qkv: str = DEFAULT_TRANSFORMER_BRANCH_QKV,
     resume: bool = False,
+    transformer_encoder_dropout: float = DEFAULT_TRANSFORMER_ENCODER_DROPOUT,
+    transformer_branch_qkv_dropout: float = DEFAULT_TRANSFORMER_BRANCH_QKV_DROPOUT,
 ) -> list[LosoFoldResult]:
     resolved_device = validate_device(device)
     resolved_input_domain = validate_input_domain(input_domain)
@@ -332,6 +371,14 @@ def run_loso_batch(
     resolved_input_qkv_dropout = float(input_qkv_dropout)
     resolved_input_qkv_res_scale = float(input_qkv_res_scale)
     resolved_cumulative_query_attention = bool(cumulative_query_attention)
+    resolved_transformer_encoder_dropout = validate_dropout_probability(
+        transformer_encoder_dropout,
+        "transformer_encoder_dropout",
+    )
+    resolved_transformer_branch_qkv_dropout = validate_dropout_probability(
+        transformer_branch_qkv_dropout,
+        "transformer_branch_qkv_dropout",
+    )
     resolved_depth = int(depth)
     resolved_transformer_depths = resolve_transformer_branch_depths(
         depth=resolved_depth,
@@ -361,23 +408,25 @@ def run_loso_batch(
     for subject_id in subject_ids:
         fold_dir = fold_output_dir(output_dir, subject_id)
         fold_complete = skip_existing and fold_is_complete(
-            output_dir,
-            subject_id,
-            resolved_input_domain,
-            resolved_conv_type,
-            resolved_fft_global,
-            resolved_input_qkv,
-            resolved_input_qkv_dim,
-            resolved_input_qkv_heads,
-            resolved_input_qkv_dropout,
-            resolved_input_qkv_res_scale,
-            resolved_cumulative_query_attention,
-            resolved_depth,
-            resolved_transformer_branches,
-            resolved_transformer_depths,
+            output_dir=output_dir,
+            subject_id=subject_id,
+            input_domain=resolved_input_domain,
+            conv_type=resolved_conv_type,
+            fft_global=resolved_fft_global,
+            input_qkv=resolved_input_qkv,
+            input_qkv_dim=resolved_input_qkv_dim,
+            input_qkv_heads=resolved_input_qkv_heads,
+            input_qkv_dropout=resolved_input_qkv_dropout,
+            input_qkv_res_scale=resolved_input_qkv_res_scale,
+            cumulative_query_attention=resolved_cumulative_query_attention,
+            depth=resolved_depth,
+            transformer_branches=resolved_transformer_branches,
+            transformer_depths=resolved_transformer_depths,
             transformer_branch_fusion=resolved_transformer_fusion,
             branch_loss_aux_weight=resolved_branch_loss_aux_weight,
             transformer_branch_qkv=resolved_transformer_branch_qkv,
+            transformer_encoder_dropout=resolved_transformer_encoder_dropout,
+            transformer_branch_qkv_dropout=resolved_transformer_branch_qkv_dropout,
         )
         # A legacy bare best_model.pt may represent only an interrupted fold.
         # In resume mode, metrics.json is the only completion marker.
@@ -424,12 +473,14 @@ def run_loso_batch(
                 input_qkv_res_scale=resolved_input_qkv_res_scale,
                 cumulative_query_attention=resolved_cumulative_query_attention,
                 depth=resolved_depth,
+                transformer_encoder_dropout=resolved_transformer_encoder_dropout,
                 transformer_branches=resolved_transformer_branches,
                 transformer_depths=resolved_transformer_depths,
                 class_weights=class_weights,
                 transformer_branch_fusion=resolved_transformer_fusion,
                 branch_loss_aux_weight=resolved_branch_loss_aux_weight,
                 transformer_branch_qkv=resolved_transformer_branch_qkv,
+                transformer_branch_qkv_dropout=resolved_transformer_branch_qkv_dropout,
                 resume=bool(resume),
             )
         except Exception as exc:
@@ -541,6 +592,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--lr", type=float, default=DEFAULT_LR)
     parser.add_argument("--depth", type=int, default=DEFAULT_DEPTH, help="TransformerEncoder block count (default: 6)")
     parser.add_argument(
+        "--transformer-encoder-dropout",
+        type=float,
+        default=DEFAULT_TRANSFORMER_ENCODER_DROPOUT,
+        help=(
+            "Shared dropout for attention weights, attention output, FFN internal, "
+            "and FFN output in every TransformerEncoderBlock (default: 0.5)"
+        ),
+    )
+    parser.add_argument(
         "--transformer-branches",
         type=int,
         default=DEFAULT_TRANSFORMER_BRANCHES,
@@ -575,6 +635,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help=(
             "QKV communication between parallel depth outputs: none (default) "
             "or cross_depth"
+        ),
+    )
+    parser.add_argument(
+        "--transformer-branch-qkv-dropout",
+        type=float,
+        default=DEFAULT_TRANSFORMER_BRANCH_QKV_DROPOUT,
+        help=(
+            "Shared attention/output dropout inside CrossDepthQKVResidual "
+            "(default: 0.1)"
         ),
     )
     parser.add_argument("--device", type=str, default=DEFAULT_DEVICE)
@@ -708,12 +777,14 @@ def main(argv: list[str] | None = None) -> None:
         input_qkv_res_scale=args.input_qkv_res_scale,
         cumulative_query_attention=args.cumulative_query_attention,
         depth=args.depth,
+        transformer_encoder_dropout=args.transformer_encoder_dropout,
         transformer_branches=args.transformer_branches,
         transformer_depths=args.transformer_depths,
         class_weights=class_weights,
         transformer_branch_fusion=args.transformer_branch_fusion,
         branch_loss_aux_weight=args.branch_loss_aux_weight,
         transformer_branch_qkv=args.transformer_branch_qkv,
+        transformer_branch_qkv_dropout=args.transformer_branch_qkv_dropout,
         resume=bool(args.resume),
     )
 
