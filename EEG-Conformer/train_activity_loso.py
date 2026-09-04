@@ -41,6 +41,16 @@ import torch.nn.functional as F
 from torch import Tensor
 from torch.utils.data import DataLoader, TensorDataset
 
+_MODULE_DIR = Path(__file__).resolve().parent
+if str(_MODULE_DIR) not in sys.path:
+    sys.path.insert(0, str(_MODULE_DIR))
+
+from comparison_models import (
+    build_comparison_model,
+    count_trainable_parameters,
+    normalize_comparison_model_name,
+)
+
 
 # ---------------------------------------------------------------------------
 # Paths & top-level constants
@@ -67,6 +77,7 @@ DEFAULT_NUM_HEADS = 5
 DEFAULT_DROPOUT = 0.5
 DEFAULT_TRANSFORMER_ENCODER_DROPOUT = 0.5
 DEFAULT_ENV_NAME = "eegconformer310"
+DEFAULT_ARCHITECTURE = "eegconformer"
 DEFAULT_INPUT_DOMAIN = "time"
 FFT_INPUT_DOMAIN = "fft"
 DUAL_INPUT_DOMAIN = "time_fft"
@@ -2037,6 +2048,7 @@ def train_loso_fold(
     resume: bool = False,
     transformer_encoder_dropout: float = DEFAULT_TRANSFORMER_ENCODER_DROPOUT,
     transformer_branch_qkv_dropout: float = DEFAULT_TRANSFORMER_BRANCH_QKV_DROPOUT,
+    architecture: str = DEFAULT_ARCHITECTURE,
 ) -> Path:
     """Train one LOSO fold and return path to metrics.json."""
 
@@ -2049,6 +2061,12 @@ def train_loso_fold(
         torch.cuda.manual_seed_all(seed)
 
     device_obj = torch.device(device)
+    architecture_value = str(architecture).strip().lower().replace("-", "").replace("_", "")
+    resolved_architecture = (
+        DEFAULT_ARCHITECTURE
+        if architecture_value == DEFAULT_ARCHITECTURE
+        else normalize_comparison_model_name(architecture)
+    )
     resolved_input_domain = validate_input_domain(input_domain)
     resolved_conv_type = validate_conv_type(conv_type)
     resolved_fft_global = validate_fft_global_for_input_domain(resolved_input_domain, fft_global)
@@ -2118,9 +2136,48 @@ def train_loso_fold(
         input_domain=resolved_input_domain,
     )
 
-    model_type = "dual_branch" if resolved_input_domain == DUAL_INPUT_DOMAIN else "single_branch"
+    is_comparison_model = resolved_architecture != DEFAULT_ARCHITECTURE
+    if is_comparison_model:
+        incompatible_options: list[str] = []
+        if resolved_input_domain != DEFAULT_INPUT_DOMAIN:
+            incompatible_options.append("input_domain")
+        if resolved_conv_type != DEFAULT_CONV_TYPE:
+            incompatible_options.append("conv_type")
+        if resolved_fft_global != DEFAULT_FFT_GLOBAL:
+            incompatible_options.append("fft_global")
+        if resolved_input_qkv != DEFAULT_INPUT_QKV:
+            incompatible_options.append("input_qkv")
+        if resolved_cumulative_query_attention:
+            incompatible_options.append("cumulative_query_attention")
+        if resolved_transformer_branches != DEFAULT_TRANSFORMER_BRANCHES:
+            incompatible_options.append("transformer_branches")
+        if incompatible_options:
+            joined = ", ".join(incompatible_options)
+            raise ValueError(
+                f"External comparison architecture {resolved_architecture!r} uses "
+                f"time-domain input only; incompatible options: {joined}"
+            )
+
+    model_type = (
+        "external_comparison"
+        if is_comparison_model
+        else (
+            "dual_branch"
+            if resolved_input_domain == DUAL_INPUT_DOMAIN
+            else "single_branch"
+        )
+    )
     branch_shape_metadata: dict[str, int] = {"n_times": int(n_times)}
-    if resolved_input_domain == DUAL_INPUT_DOMAIN:
+    architecture_config: dict = {}
+    if is_comparison_model:
+        model = build_comparison_model(
+            resolved_architecture,
+            n_channels=n_channels,
+            n_times=n_times,
+            n_classes=n_classes,
+        ).to(device_obj)
+        architecture_config = dict(model.architecture_config)
+    elif resolved_input_domain == DUAL_INPUT_DOMAIN:
         dataset_tensors = train_loader.dataset.tensors  # type: ignore[attr-defined]
         time_n_times = int(dataset_tensors[0].shape[3])
         fft_n_times = int(dataset_tensors[1].shape[3])
@@ -2272,6 +2329,14 @@ def train_loso_fold(
         "loss": loss_name,
         **branch_shape_metadata,
     }
+    if is_comparison_model:
+        history_metadata.update(
+            {
+                "architecture": resolved_architecture,
+                "architecture_config": architecture_config,
+                "trainable_parameters": count_trainable_parameters(model),
+            }
+        )
 
     def log(message: str) -> None:
         print(message)
@@ -2297,6 +2362,9 @@ def train_loso_fold(
             "optimizer": "Adam",
             "optimizer_betas": list(DEFAULT_BETAS),
             "loss": loss_name,
+            "architecture": resolved_architecture,
+            "architecture_config": architecture_config,
+            "trainable_parameters": count_trainable_parameters(model),
             "input_domain": resolved_input_domain,
             "model_type": model_type,
             "conv_type": resolved_conv_type,
@@ -2416,6 +2484,7 @@ def train_loso_fold(
         f"\n[LOSO fold subject={test_subject_id}] "
         f"train={n_train_samples}  test={n_test_samples}  "
         f"{shape_text}  classes={n_classes}  model={model_type}  "
+        f"architecture={resolved_architecture}  "
         f"conv_type={resolved_conv_type}  fft_global={resolved_fft_global}  "
         f"input_qkv={resolved_input_qkv}  "
         f"cumulative_query_attention={resolved_cumulative_query_attention}  "
@@ -2587,6 +2656,9 @@ def train_loso_fold(
         "batch_size": batch_size,
         "lr": lr,
         "seed": seed,
+        "architecture": resolved_architecture,
+        "architecture_config": architecture_config,
+        "trainable_parameters": count_trainable_parameters(model),
         "input_domain": resolved_input_domain,
         "model_type": model_type,
         "conv_type": resolved_conv_type,

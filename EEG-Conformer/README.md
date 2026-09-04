@@ -37,6 +37,8 @@ eeg-data-processing/data_to_list/build_activity_global_index.py
 | `train_activity_loso.py` | 正式的 LOSO 单 fold 三分类训练入口 |
 | `train_activity_loso_batch.py` | 批量跑完单套数据集的全部 LOSO fold |
 | `train_activity_loso_generated_batch.py` | 批量遍历多套 window/stride 数据集并自动汇总 |
+| `train_activity_comparison.py` | 在相同 LOSO 协议下运行 EEGNet、ShallowConvNet、ATCNet 和 TCFormer |
+| `comparison_models.py` | 四个外部基线的 plain-PyTorch 适配与可追溯架构配置 |
 | `summarize_loso_results.py` | 汇总准确率、混淆矩阵、Macro-F1 |
 | `train_activity_final.py` | 用全部数据训练最终部署模型 |
 | `predict_activity_signal.py` | 对单个 EEG xlsx 做整段活动预测 |
@@ -135,6 +137,23 @@ fold 成功生成 `metrics.json` 后会删除较大的 `last_checkpoint.pt`，�
 ```bash
 python train_activity_loso_generated_batch.py \
   --device cuda:0
+```
+
+运行外部模型公平比较（完整文献依据、服务器命令和验收规则见
+`../对比实验方案与运行命令.md`）：
+
+```bash
+python train_activity_comparison.py \
+  --dataset-root ../local_artifacts/data_to_list/global_activity_dataset/window_15_stride_3 \
+  --models eegnet,shallowconvnet,atcnet,tcformer \
+  --seeds 42 \
+  --epochs 200 \
+  --batch-size 72 \
+  --lr 0.0002 \
+  --class-weights 3,3,1 \
+  --device cuda:0 \
+  --resume \
+  --skip-existing
 ```
 
 训练最终部署模型：
