@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "primary_metric": "mean_subject_macro_f1",
+  "n_classes": 3,
+  "inner_folds": 3,
+  "split_seed": 20260906,
+  "seeds": [42, 43, 44],
+  "models": ["time", "time_fft", "mdtf", "no_cross_depth", "uniform_fusion", "no_aux", "repeated_depth", "singledepth11", "eegnet", "shallowconvnet", "atcnet", "tcformer"],
+  "training": {
+    "max_epochs": 200,
+    "batch_size": 72,
+    "learning_rate": 0.0002,
+    "adam_betas": [0.5, 0.999],
+    "class_weights": [3.0, 3.0, 1.0]
+  },
+  "hyperparameter_candidates": [
+    {
+      "id": "fixed_prior",
+      "learning_rate": 0.0002,
+      "class_weights": [3.0, 3.0, 1.0],
+      "provenance": "Previously selected development settings; deliberately fixed for controlled first-round comparisons. All models have one candidate; only epoch count is selected in the inner loop."
+    }
+  ],
+  "protocol_notes": [
+    "Primary dataset is the previously selected window_15_stride_3 directory; specify it explicitly on the CLI.",
+    "MDTF and its controlled ablations share encoder dropout 0.85 and CD-QKV dropout 0.25. Their model presets lock architecture settings.",
+    "time and time_fft are depth-6 baselines at encoder dropout 0.5. singledepth11 uses depth 11 and encoder dropout 0.85 without cross-depth interaction.",
+    "no_aux removes the additional 0.2 mean-branch loss, while retaining the weighted branch losses.",
+    "uniform_fusion fixes zero logits with requires_grad=False, making both prediction fusion and branch-loss weights exactly 1/3.",
+    "repeated_depth uses three independently initialized depth-10 encoders per domain, totaling 30 blocks versus 29 in depths 11/10/8; it is approximately, not exactly, capacity matched.",
+    "To compare optimizer/class-weight candidates, add learning_rate and class_weights entries before any outer run and freeze the resulting config. Keep the same candidate list for all controlled variants.",
+    "This protocol removes current test-guided epoch/candidate selection, not record-adaptive preprocessing or historical architecture/hyperparameter selection. Existing 11 subjects remain an internal dataset."
+  ]
+}
