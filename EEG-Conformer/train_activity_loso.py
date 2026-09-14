@@ -377,6 +377,7 @@ class RuntimeConfig(NamedTuple):
     resume: bool = False
     transformer_encoder_dropout: float = DEFAULT_TRANSFORMER_ENCODER_DROPOUT
     transformer_branch_qkv_dropout: float = DEFAULT_TRANSFORMER_BRANCH_QKV_DROPOUT
+    classification_mode: str = "flat"
 
 
 # ---------------------------------------------------------------------------
@@ -1069,6 +1070,40 @@ class FusionClassificationHead(nn.Module):
         return x, self.fc(x)
 
 
+def validate_classification_mode(value: str) -> str:
+    if value not in ("flat", "hierarchical"):
+        raise ValueError("classification_mode must be flat or hierarchical")
+    return value
+
+
+class HierarchicalClassificationHead(nn.Module):
+    """P(e1)=P(group12)P(e1|group12), likewise e2; P(e3)=P(group3).
+
+    CE on these normalized log probabilities is the sum of gate CE and
+    conditional CE, with no conditional loss for true e3 samples.
+    """
+
+    def __init__(self, in_features: int, n_classes: int) -> None:
+        super().__init__()
+        if n_classes != 3:
+            raise ValueError("hierarchical classification requires exactly 3 classes")
+        self.group_head = FusionClassificationHead(in_features, 2)
+        self.within_group_head = FusionClassificationHead(in_features, 2)
+
+    def forward(self, x: Tensor) -> tuple[Tensor, Tensor]:
+        group = F.log_softmax(self.group_head(x)[1], dim=1)
+        within = F.log_softmax(self.within_group_head(x)[1], dim=1)
+        return x, torch.cat((group[:, :1] + within, group[:, 1:]), dim=1)
+
+
+def predict_class_labels(model: nn.Module, logits: Tensor) -> Tensor:
+    """Hard gate first, then distinguish e1/e2 (labels 0/1/2)."""
+    if getattr(model, "classification_mode", "flat") == "hierarchical":
+        group12 = torch.logsumexp(logits[:, :2], dim=1)
+        return torch.where(group12 >= logits[:, 2], logits[:, :2].argmax(dim=1), 2)
+    return logits.argmax(dim=1)
+
+
 class DualBranchActivityConformer(nn.Module):
     """Dual-domain EEG-Conformer with opt-in feature- or loss-level fusion.
 
@@ -1102,8 +1137,15 @@ class DualBranchActivityConformer(nn.Module):
         transformer_branch_qkv: str = DEFAULT_TRANSFORMER_BRANCH_QKV,
         transformer_encoder_dropout: float = DEFAULT_TRANSFORMER_ENCODER_DROPOUT,
         transformer_branch_qkv_dropout: float = DEFAULT_TRANSFORMER_BRANCH_QKV_DROPOUT,
+        classification_mode: str = "flat",
     ) -> None:
         super().__init__()
+        self.classification_mode = validate_classification_mode(classification_mode)
+        head_type = (
+            HierarchicalClassificationHead
+            if classification_mode == "hierarchical"
+            else FusionClassificationHead
+        )
         self.conv_type = validate_conv_type(conv_type)
         self.fft_global = validate_fft_global(fft_global)
         self.input_qkv = validate_input_qkv(input_qkv)
@@ -1204,13 +1246,13 @@ class DualBranchActivityConformer(nn.Module):
             )
         if self.uses_branch_loss_fusion:
             self.branch_cls_heads = nn.ModuleList(
-                [FusionClassificationHead(fused_size, n_classes) for _ in self.transformer_branch_depths]
+                [head_type(fused_size, n_classes) for _ in self.transformer_branch_depths]
             )
             # Zero logits initialize all depth-loss weights to 1 / n.
             self.branch_loss_weight_logits = nn.Parameter(torch.zeros(self.transformer_branches))
         else:
             # Preserve the legacy module/state_dict layout when the new mode is disabled.
-            self.cls_head = FusionClassificationHead(fused_size, n_classes)
+            self.cls_head = head_type(fused_size, n_classes)
 
     def normalized_branch_loss_weights(self) -> Tensor:
         if not self.uses_branch_loss_fusion:
@@ -1281,6 +1323,12 @@ class DualBranchActivityConformer(nn.Module):
         fused_logits = (
             weights.view(-1, 1, 1) * torch.stack(branch_logits, dim=0)
         ).sum(dim=0)
+        if self.classification_mode == "hierarchical":
+            # Mix normalized joint probabilities, keeping the group probabilities coherent.
+            fused_logits = torch.logsumexp(
+                F.log_softmax(self.branch_loss_weight_logits, dim=0).view(-1, 1, 1)
+                + torch.stack(branch_logits, dim=0), dim=0,
+            )
         return fused_features, fused_logits, branch_logits
 
     def forward(self, x_time: Tensor, x_fft: Tensor) -> tuple[Tensor, Tensor]:
@@ -1681,7 +1729,7 @@ def evaluate_with_branch_losses(
             )
             batch_size = len(batch_y)
             total_loss += float(loss.item()) * batch_size
-            total_correct += int((logits.argmax(dim=1) == batch_y).sum().item())
+            total_correct += int((predict_class_labels(model, logits) == batch_y).sum().item())
             total_samples += batch_size
             if branch_losses and not branch_loss_totals:
                 branch_loss_totals = [0.0] * len(branch_losses)
@@ -1715,7 +1763,7 @@ def collect_predictions(
     with torch.no_grad():
         for batch in dataloader:
             logits, batch_y = forward_model_batch(model, batch, device)
-            all_pred.extend(logits.argmax(dim=1).cpu().tolist())
+            all_pred.extend(predict_class_labels(model, logits).cpu().tolist())
             all_true.extend(batch_y.cpu().tolist())
     return np.array(all_true, dtype=np.int64), np.array(all_pred, dtype=np.int64)
 
@@ -1899,6 +1947,7 @@ def validate_resume_checkpoint(
         raise ValueError("Resume checkpoint training_config must be a dict")
     mismatches: list[str] = []
     legacy_config_defaults = {
+        "classification_mode": "flat",
         # Checkpoints created before encoder dropout was parameterized used 0.5.
         "transformer_encoder_dropout": DEFAULT_TRANSFORMER_ENCODER_DROPOUT,
     }
@@ -2049,6 +2098,7 @@ def train_loso_fold(
     transformer_encoder_dropout: float = DEFAULT_TRANSFORMER_ENCODER_DROPOUT,
     transformer_branch_qkv_dropout: float = DEFAULT_TRANSFORMER_BRANCH_QKV_DROPOUT,
     architecture: str = DEFAULT_ARCHITECTURE,
+    classification_mode: str = "flat",
 ) -> Path:
     """Train one LOSO fold and return path to metrics.json."""
 
@@ -2068,6 +2118,11 @@ def train_loso_fold(
         else normalize_comparison_model_name(architecture)
     )
     resolved_input_domain = validate_input_domain(input_domain)
+    classification_mode = validate_classification_mode(classification_mode)
+    if classification_mode == "hierarchical" and (
+        resolved_input_domain != DUAL_INPUT_DOMAIN or resolved_architecture != DEFAULT_ARCHITECTURE
+    ):
+        raise ValueError("hierarchical classification requires Conformer with --input-domain time_fft")
     resolved_conv_type = validate_conv_type(conv_type)
     resolved_fft_global = validate_fft_global_for_input_domain(resolved_input_domain, fft_global)
     resolved_input_qkv = validate_input_qkv(input_qkv)
@@ -2124,6 +2179,9 @@ def train_loso_fold(
         if resolved_transformer_fusion == TRANSFORMER_FUSION_LOSS_SOFTMAX
         else "CrossEntropyLoss"
     )
+
+    if classification_mode == "hierarchical":
+        loss_name = loss_name.replace("CrossEntropyLoss", "HierarchicalPathNLLLoss")
 
     (
         train_loader, test_loader,
@@ -2215,6 +2273,7 @@ def train_loso_fold(
                 else None
             ),
             transformer_branch_fusion=resolved_transformer_fusion,
+            classification_mode=classification_mode,
             branch_loss_aux_weight=resolved_branch_loss_aux_weight,
             transformer_branch_qkv=resolved_transformer_branch_qkv,
             transformer_branch_qkv_dropout=resolved_transformer_branch_qkv_dropout,
@@ -2242,7 +2301,9 @@ def train_loso_fold(
             cumulative_query_attention=resolved_cumulative_query_attention,
         ).to(device_obj)
 
-    # Adam + CrossEntropyLoss – identical hyper-parameters to original
+    # Hierarchical NLL = group CE + conditional CE (only for true e1/e2).
+    # Original class weights apply to each sample's full path loss.
+    # Adam hyper-parameters remain identical to original.
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, betas=DEFAULT_BETAS)
     if class_weights is not None and len(class_weights) != n_classes:
         raise ValueError(
@@ -2253,7 +2314,8 @@ def train_loso_fold(
         if class_weights is not None
         else None
     )
-    criterion = nn.CrossEntropyLoss(weight=class_weight_tensor).to(device_obj)
+    criterion_type = nn.NLLLoss if classification_mode == "hierarchical" else nn.CrossEntropyLoss
+    criterion = criterion_type(weight=class_weight_tensor).to(device_obj)
 
     fold_dir = Path(output_dir) / f"fold_subject_{test_subject_id}"
     fold_dir.mkdir(parents=True, exist_ok=True)
@@ -2312,6 +2374,7 @@ def train_loso_fold(
         "transformer_branch_depths": list(resolved_transformer_depths),
         "transformer_branch_fusion": resolved_transformer_fusion,
         "transformer_weights_independent_by_domain": transformer_weights_independent_by_domain,
+        "classification_mode": classification_mode,
         "branch_loss_aux_weight": resolved_branch_loss_aux_weight,
         **branch_qkv_config_metadata,
         "class_weights": class_weights,
@@ -2379,6 +2442,7 @@ def train_loso_fold(
             "transformer_branch_depths": list(resolved_transformer_depths),
             "transformer_branch_fusion": resolved_transformer_fusion,
             "transformer_weights_independent_by_domain": transformer_weights_independent_by_domain,
+            "classification_mode": classification_mode,
             "branch_loss_aux_weight": resolved_branch_loss_aux_weight,
             **branch_qkv_config_metadata,
             **transformer_weight_metadata,
@@ -2490,6 +2554,7 @@ def train_loso_fold(
         f"cumulative_query_attention={resolved_cumulative_query_attention}  "
         f"transformer_depths={list(resolved_transformer_depths)}  "
         f"transformer_encoder_dropout={resolved_transformer_encoder_dropout}  "
+        f"classification_mode={classification_mode}  "
         f"transformer_fusion={resolved_transformer_fusion}  "
         f"branch_loss_aux_weight={resolved_branch_loss_aux_weight}  "
         f"transformer_branch_qkv={resolved_transformer_branch_qkv}  "
@@ -2529,7 +2594,7 @@ def train_loso_fold(
 
             batch_size_actual = len(batch_y)
             running_loss += float(loss.item()) * batch_size_actual
-            running_correct += int((logits.argmax(dim=1) == batch_y).sum().item())
+            running_correct += int((predict_class_labels(model, logits) == batch_y).sum().item())
             running_samples += batch_size_actual
             if branch_losses and not running_branch_loss_totals:
                 running_branch_loss_totals = [0.0] * len(branch_losses)
@@ -2673,6 +2738,7 @@ def train_loso_fold(
         "transformer_branch_depths": list(resolved_transformer_depths),
         "transformer_branch_fusion": resolved_transformer_fusion,
         "transformer_weights_independent_by_domain": transformer_weights_independent_by_domain,
+        "classification_mode": classification_mode,
         "branch_loss_aux_weight": resolved_branch_loss_aux_weight,
         **branch_qkv_config_metadata,
         **best_transformer_weight_metadata,
@@ -2938,6 +3004,7 @@ def resolve_runtime_config(
     resume: bool = False,
     transformer_encoder_dropout: float = DEFAULT_TRANSFORMER_ENCODER_DROPOUT,
     transformer_branch_qkv_dropout: float = DEFAULT_TRANSFORMER_BRANCH_QKV_DROPOUT,
+    classification_mode: str = "flat",
 ) -> RuntimeConfig:
     missing_flags: list[str] = []
     if dataset_root is None:
@@ -3080,6 +3147,7 @@ def resolve_runtime_config(
         branch_loss_aux_weight=resolved_branch_loss_aux_weight,
         transformer_branch_qkv=resolved_transformer_branch_qkv,
         transformer_branch_qkv_dropout=resolved_transformer_branch_qkv_dropout,
+        classification_mode=validate_classification_mode(classification_mode),
         resume=bool(resume),
     )
 
@@ -3088,6 +3156,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Train EEG-Conformer for LOSO activity three-class classification"
     )
+    parser.add_argument("--classification-mode", choices=["flat", "hierarchical"], default="flat",
+                        help="flat: legacy 3-way; hierarchical: e1/e2 vs e3, then e1 vs e2 (time_fft)")
     parser.add_argument(
         "--dataset-root",
         type=Path,
@@ -3274,6 +3344,7 @@ def main(argv: list[str] | None = None) -> None:
             ),
             transformer_depths=getattr(args, "transformer_depths", None),
             class_weights=getattr(args, "class_weights", None),
+            classification_mode=getattr(args, "classification_mode", "flat"),
             transformer_branch_fusion=getattr(
                 args,
                 "transformer_branch_fusion",
@@ -3336,6 +3407,7 @@ def main(argv: list[str] | None = None) -> None:
         transformer_depths=config.transformer_depths,
         class_weights=config.class_weights,
         transformer_branch_fusion=config.transformer_branch_fusion,
+        classification_mode=config.classification_mode,
         branch_loss_aux_weight=config.branch_loss_aux_weight,
         transformer_branch_qkv=config.transformer_branch_qkv,
         transformer_branch_qkv_dropout=config.transformer_branch_qkv_dropout,

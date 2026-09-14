@@ -82,6 +82,7 @@ from train_activity_loso import (  # noqa: E402
     parse_class_weights,
     project_env_prefix,
     running_inside_project_env,
+    validate_classification_mode,
     resolve_branch_loss_aux_weight,
     resolve_transformer_branch_depths,
     resolve_transformer_branch_fusion,
@@ -155,6 +156,7 @@ def fold_is_complete(
     transformer_branch_qkv: str = DEFAULT_TRANSFORMER_BRANCH_QKV,
     transformer_encoder_dropout: float = DEFAULT_TRANSFORMER_ENCODER_DROPOUT,
     transformer_branch_qkv_dropout: float = DEFAULT_TRANSFORMER_BRANCH_QKV_DROPOUT,
+    classification_mode: str = "flat",
 ) -> bool:
     """Return True if the fold directory already contains a matching result artifact."""
     fold_dir = fold_output_dir(output_dir, subject_id)
@@ -274,7 +276,8 @@ def fold_is_complete(
                 and actual_input_qkv_res_scale == expected_input_qkv_res_scale
             )
         return (
-            actual_input_domain == expected_input_domain
+            metrics.get("classification_mode", "flat") == classification_mode
+            and actual_input_domain == expected_input_domain
             and actual_conv_type == expected_conv_type
             and actual_fft_global == expected_fft_global
             and actual_input_qkv == expected_input_qkv
@@ -293,7 +296,8 @@ def fold_is_complete(
     # Legacy fallback: a bare best_model.pt has no metadata, so only treat it as
     # complete for the historical default experiment.
     return (
-        (fold_dir / "best_model.pt").exists()
+        classification_mode == "flat"
+        and (fold_dir / "best_model.pt").exists()
         and expected_input_domain == DEFAULT_INPUT_DOMAIN
         and expected_conv_type == DEFAULT_CONV_TYPE
         and expected_fft_global == DEFAULT_FFT_GLOBAL
@@ -360,7 +364,11 @@ def run_loso_batch(
     resume: bool = False,
     transformer_encoder_dropout: float = DEFAULT_TRANSFORMER_ENCODER_DROPOUT,
     transformer_branch_qkv_dropout: float = DEFAULT_TRANSFORMER_BRANCH_QKV_DROPOUT,
+    classification_mode: str = "flat",
 ) -> list[LosoFoldResult]:
+    classification_mode = validate_classification_mode(classification_mode)
+    if classification_mode == "hierarchical" and input_domain != "time_fft":
+        raise ValueError("hierarchical classification requires --input-domain time_fft")
     resolved_device = validate_device(device)
     resolved_input_domain = validate_input_domain(input_domain)
     resolved_conv_type = validate_conv_type(conv_type)
@@ -423,6 +431,7 @@ def run_loso_batch(
             transformer_branches=resolved_transformer_branches,
             transformer_depths=resolved_transformer_depths,
             transformer_branch_fusion=resolved_transformer_fusion,
+            classification_mode=classification_mode,
             branch_loss_aux_weight=resolved_branch_loss_aux_weight,
             transformer_branch_qkv=resolved_transformer_branch_qkv,
             transformer_encoder_dropout=resolved_transformer_encoder_dropout,
@@ -478,6 +487,7 @@ def run_loso_batch(
                 transformer_depths=resolved_transformer_depths,
                 class_weights=class_weights,
                 transformer_branch_fusion=resolved_transformer_fusion,
+                classification_mode=classification_mode,
                 branch_loss_aux_weight=resolved_branch_loss_aux_weight,
                 transformer_branch_qkv=resolved_transformer_branch_qkv,
                 transformer_branch_qkv_dropout=resolved_transformer_branch_qkv_dropout,
@@ -575,6 +585,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Batch LOSO training – EEG-Conformer activity three-class classification"
     )
+    parser.add_argument("--classification-mode", choices=["flat", "hierarchical"], default="flat",
+                        help="flat: legacy 3-way; hierarchical: e1/e2 vs e3, then e1 vs e2 (time_fft)")
     parser.add_argument(
         "--dataset-root",
         type=Path,
@@ -782,6 +794,7 @@ def main(argv: list[str] | None = None) -> None:
         transformer_depths=args.transformer_depths,
         class_weights=class_weights,
         transformer_branch_fusion=args.transformer_branch_fusion,
+        classification_mode=args.classification_mode,
         branch_loss_aux_weight=args.branch_loss_aux_weight,
         transformer_branch_qkv=args.transformer_branch_qkv,
         transformer_branch_qkv_dropout=args.transformer_branch_qkv_dropout,
