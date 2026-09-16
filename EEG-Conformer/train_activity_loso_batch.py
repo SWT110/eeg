@@ -581,7 +581,7 @@ def parse_subject_id_list(raw: str | None) -> list[int] | None:
     return values
 
 
-def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Batch LOSO training – EEG-Conformer activity three-class classification"
     )
@@ -739,7 +739,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         ),
     )
     parser.add_argument("--seed", type=int, default=42)
-    return parser.parse_args(argv)
+    return parser
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    return build_arg_parser().parse_args(argv)
 
 
 def main(argv: list[str] | None = None) -> None:
