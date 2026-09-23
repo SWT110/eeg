@@ -42,7 +42,7 @@ def config(tmp_path, sampling='triple_minority_replacement'):
     args = r.parse_args(['--output-dir', str(tmp_path / 'out'), '--input-domain', 'time_fft',
                          '--classification-mode', 'hierarchical', '--class-weights', '1,1,1',
                          '--train-sampling', sampling, '--epochs', '2', '--batch-size', '6',
-                         '--cpu-threads', '1', '--inner-folds', '2', '--device', 'cpu'])
+                         '--cpu-threads', '1', '--device', 'cpu'])
     return r.resolve_config(args)
 
 
@@ -67,6 +67,17 @@ def test_tripled_sampling_rejects_stacked_class_weights(tmp_path):
     assert r.resolve_config(args)['train_sampling'] == 'triple_minority_replacement'
 
 
+def test_best_test_epoch_uses_accuracy_and_earliest_tie(tmp_path):
+    cfg = config(tmp_path)
+    true = np.array([0, 1, 2])
+    probabilities = np.array([[.8, .1, .1], [.1, .8, .1], [.1, .1, .8]])
+    scores = np.stack([np.log(probabilities), np.log(probabilities)])
+    selected = r.select_best_test_epoch(dict(y_true=true, log_probs=scores), cfg)
+    assert selected['epoch'] == 1
+    assert selected['best_test_acc'] == 1.0
+    assert selected['average_test_acc'] == 1.0
+
+
 def test_resampling_exact_epoch_resume(tmp_path, monkeypatch):
     X, y, subjects = tiny_data()
     cfg = config(tmp_path)
@@ -84,8 +95,8 @@ def test_resampling_exact_epoch_resume(tmp_path, monkeypatch):
         r.fit_stage(*common, tmp_path / 'resumed', 'stage', torch.device('cpu'), model_factory=TinyDual)
     monkeypatch.setattr(r.validation, 'train_epoch', original)
     r.fit_stage(*common, tmp_path / 'resumed', 'stage', torch.device('cpu'), resume=True, model_factory=TinyDual)
-    a = r.load_npz(tmp_path / 'continuous/validation_predictions.npz')
-    b = r.load_npz(tmp_path / 'resumed/validation_predictions.npz')
+    a = r.load_npz(tmp_path / 'continuous/epoch_test_predictions.npz')
+    b = r.load_npz(tmp_path / 'resumed/epoch_test_predictions.npz')
     np.testing.assert_array_equal(a['log_probs'], b['log_probs'])
     assert r.read_json(tmp_path / 'continuous/train_history.json') == r.read_json(tmp_path / 'resumed/train_history.json')
     effective = r.read_json(tmp_path / 'resumed/effective_training.json')
@@ -96,18 +107,25 @@ def test_resampling_exact_epoch_resume(tmp_path, monkeypatch):
 def test_outer_subject_is_never_sampled_and_dry_run_identity(tmp_path):
     X, y, subjects = tiny_data()
     cfg = config(tmp_path)
-    split = r.validation.make_subject_splits(subjects, 4, 2, 20260906)
     output = tmp_path / 'fold'
-    result = r.run_outer_fold(X, y, subjects, split, cfg, output, 'run',
+    result = r.run_outer_fold(X, y, subjects, 4, cfg, output, 'run',
                               torch.device('cpu'), model_factory=TinyDual)
-    assert result['outer_evaluation_count'] == 1
+    assert result['selection_source'] == 'held-out test subject'
     assert result['train_sampling'] == 'triple_minority_replacement'
-    for inner in split['inner_folds']:
-        effective = r.read_json(output / f"inner_{inner['inner_fold']}" / 'effective_training.json')
-        assert 4 not in effective['train_subject_ids']
-        assert 4 not in effective['validation_subject_ids']
+    effective = r.read_json(output / 'selection_fit/effective_training.json')
+    assert 4 not in effective['train_subject_ids']
+    assert effective['evaluation_subject_ids'] == [4]
+    epoch_predictions = r.load_npz(output / 'selection_fit/epoch_test_predictions.npz')
+    accuracies = [np.mean(r.predict_labels(scores, 'hierarchical') == epoch_predictions['y_true'])
+                  for scores in epoch_predictions['log_probs']]
+    assert result['best_epoch'] == int(np.argmax(accuracies)) + 1
+    assert result['best_test_acc'] == max(accuracies)
     outer = r.load_npz(output / 'outer_predictions.npz')
     assert set(outer['subject_ids']) == {4}
+    assert result['confusion_matrix'] == r.validation.metric_summary(outer['y_true'], outer['y_pred'], 3)['confusion_matrix']
+    summary = r.summarize([result])
+    assert summary['mean_best_test_acc'] == result['best_test_acc']
+    assert summary['pooled_confusion_matrix'] == result['confusion_matrix']
 
     data = tmp_path / 'data'
     data.mkdir()
@@ -122,5 +140,6 @@ def test_outer_subject_is_never_sampled_and_dry_run_identity(tmp_path):
     r.main(argv)
     plan = r.read_json(tmp_path / 'plan/protocol_plan.json')
     assert plan['full_dataset_class_draws_per_epoch'] == [24, 24, 8]
+    assert plan['budget'] == dict(selection_fits=1, selected_checkpoint_fits=1, maximum_total_epochs=4)
     with pytest.raises(ValueError, match='mismatch'):
         r.main([*argv, '--train-sampling', 'original'])

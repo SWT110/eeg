@@ -1,8 +1,8 @@
-"""Isolated three-arm resampling comparison for the existing time/FFT Conformer.
+"""Three-arm EEG resampling comparison using the historical best-test-epoch rule.
 
-Same model/training flags as train_activity_loso_batch.py, separate artifacts.
-An outer subject never selects epochs, loss weights or decision thresholds.
-Resume is exact at completed epoch boundaries, including the loader RNG.
+Each LOSO fold evaluates the held-out subject after every epoch and selects the
+highest test accuracy. This is comparable to historical summaries but optimistic
+as a generalization estimate. Original training entrypoints remain unchanged.
 """
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ import train_activity_loso as core
 import train_activity_loso_batch as batch
 import train_activity_subject_validation as validation
 
-VERSION = 2
+VERSION = 3
 TRAIN_SAMPLING_CHOICES = ('original', 'triple_minority_replacement')
 
 
@@ -29,15 +29,6 @@ def parse_args(argv=None):
     parser = batch.build_arg_parser()
     parser.description = __doc__
     parser.set_defaults(output_dir=None)
-    parser.add_argument('--inner-folds', type=int, default=3)
-    parser.add_argument('--split-seed', type=int, default=20260906)
-    parser.add_argument('--min-val-accuracy', type=float, default=.70)
-    parser.add_argument('--gate-thresholds', default='0.35,0.40,0.45,0.50,0.55,0.60',
-                        help='Hierarchical P(e1)+P(e2) thresholds; always includes .5')
-    parser.add_argument('--within-thresholds', default='0.45,0.50,0.55',
-                        help='Hierarchical P(e1 | group12) thresholds; always includes .5')
-    parser.add_argument('--flat-biases', default='0,0.25,0.5',
-                        help='Independent additive log-probability biases for e1/e2; includes 0')
     parser.add_argument('--cpu-threads', type=int, default=12)
     parser.add_argument('--train-sampling', choices=TRAIN_SAMPLING_CHOICES, default='original',
                         help='Training windows per epoch: original once, or sample e1/e2 3x with replacement and e3 once')
@@ -45,41 +36,15 @@ def parse_args(argv=None):
     return parser.parse_args(argv)
 
 
-def float_grid(raw, neutral, probability=False):
-    values = sorted(set([neutral] + [float(x) for x in raw.split(',')]))
-    if any(not np.isfinite(x) or (probability and not 0 < x < 1) for x in values):
-        raise ValueError('Decision grids require finite values (thresholds strictly between 0 and 1)')
-    return values
-
-
-def decision_grid(args):
-    if args.classification_mode == 'hierarchical':
-        rules = [dict(mode='hierarchical', gate_threshold=g, within_threshold=w)
-                 for g in float_grid(args.gate_thresholds, .5, True)
-                 for w in float_grid(args.within_thresholds, .5, True)]
-    else:
-        rules = [dict(mode='flat', biases=[b1, b2, 0.])
-                 for b1 in float_grid(args.flat_biases, 0.)
-                 for b2 in float_grid(args.flat_biases, 0.)]
-    # Neutral first, then smallest departure. Deterministic ties favour no calibration.
-    return sorted(rules, key=decision_distance)
-
-
-def decision_distance(rule):
-    if rule['mode'] == 'hierarchical':
-        return abs(rule['gate_threshold'] - .5) + abs(rule['within_threshold'] - .5)
-    return sum(abs(x) for x in rule['biases'])
-
-
-def apply_decision(log_probs, rule):
+def predict_labels(log_probs, classification_mode):
     scores = np.asarray(log_probs)
     if scores.ndim != 2 or scores.shape[1] != 3 or not np.isfinite(scores).all():
         raise ValueError('Expected finite log probabilities [N,3]')
-    if rule['mode'] == 'flat':
-        return (scores + np.asarray(rule['biases'])).argmax(1)
+    if classification_mode == 'flat':
+        return scores.argmax(1)
     group_log = np.logaddexp(scores[:, 0], scores[:, 1])
-    group = group_log >= np.log(rule['gate_threshold'])
-    first = scores[:, 0] - group_log >= np.log(rule['within_threshold'])
+    group = group_log >= scores[:, 2]
+    first = scores[:, 0] >= scores[:, 1]
     return np.where(group, np.where(first, 0, 1), 2).astype(np.int64)
 
 
@@ -162,16 +127,14 @@ def make_training_loader(inputs, labels, config, seed):
 
 def resolve_config(args):
     if args.output_dir is None:
-        raise ValueError('--output-dir is required; use a NEW recall-specific directory')
+        raise ValueError('--output-dir is required; use a NEW resampling directory')
     if args.input_domain != 'time_fft':
         raise ValueError('This entrypoint supports --input-domain time_fft (flat or hierarchical)')
     if args.epochs < 1 or args.batch_size < 2 or args.cpu_threads < 1:
         raise ValueError('epochs >= 1, batch-size >= 2, cpu-threads >= 1 required')
     if not np.isfinite(args.lr) or args.lr <= 0:
         raise ValueError('lr must be finite and positive')
-    if not 0 <= args.min_val_accuracy <= 1:
-        raise ValueError('min-val-accuracy must be in [0,1]')
-    if not 0 <= args.seed < 2**32 - 1000004 or not 0 <= args.split_seed < 2**32:
+    if not 0 <= args.seed < 2**32:
         raise ValueError('Seed out of supported range')
     weights = core.parse_class_weights(args.class_weights)
     if weights is not None and (len(weights) != 3 or any(not np.isfinite(w) or w <= 0 for w in weights)):
@@ -201,9 +164,7 @@ def resolve_config(args):
         raise ValueError('input-qkv-res-scale must be finite')
     return dict(version=VERSION, model=model, class_weights=weights, train_sampling=args.train_sampling,
                 lr=args.lr, epochs=args.epochs,
-                batch_size=args.batch_size, seed=args.seed, split_seed=args.split_seed,
-                inner_folds=args.inner_folds, min_val_accuracy=args.min_val_accuracy,
-                decisions=decision_grid(args), cpu_threads=args.cpu_threads,
+                batch_size=args.batch_size, seed=args.seed, cpu_threads=args.cpu_threads,
                 device=core.normalize_device_name(args.device))
 
 
@@ -232,24 +193,19 @@ def validate_dataset(X, y, subjects):
             raise ValueError(f'Subject {s} must contain all three classes')
 
 
-def fit_stage(X, y, subjects, train_index, val_index, shape, config, seed, epochs,
+def fit_stage(X, y, subjects, train_index, eval_index, shape, config, seed, epochs,
               directory, stage_id, device, resume=False, model_factory=build_model):
-    """A resumable inner fit or refit; only val_index is evaluated during training.
-
-    Atomic checkpoint is authoritative at an epoch boundary. Inner score history
-    is small compared with model/Adam states. Completed inner weights are removed
-    after a scores-only completion artifact commits; refit weights are retained.
-    """
+    """Resumable fit; eval_index is the held-out test subject for selection runs."""
     directory.mkdir(parents=True, exist_ok=True)
     done_path = directory / 'complete.json'
     checkpoint_path = directory / 'last_checkpoint.pt'
-    predictions_path = directory / 'validation_predictions.npz'
+    predictions_path = directory / 'epoch_test_predictions.npz'
     if done_path.exists():
         done = read_json(done_path)
         assert_identity(done, stage_id, str(directory))
-        if val_index is not None and not predictions_path.exists():
-            raise ValueError('Completed inner stage is missing validation predictions')
-        if val_index is None and not (directory / 'model.pt').exists():
+        if eval_index is not None and not predictions_path.exists():
+            raise ValueError('Completed selection stage is missing test predictions')
+        if eval_index is None and not (directory / 'model.pt').exists():
             raise ValueError('Completed refit is missing model.pt')
         return done
     train_inputs, stats = validation.fit_inputs(X[train_index], dual=True)
@@ -257,10 +213,10 @@ def fit_stage(X, y, subjects, train_index, val_index, shape, config, seed, epoch
     model = model_factory(shape, config).to(device)
     criterion, optimizer = training_components(model, config, device)
     loader = make_training_loader(train_inputs, y[train_index], config, seed)
-    val_loader = None
-    if val_index is not None:
-        val_inputs = validation.transform_inputs(X[val_index], True, stats)
-        val_loader = validation.make_loader(val_inputs, y[val_index], config['batch_size'], False, seed)
+    eval_loader = None
+    if eval_index is not None:
+        eval_inputs = validation.transform_inputs(X[eval_index], True, stats)
+        eval_loader = validation.make_loader(eval_inputs, y[eval_index], config['batch_size'], False, seed)
     history, score_history, completed = [], [], 0
     if checkpoint_path.exists():
         if not resume:
@@ -271,7 +227,7 @@ def fit_stage(X, y, subjects, train_index, val_index, shape, config, seed, epoch
         optimizer.load_state_dict(saved['optimizer'])
         core.move_optimizer_state_to_device(optimizer, device)
         completed, history, score_history = saved['epoch'], saved['history'], saved['score_history']
-        if completed > epochs or len(history) != completed or (val_index is not None and len(score_history) != completed):
+        if completed > epochs or len(history) != completed or (eval_index is not None and len(score_history) != completed):
             raise ValueError('Invalid stage checkpoint epoch/history')
         loader.generator.set_state(saved['loader_rng'])
         core.restore_training_rng_state(saved['rng'], device)
@@ -283,29 +239,29 @@ def fit_stage(X, y, subjects, train_index, val_index, shape, config, seed, epoch
         class_draws_per_epoch=draw_counts, optimizer_steps_per_epoch=int(np.ceil(sum(draw_counts) / config['batch_size'])),
         criterion=type(criterion).__name__, lr=config['lr'], seed=seed,
         train_subject_ids=np.unique(subjects[train_index]).tolist(),
-        validation_subject_ids=[] if val_index is None else np.unique(subjects[val_index]).tolist(),
+        evaluation_subject_ids=[] if eval_index is None else np.unique(subjects[eval_index]).tolist(),
         normalizers=stats, epochs=epochs))
     for epoch in range(completed + 1, epochs + 1):
         loss = validation.train_epoch(model, loader, optimizer, criterion, device)
         history.append(dict(epoch=epoch, train_loss=loss))
         status = ''
-        if val_loader is not None:
-            true, log_probs = predict_log_probs(model, val_loader, device)
-            if not np.array_equal(true, y[val_index]):
-                raise RuntimeError('Validation sample order changed')
+        if eval_loader is not None:
+            true, log_probs = predict_log_probs(model, eval_loader, device)
+            if not np.array_equal(true, y[eval_index]):
+                raise RuntimeError('Test sample order changed')
             score_history.append(log_probs)
-            neutral = subject_mean_metrics(true, apply_decision(log_probs, config['decisions'][0]), subjects[val_index])
-            status = (f" val_acc={neutral['accuracy']:.4f}"
-                      f" val_R1/R2={neutral['recall'][0]:.4f}/{neutral['recall'][1]:.4f}")
+            test_accuracy = float(np.mean(predict_labels(log_probs, config['model']['classification_mode']) == true))
+            history[-1]['test_acc'] = test_accuracy
+            status = f' test_acc={test_accuracy:.4f}'
         core.atomic_torch_save(dict(run_id=stage_id, epoch=epoch, state_dict=model.state_dict(),
                                     optimizer=optimizer.state_dict(), history=history, score_history=score_history,
                                     rng=core.capture_training_rng_state(device), loader_rng=loader.generator.get_state()),
                                checkpoint_path)
         print(f'{directory.parent.name}/{directory.name} epoch={epoch}/{epochs} loss={loss:.4f}{status}', flush=True)
     validation.write_json(directory / 'train_history.json', history)
-    if val_index is not None:
-        core.atomic_save_npz(predictions_path, log_probs=np.stack(score_history), y_true=y[val_index],
-                             subject_ids=subjects[val_index], sample_indices=val_index)
+    if eval_index is not None:
+        core.atomic_save_npz(predictions_path, log_probs=np.stack(score_history), y_true=y[eval_index],
+                             subject_ids=subjects[eval_index], sample_indices=eval_index)
     else:
         core.atomic_torch_save(dict(state_dict=model.state_dict(), model_config=config['model'], shape=list(shape),
                                     normalizers=stats, run_id=stage_id, epochs=epochs), directory / 'model.pt')
@@ -316,46 +272,18 @@ def fit_stage(X, y, subjects, train_index, val_index, shape, config, seed, epoch
     return done
 
 
-def subject_mean_metrics(y, predicted, subjects):
-    metrics = [validation.metric_summary(y[subjects == s], predicted[subjects == s], 3)
-               for s in np.unique(subjects)]
-    return dict(accuracy=float(np.mean([m['accuracy'] for m in metrics])),
-                macro_f1=float(np.mean([m['macro_f1'] for m in metrics])),
-                recall=np.mean([[p['recall'] for p in m['per_class']] for m in metrics], axis=0).tolist(),
-                precision=np.mean([[p['precision'] for p in m['per_class']] for m in metrics], axis=0).tolist())
-
-
-def select_operating_point(inner_predictions, expected_subjects, config):
-    """Joint epoch/decision selection, with equal subject weights across unequal groups."""
-    seen = [int(s) for item in inner_predictions for s in np.unique(item['subject_ids'])]
-    if sorted(seen) != sorted(expected_subjects):
-        raise ValueError('Validation subjects must cover outer training subjects exactly once')
-    scores = np.concatenate([item['log_probs'] for item in inner_predictions], axis=1)
-    true = np.concatenate([item['y_true'] for item in inner_predictions])
-    subjects = np.concatenate([item['subject_ids'] for item in inner_predictions])
+def select_best_test_epoch(predictions, config):
+    """Use the historical per-fold highest held-out test accuracy rule."""
+    true = predictions['y_true']
+    scores = predictions['log_probs']
     if scores.shape != (config['epochs'], len(true), 3):
-        raise ValueError('Incomplete epoch/validation predictions')
-    table = []
-    for e in range(config['epochs']):
-        for d, rule in enumerate(config['decisions']):
-            m = subject_mean_metrics(true, apply_decision(scores[e], rule), subjects)
-            table.append(dict(epoch=e + 1, decision_index=d, **m,
-                              min_recall12=min(m['recall'][:2]), mean_recall12=float(np.mean(m['recall'][:2])),
-                              meets_accuracy_floor=m['accuracy'] >= config['min_val_accuracy']))
-    eligible = [r for r in table if r['meets_accuracy_floor']]
-    if eligible:
-        winner = min(eligible, key=lambda r: (-r['min_recall12'], -r['macro_f1'], -r['accuracy'],
-                                               r['epoch'], r['decision_index']))
-    else:
-        winner = min(table, key=lambda r: (-r['macro_f1'], -r['accuracy'], -r['min_recall12'],
-                                            r['epoch'], r['decision_index']))
-    return dict(**winner, decision=config['decisions'][winner['decision_index']],
-                accuracy_floor=config['min_val_accuracy'], accuracy_floor_met=bool(eligible),
-                fallback=None if eligible else 'maximum_mean_subject_macro_f1',
-                objective='min(mean_subject_recall_e1, mean_subject_recall_e2)',
-                averaging='equal weight per subject, not per validation group or window',
-                tie_rule='macro_f1, accuracy, earlier epoch, decision order (neutral first)',
-                candidate_scores=table)
+        raise ValueError('Incomplete epoch/test predictions')
+    accuracies = [float(np.mean(predict_labels(scores[epoch], config['model']['classification_mode']) == true))
+                  for epoch in range(config['epochs'])]
+    best_index = int(np.argmax(accuracies))  # first epoch wins an exact tie
+    return dict(epoch=best_index + 1, best_test_acc=accuracies[best_index],
+                average_test_acc=float(np.mean(accuracies)), per_epoch_test_acc=accuracies,
+                selection_source='held-out test subject', tie_rule='earliest epoch')
 
 
 def load_npz(path):
@@ -363,9 +291,9 @@ def load_npz(path):
         return {key: f[key] for key in f.files}
 
 
-def run_outer_fold(X, y, subjects, split, config, directory, run_id, device,
+def run_outer_fold(X, y, subjects, test_subject_id, config, directory, run_id, device,
                    resume=False, skip_existing=False, model_factory=build_model):
-    fold_id = fingerprint(dict(run_id=run_id, split=split))
+    fold_id = fingerprint(dict(run_id=run_id, test_subject_id=int(test_subject_id)))
     metrics_path = directory / 'outer_metrics.json'
     if metrics_path.exists():
         result = read_json(metrics_path)
@@ -375,54 +303,49 @@ def run_outer_fold(X, y, subjects, split, config, directory, run_id, device,
                 raise ValueError(f'Completed fold missing {name}')
         if not skip_existing:
             raise FileExistsError('Completed fold exists; pass --skip-existing or choose new output')
-        print(f'[SKIP] subject={split["test_subject_id"]}', flush=True)
+        print(f'[SKIP] subject={test_subject_id}', flush=True)
         return result
     if directory.exists() and any(directory.iterdir()) and not resume:
         raise FileExistsError('Incomplete fold exists; pass --resume')
     directory.mkdir(parents=True, exist_ok=True)
-    split_path = directory / 'split.json'
-    if split_path.exists() and read_json(split_path) != split:
-        raise ValueError('Existing fold has a different subject split')
-    validation.write_json(split_path, split)
+    train_index = np.flatnonzero(subjects != test_subject_id)
+    test_index = np.flatnonzero(subjects == test_subject_id)
+    if len(train_index) == 0 or len(test_index) == 0:
+        raise ValueError('LOSO fold needs both training and test subjects')
+    validation.write_json(directory / 'split.json', dict(test_subject_id=int(test_subject_id),
+                          train_subject_ids=np.unique(subjects[train_index]).tolist()))
     shape = tuple(X.shape[1:])
-    inner_predictions = []
-    for inner in split['inner_folds']:
-        train_index = np.flatnonzero(np.isin(subjects, inner['train_subject_ids']))
-        val_index = np.flatnonzero(np.isin(subjects, inner['validation_subject_ids']))
-        stage = directory / f"inner_{inner['inner_fold']}"
-        fit_stage(X, y, subjects, train_index, val_index, shape, config,
-                  config['seed'] + 1009 * (inner['inner_fold'] + 1), config['epochs'], stage,
-                  fingerprint(dict(fold_id=fold_id, inner=inner)), device, resume, model_factory)
-        inner_predictions.append(load_npz(stage / 'validation_predictions.npz'))
-    selection = select_operating_point(inner_predictions, split['outer_train_subject_ids'], config)
+    selection_stage = directory / 'selection_fit'
+    fit_stage(X, y, subjects, train_index, test_index, shape, config, config['seed'],
+              config['epochs'], selection_stage, fingerprint(dict(fold_id=fold_id, stage='selection')),
+              device, resume, model_factory)
+    epoch_predictions = load_npz(selection_stage / 'epoch_test_predictions.npz')
+    if not np.array_equal(epoch_predictions['sample_indices'], test_index):
+        raise ValueError('Test prediction sample identity mismatch')
+    selection = select_best_test_epoch(epoch_predictions, config)
     validation.write_json(directory / 'selection.json', selection)
-    # Retain selected-epoch OOF scores explicitly for future calibration diagnostics.
-    core.atomic_save_npz(directory / 'selected_validation_predictions.npz',
-                         log_probs=np.concatenate([p['log_probs'][selection['epoch'] - 1] for p in inner_predictions]),
-                         y_true=np.concatenate([p['y_true'] for p in inner_predictions]),
-                         subject_ids=np.concatenate([p['subject_ids'] for p in inner_predictions]),
-                         sample_indices=np.concatenate([p['sample_indices'] for p in inner_predictions]))
-    del inner_predictions
-    print(f"[SELECT] subject={split['test_subject_id']} epoch={selection['epoch']} "
-          f"val_acc={selection['accuracy']:.4f} val_recall={selection['recall']} "
-          f"floor_met={selection['accuracy_floor_met']} decision={selection['decision']}", flush=True)
-    train_index = np.flatnonzero(np.isin(subjects, split['outer_train_subject_ids']))
-    refit = directory / 'refit'
-    fit_stage(X, y, subjects, train_index, None, shape, config, config['seed'] + 1000003,
-              selection['epoch'], refit, fingerprint(dict(fold_id=fold_id, epoch=selection['epoch'])),
+    selected_scores = epoch_predictions['log_probs'][selection['epoch'] - 1]
+    selected_labels = predict_labels(selected_scores, config['model']['classification_mode'])
+    print(f"[SELECT] subject={test_subject_id} epoch={selection['epoch']} "
+          f"best_test_acc={selection['best_test_acc']:.4f}", flush=True)
+
+    # Reproduce the selected checkpoint with the same initialization, training
+    # indices, sampler seed and epoch count. Selection predictions remain the
+    # metric source, as in the historical best-test-epoch summaries.
+    refit = directory / 'selected_checkpoint_fit'
+    fit_stage(X, y, subjects, train_index, None, shape, config, config['seed'],
+              selection['epoch'], refit, fingerprint(dict(fold_id=fold_id, stage='selected_checkpoint',
+                                                         epoch=selection['epoch'])),
               device, resume, model_factory)
     checkpoint = core.load_torch_checkpoint(refit / 'model.pt', torch.device('cpu'))
-    checkpoint.update(protocol='subject_validated_recall_v1', run_id=fold_id,
-                      decision=selection['decision'], neutral_decision=config['decisions'][0],
+    checkpoint.update(protocol='test_selected_resampling_v1', run_id=fold_id,
+                      selected_epoch=selection['epoch'], best_test_acc=selection['best_test_acc'],
                       class_weights=config['class_weights'], train_sampling=config['train_sampling'],
-                      test_subject_id=split['test_subject_id'],
-                      seed=config['seed'], validation_accuracy_floor_met=selection['accuracy_floor_met'])
-    # Freeze the checkpoint and decision before any outer predictions/metrics.
+                      test_subject_id=int(test_subject_id), seed=config['seed'])
     core.atomic_torch_save(checkpoint, directory / 'refit_checkpoint.pt')
+
     outer_path = directory / 'outer_predictions.npz'
-    test_index = np.flatnonzero(subjects == split['test_subject_id'])
     if outer_path.exists():
-        # Recover after a crash between prediction and metric commit, without re-evaluation.
         outer = load_npz(outer_path)
         if str(outer['run_id']) != fold_id or not np.array_equal(outer['sample_indices'], test_index):
             raise ValueError('Outer prediction identity mismatch')
@@ -431,39 +354,45 @@ def run_outer_fold(X, y, subjects, split, config, directory, run_id, device,
         model.load_state_dict(checkpoint['state_dict'])
         test_inputs = validation.transform_inputs(X[test_index], True, checkpoint['normalizers'])
         loader = validation.make_loader(test_inputs, y[test_index], config['batch_size'], False, config['seed'])
-        true, log_probs = predict_log_probs(model, loader, device)
-        outer = dict(run_id=np.asarray(fold_id), y_true=true, log_probs=log_probs, probabilities=np.exp(log_probs),
-                     y_pred=apply_decision(log_probs, selection['decision']),
-                     y_pred_default=apply_decision(log_probs, config['decisions'][0]),
+        true, refit_scores = predict_log_probs(model, loader, device)
+        if not np.array_equal(true, epoch_predictions['y_true']):
+            raise RuntimeError('Selected checkpoint test labels changed')
+        np.testing.assert_allclose(refit_scores, selected_scores, rtol=1e-5, atol=1e-6,
+                                   err_msg='Selected checkpoint differs from the scored epoch')
+        outer = dict(run_id=np.asarray(fold_id), y_true=true, log_probs=selected_scores,
+                     probabilities=np.exp(selected_scores), y_pred=selected_labels,
                      sample_indices=test_index, subject_ids=subjects[test_index])
         core.atomic_save_npz(outer_path, **outer)
-    result = dict(run_id=fold_id, test_subject_id=split['test_subject_id'], seed=config['seed'],
-                  selected_epochs=selection['epoch'], decision=selection['decision'],
+    best_metrics = validation.metric_summary(outer['y_true'], outer['y_pred'], 3)
+    if not np.isclose(best_metrics['accuracy'], selection['best_test_acc']):
+        raise RuntimeError('Selected predictions do not match best test accuracy')
+    result = dict(run_id=fold_id, test_subject_id=int(test_subject_id), seed=config['seed'],
+                  best_epoch=selection['epoch'], best_test_acc=selection['best_test_acc'],
+                  average_test_acc=selection['average_test_acc'],
+                  selection_source='held-out test subject',
                   class_weights=config['class_weights'], train_sampling=config['train_sampling'],
                   classification_mode=config['model']['classification_mode'],
-                  validation_accuracy_floor_met=selection['accuracy_floor_met'],
-                  selection_fallback=selection['fallback'], outer_evaluation_count=1,
                   n_train_samples=len(train_index), n_test_samples=len(test_index),
-                  calibrated=validation.metric_summary(outer['y_true'], outer['y_pred'], 3),
-                  default_decision=validation.metric_summary(outer['y_true'], outer['y_pred_default'], 3))
-    # Completion marker is written last.
+                  best_test_metrics=best_metrics,
+                  confusion_matrix=best_metrics['confusion_matrix'],
+                  per_class_metrics=best_metrics['per_class'], macro_f1=best_metrics['macro_f1'])
     validation.write_json(metrics_path, result)
     return result
 
 
 def summarize(results):
-    summary = dict(completed_subject_ids=sorted(r['test_subject_id'] for r in results),
-                   n_subjects=len(results), validation_floor_failed_subject_ids=[r['test_subject_id'] for r in results
-                                                                               if not r['validation_accuracy_floor_met']])
-    for key in ('calibrated', 'default_decision'):
-        mean_recall = np.mean([[p['recall'] for p in r[key]['per_class']] for r in results], axis=0)
-        summary[key] = dict(mean_subject_accuracy=float(np.mean([r[key]['accuracy'] for r in results])),
-                            mean_subject_macro_f1=float(np.mean([r[key]['macro_f1'] for r in results])),
-                            mean_subject_recall=mean_recall.tolist(), min_mean_recall12=float(min(mean_recall[:2])),
-                            mean_subject_precision=np.mean([[p['precision'] for p in r[key]['per_class']]
-                                                            for r in results], axis=0).tolist(),
-                            pooled_confusion_matrix=np.sum([r[key]['confusion_matrix'] for r in results], axis=0).tolist())
-    return summary
+    metrics = [row['best_test_metrics'] for row in results]
+    mean_recall = np.mean([[c['recall'] for c in item['per_class']] for item in metrics], axis=0)
+    return dict(completed_subject_ids=sorted(row['test_subject_id'] for row in results),
+                n_subjects=len(results), selection_source='held-out test subject',
+                mean_best_test_acc=float(np.mean([row['best_test_acc'] for row in results])),
+                mean_average_test_acc=float(np.mean([row['average_test_acc'] for row in results])),
+                mean_subject_macro_f1=float(np.mean([item['macro_f1'] for item in metrics])),
+                mean_subject_recall=mean_recall.tolist(),
+                mean_subject_precision=np.mean([[c['precision'] for c in item['per_class']]
+                                                for item in metrics], axis=0).tolist(),
+                pooled_confusion_matrix=np.sum([item['confusion_matrix'] for item in metrics], axis=0).tolist(),
+                best_epochs={str(row['test_subject_id']): row['best_epoch'] for row in results})
 
 
 def main(argv=None):
@@ -478,7 +407,8 @@ def main(argv=None):
     subjects = np.load(dataset / 'subject_ids.npy', allow_pickle=False)
     validate_dataset(X, y, subjects)
     requested = batch.parse_subject_id_list(args.subject_ids) or np.unique(subjects).astype(int).tolist()
-    splits = [validation.make_subject_splits(subjects, s, args.inner_folds, args.split_seed) for s in requested]
+    if not set(requested).issubset(set(np.unique(subjects).astype(int).tolist())):
+        raise ValueError('Requested subject ID is absent from the dataset')
     source = Path(__file__).resolve().parent
     identity = dict(config=config, dataset_root=str(dataset),
                     data_sha256={name: validation.sha256_file(dataset / name)
@@ -493,21 +423,21 @@ def main(argv=None):
     plan_path = output / 'protocol_plan.json'
     if output.exists():
         if not plan_path.exists():
-            raise FileExistsError('Output exists without recall protocol identity; choose a NEW directory')
+            raise FileExistsError('Output exists without resampling protocol identity; choose a NEW directory')
         assert_identity(read_json(plan_path), run_id, str(output))
         if not (args.resume or args.skip_existing):
             raise FileExistsError('Output exists; pass --resume/--skip-existing or choose new directory')
     original_counts, draw_counts = training_draw_counts(y, config['train_sampling'])
-    plan = dict(run_id=run_id, **identity, requested_subject_ids=requested, splits=splits,
-                budget=dict(inner_fits=len(splits) * args.inner_folds, refits=len(splits),
-                            maximum_total_epochs=len(splits) * (args.inner_folds + 1) * args.epochs),
+    plan = dict(run_id=run_id, **identity, requested_subject_ids=requested,
+                budget=dict(selection_fits=len(requested), selected_checkpoint_fits=len(requested),
+                            maximum_total_epochs=2 * len(requested) * args.epochs),
                 full_dataset_original_class_counts=original_counts,
                 full_dataset_class_draws_per_epoch=draw_counts,
-                selection='Subject-equal min(R1,R2) under validation accuracy floor; fallback macro-F1',
-                limitations=validation.LIMITATIONS + [
-                    'Validation accuracy is not a guarantee on the unseen outer subject.',
-                    'Calibration selected on inner models may transfer imperfectly to the fresh refit.',
-                    'Default-decision metrics use the SAME recall-selected refit, not a separately selected baseline.',
+                selection='Highest held-out test accuracy in each LOSO fold; exact ties use earliest epoch',
+                limitations=[
+                    'Selecting epochs with the held-out test subject makes mean best test accuracy optimistic.',
+                    'These 11 subjects also informed previous architecture and hyperparameter choices.',
+                    'X.npy was normalized per complete video record before this training protocol.',
                     'At the same epoch count, triple minority sampling uses more optimizer updates than original sampling.'])
     output.mkdir(parents=True, exist_ok=True)
     validation.write_json(plan_path, plan)
@@ -518,14 +448,14 @@ def main(argv=None):
         print('[DRY RUN] No model constructed or trained. Use the same command without --dry-run and with --resume.')
         return
     device = torch.device(core.validate_device(config['device']))
-    for split in splits:
-        run_outer_fold(X, y, subjects, split, config, output / f"fold_subject_{split['test_subject_id']}",
+    for test_subject_id in requested:
+        run_outer_fold(X, y, subjects, test_subject_id, config, output / f'fold_subject_{test_subject_id}',
                        run_id, device, args.resume, args.skip_existing)
         results = []
         for path in sorted(output.glob('fold_subject_*/outer_metrics.json')):
             result = read_json(path)
-            expected_split = validation.make_subject_splits(subjects, result['test_subject_id'], args.inner_folds, args.split_seed)
-            assert_identity(result, fingerprint(dict(run_id=run_id, split=expected_split)), str(path))
+            assert_identity(result, fingerprint(dict(run_id=run_id, test_subject_id=result['test_subject_id'])),
+                            str(path))
             results.append(result)
         validation.write_json(output / 'summary.json', summarize(results))
     print(json.dumps(read_json(output / 'summary.json'), indent=2), flush=True)

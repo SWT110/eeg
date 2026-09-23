@@ -7,7 +7,7 @@ cd "$project_root"
 python_bin="${PYTHON_BIN:-./.conda-envs/eegconformer310/bin/python}"
 device="${DEVICE:-cuda:0}"
 run_mode="${RUN_MODE:-dry-run}"
-output_root="${OUTPUT_ROOT:-local_artifacts/outputs/activity_recall_resampling_seed42}"
+output_root="${OUTPUT_ROOT:-local_artifacts/outputs/activity_resampling_test_best_seed42}"
 run_groups="${RUN_GROUPS:-unweighted weighted_3_3_1 triple_minority}"
 
 if [[ "$run_mode" != dry-run && "$run_mode" != train ]]; then
@@ -63,8 +63,6 @@ for group in $run_groups; do
     --transformer-branch-qkv cross_depth \
     --transformer-branch-qkv-dropout 0.25 \
     --seed 42 \
-    --inner-folds 3 \
-    --min-val-accuracy 0.70 \
     --cpu-threads 12 \
     --skip-existing \
     --resume \
