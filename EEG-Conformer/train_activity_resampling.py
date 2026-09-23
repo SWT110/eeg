@@ -6,7 +6,9 @@ as a generalization estimate. Original training entrypoints remain unchanged.
 """
 from __future__ import annotations
 
+import csv
 import hashlib
+import io
 import json
 import os
 import sys
@@ -176,6 +178,29 @@ def read_json(path):
     return json.loads(path.read_text(encoding='utf-8'))
 
 
+def write_stage_history(directory, history, stage_id, config, epochs):
+    """Keep human-readable progress alongside the resumable checkpoint."""
+    validation.write_json(directory / 'train_history.json', history)
+    stream = io.StringIO()
+    writer = csv.DictWriter(stream, fieldnames=['epoch', 'train_loss', 'test_acc'])
+    writer.writeheader()
+    writer.writerows(history)
+    csv_path = directory / 'epoch_history.csv'
+    temporary = csv_path.with_suffix('.csv.tmp')
+    temporary.write_text(stream.getvalue(), encoding='utf-8')
+    temporary.replace(csv_path)
+    log_lines = [f"stage_id={stage_id}",
+                 f"sampling={config['train_sampling']} class_weights={config['class_weights']} "
+                 f"lr={config['lr']} batch_size={config['batch_size']} epochs={epochs}"]
+    for row in history:
+        suffix = '' if 'test_acc' not in row else f" test_acc={row['test_acc']:.6f}"
+        log_lines.append(f"epoch={row['epoch']}/{epochs} train_loss={row['train_loss']:.6f}{suffix}")
+    log_path = directory / 'train.log'
+    temporary = log_path.with_suffix('.log.tmp')
+    temporary.write_text('\n'.join(log_lines) + '\n', encoding='utf-8')
+    temporary.replace(log_path)
+
+
 def assert_identity(saved, expected, context):
     if saved.get('run_id') != expected:
         raise ValueError(f'{context}: configuration/data/code mismatch; choose a new output directory')
@@ -241,6 +266,7 @@ def fit_stage(X, y, subjects, train_index, eval_index, shape, config, seed, epoc
         train_subject_ids=np.unique(subjects[train_index]).tolist(),
         evaluation_subject_ids=[] if eval_index is None else np.unique(subjects[eval_index]).tolist(),
         normalizers=stats, epochs=epochs))
+    write_stage_history(directory, history, stage_id, config, epochs)
     for epoch in range(completed + 1, epochs + 1):
         loss = validation.train_epoch(model, loader, optimizer, criterion, device)
         history.append(dict(epoch=epoch, train_loss=loss))
@@ -257,8 +283,8 @@ def fit_stage(X, y, subjects, train_index, eval_index, shape, config, seed, epoc
                                     optimizer=optimizer.state_dict(), history=history, score_history=score_history,
                                     rng=core.capture_training_rng_state(device), loader_rng=loader.generator.get_state()),
                                checkpoint_path)
+        write_stage_history(directory, history, stage_id, config, epochs)
         print(f'{directory.parent.name}/{directory.name} epoch={epoch}/{epochs} loss={loss:.4f}{status}', flush=True)
-    validation.write_json(directory / 'train_history.json', history)
     if eval_index is not None:
         core.atomic_save_npz(predictions_path, log_probs=np.stack(score_history), y_true=y[eval_index],
                              subject_ids=subjects[eval_index], sample_indices=eval_index)
@@ -366,13 +392,19 @@ def run_outer_fold(X, y, subjects, test_subject_id, config, directory, run_id, d
     best_metrics = validation.metric_summary(outer['y_true'], outer['y_pred'], 3)
     if not np.isclose(best_metrics['accuracy'], selection['best_test_acc']):
         raise RuntimeError('Selected predictions do not match best test accuracy')
+    original_counts, draw_counts = training_draw_counts(y[train_index], config['train_sampling'])
     result = dict(run_id=fold_id, test_subject_id=int(test_subject_id), seed=config['seed'],
                   best_epoch=selection['epoch'], best_test_acc=selection['best_test_acc'],
                   average_test_acc=selection['average_test_acc'],
                   selection_source='held-out test subject',
                   class_weights=config['class_weights'], train_sampling=config['train_sampling'],
+                  model_config=config['model'], epochs=config['epochs'],
+                  batch_size=config['batch_size'], learning_rate=config['lr'], device=config['device'],
+                  original_class_counts=original_counts, class_draws_per_epoch=draw_counts,
                   classification_mode=config['model']['classification_mode'],
                   n_train_samples=len(train_index), n_test_samples=len(test_index),
+                  selection_train_log=str(selection_stage / 'train.log'),
+                  selection_epoch_history_csv=str(selection_stage / 'epoch_history.csv'),
                   best_test_metrics=best_metrics,
                   confusion_matrix=best_metrics['confusion_matrix'],
                   per_class_metrics=best_metrics['per_class'], macro_f1=best_metrics['macro_f1'])

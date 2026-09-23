@@ -93,6 +93,8 @@ def test_resampling_exact_epoch_resume(tmp_path, monkeypatch):
     monkeypatch.setattr(r.validation, 'train_epoch', stop_at_second_epoch)
     with pytest.raises(RuntimeError, match='simulated interruption'):
         r.fit_stage(*common, tmp_path / 'resumed', 'stage', torch.device('cpu'), model_factory=TinyDual)
+    assert (tmp_path / 'resumed/epoch_history.csv').read_text().count('\n') == 2
+    assert 'epoch=1/2' in (tmp_path / 'resumed/train.log').read_text()
     monkeypatch.setattr(r.validation, 'train_epoch', original)
     r.fit_stage(*common, tmp_path / 'resumed', 'stage', torch.device('cpu'), resume=True, model_factory=TinyDual)
     a = r.load_npz(tmp_path / 'continuous/epoch_test_predictions.npz')
@@ -102,6 +104,7 @@ def test_resampling_exact_epoch_resume(tmp_path, monkeypatch):
     effective = r.read_json(tmp_path / 'resumed/effective_training.json')
     assert effective['original_class_counts'] == [4, 4, 4]
     assert effective['class_draws_per_epoch'] == [12, 12, 4]
+    assert (tmp_path / 'continuous/train.log').read_text() == (tmp_path / 'resumed/train.log').read_text()
 
 
 def test_outer_subject_is_never_sampled_and_dry_run_identity(tmp_path):
@@ -112,6 +115,8 @@ def test_outer_subject_is_never_sampled_and_dry_run_identity(tmp_path):
                               torch.device('cpu'), model_factory=TinyDual)
     assert result['selection_source'] == 'held-out test subject'
     assert result['train_sampling'] == 'triple_minority_replacement'
+    assert result['model_config'] == cfg['model']
+    assert result['class_draws_per_epoch'] == [18, 18, 6]
     effective = r.read_json(output / 'selection_fit/effective_training.json')
     assert 4 not in effective['train_subject_ids']
     assert effective['evaluation_subject_ids'] == [4]
