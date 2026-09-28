@@ -1591,11 +1591,31 @@ def primary_input_array(
     return inputs[0] if isinstance(inputs, tuple) else inputs
 
 
+class TripledClassSampler:
+    """Sample e1/e2 3x with replacement, e3 once; use checkpointed torch RNG."""
+
+    def __init__(self, labels):
+        self.positions = [torch.as_tensor(np.flatnonzero(np.asarray(labels) == label))
+                          for label in range(3)]
+        if any(len(indices) == 0 for indices in self.positions):
+            raise ValueError("Triple sampling requires all three training classes")
+
+    def __len__(self):
+        return sum(len(indices) * factor for indices, factor in zip(self.positions, (3, 3, 1)))
+
+    def __iter__(self):
+        sampled = [indices[torch.randint(len(indices), (3 * len(indices),))]
+                   for indices in self.positions[:2]]
+        indices = torch.cat([*sampled, self.positions[2]])
+        return iter(indices[torch.randperm(len(indices))].tolist())
+
+
 def build_dataloaders(
     dataset_root: str | Path,
     test_subject_id: int,
     batch_size: int,
     input_domain: str = DEFAULT_INPUT_DOMAIN,
+    train_sampling: str = "original",
 ) -> tuple[DataLoader, DataLoader, int, int, int, int, int]:
     """Load dataset, split LOSO, standardise, return loaders and shape info.
 
@@ -1618,10 +1638,16 @@ def build_dataloaders(
     n_times = primary_train_X.shape[3]
     n_classes = int(y.max()) + 1
 
+    if train_sampling not in ("original", "triple_minority_replacement"):
+        raise ValueError(f"Unknown train sampling: {train_sampling}")
+    sampler_options = {} if train_sampling == "original" else {
+        "sampler": TripledClassSampler(train_y),
+    }
     train_loader = DataLoader(
         tensor_dataset_from_inputs(train_inputs, train_y),
         batch_size=batch_size,
-        shuffle=True,
+        shuffle=train_sampling == "original",
+        **sampler_options,
     )
     test_loader = DataLoader(
         tensor_dataset_from_inputs(test_inputs, test_y),
@@ -1947,6 +1973,7 @@ def validate_resume_checkpoint(
         raise ValueError("Resume checkpoint training_config must be a dict")
     mismatches: list[str] = []
     legacy_config_defaults = {
+        "train_sampling": "original",
         "classification_mode": "flat",
         # Checkpoints created before encoder dropout was parameterized used 0.5.
         "transformer_encoder_dropout": DEFAULT_TRANSFORMER_ENCODER_DROPOUT,
@@ -2099,6 +2126,7 @@ def train_loso_fold(
     transformer_branch_qkv_dropout: float = DEFAULT_TRANSFORMER_BRANCH_QKV_DROPOUT,
     architecture: str = DEFAULT_ARCHITECTURE,
     classification_mode: str = "flat",
+    train_sampling: str = "original",
 ) -> Path:
     """Train one LOSO fold and return path to metrics.json."""
 
@@ -2192,6 +2220,7 @@ def train_loso_fold(
         test_subject_id,
         batch_size,
         input_domain=resolved_input_domain,
+        **({"train_sampling": train_sampling} if train_sampling != "original" else {}),
     )
 
     is_comparison_model = resolved_architecture != DEFAULT_ARCHITECTURE
@@ -2375,6 +2404,7 @@ def train_loso_fold(
         "transformer_branch_fusion": resolved_transformer_fusion,
         "transformer_weights_independent_by_domain": transformer_weights_independent_by_domain,
         "classification_mode": classification_mode,
+        "train_sampling": train_sampling,
         "branch_loss_aux_weight": resolved_branch_loss_aux_weight,
         **branch_qkv_config_metadata,
         "class_weights": class_weights,
@@ -2443,6 +2473,7 @@ def train_loso_fold(
             "transformer_branch_fusion": resolved_transformer_fusion,
             "transformer_weights_independent_by_domain": transformer_weights_independent_by_domain,
             "classification_mode": classification_mode,
+            "train_sampling": train_sampling,
             "branch_loss_aux_weight": resolved_branch_loss_aux_weight,
             **branch_qkv_config_metadata,
             **transformer_weight_metadata,
@@ -2739,6 +2770,7 @@ def train_loso_fold(
         "transformer_branch_fusion": resolved_transformer_fusion,
         "transformer_weights_independent_by_domain": transformer_weights_independent_by_domain,
         "classification_mode": classification_mode,
+        "train_sampling": train_sampling,
         "branch_loss_aux_weight": resolved_branch_loss_aux_weight,
         **branch_qkv_config_metadata,
         **best_transformer_weight_metadata,
