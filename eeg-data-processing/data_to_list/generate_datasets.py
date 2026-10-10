@@ -15,7 +15,7 @@ if str(EEG_ROOT) not in sys.path:
     sys.path.insert(0, str(EEG_ROOT))
 
 from eeg_project_paths import GLOBAL_ACTIVITY_DATASET_DIR, LIST_NORMALIZED_DIR, WINDOW_STRIDE_CONFIG
-from build_activity_global_index import build_global_dataset
+from build_activity_global_index import build_global_dataset, excluded_output_base, parse_subject_ids
 
 DEFAULT_CONFIG = WINDOW_STRIDE_CONFIG
 DEFAULT_INPUT_ROOT = LIST_NORMALIZED_DIR
@@ -43,7 +43,16 @@ def main():
                         help="输入根目录（默认 list_normalization_fixed_duration）")
     parser.add_argument("--output-base", type=Path, default=DEFAULT_OUTPUT_BASE,
                         help="输出根目录（默认 global_activity_dataset）")
+    parser.add_argument("--include-subject-ids", help="仅纳入指定受试者，例如 1,2,3,12,17")
+    parser.add_argument("--exclude-subject-ids", help="剔除整名受试者，例如 6 或 6,8；输出目录自动标记")
+    parser.add_argument("--require-complete-records", action="store_true", help="缺少三类有效记录时停止")
     args = parser.parse_args()
+    included = parse_subject_ids(args.include_subject_ids)
+    excluded = parse_subject_ids(args.exclude_subject_ids)
+    output_base = excluded_output_base(args.output_base, excluded)
+    current_subject_ids = sorted(int(directory.name) for directory in args.input_root.iterdir()
+                                 if directory.is_dir() and directory.name.isdigit())
+    expected_requested = current_subject_ids if included is None else included
 
     # 1. 读取配置
     if not args.config.exists():
@@ -83,9 +92,14 @@ def main():
 
         # 子目录名和完整输出路径
         sub_dir = subdir_name(window, stride)
-        out_dir = args.output_base / sub_dir
+        out_dir = output_base / sub_dir
 
         if is_dataset_present(out_dir):
+            metadata = json.loads((out_dir / "metadata.json").read_text(encoding="utf-8"))
+            actual_excluded = metadata.get("excluded_subject_ids", [])
+            actual_requested = metadata.get("requested_subject_ids")
+            if actual_excluded != (excluded or []) or actual_requested != expected_requested:
+                raise ValueError(f"已有数据集受试者选择不匹配，请使用新的 --output-base：{out_dir}")
             print(f"[跳过] 已存在：{sub_dir}")
             continue
 
@@ -96,9 +110,13 @@ def main():
                 output_root=out_dir,
                 window_seconds=window,
                 stride_seconds=stride,
+                include_subject_ids=included,
+                exclude_subject_ids=excluded,
+                require_complete_records=args.require_complete_records,
             )
         except Exception as e:
             print(f"[失败] {sub_dir}：{e}")
+            raise
         else:
             print(f"[完成] {sub_dir}")
 

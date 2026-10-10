@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import argparse
+import re
 import sys
+import zipfile
 from datetime import timedelta
 from pathlib import Path
 
@@ -14,6 +16,16 @@ if str(EEG_ROOT) not in sys.path:
     sys.path.insert(0, str(EEG_ROOT))
 
 from eeg_project_paths import DATA_TO_LIST_DATA_DIR, LIST_DIR
+
+
+def positive_subject_id(value: str) -> int:
+    try:
+        subject_id = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("Subject IDs must be positive integers") from exc
+    if subject_id < 1:
+        raise argparse.ArgumentTypeError("Subject IDs must be positive integers")
+    return subject_id
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -30,15 +42,47 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=LIST_DIR,
         help=f"Excel 输出目录（默认: {LIST_DIR}）",
     )
+    parser.add_argument(
+        "--subject-ids",
+        type=positive_subject_id,
+        nargs="+",
+        default=None,
+        help="只转换指定受试者的 <id>_e.edf；省略时转换目录内全部 EDF",
+    )
     return parser.parse_args(argv)
+
+
+def select_edf_files(input_folder: Path, subject_ids: list[int] | None = None) -> list[Path]:
+    files = sorted(path for path in input_folder.iterdir() if path.is_file() and path.suffix.lower() == ".edf")
+    if subject_ids is None:
+        return files
+    requested = set(subject_ids)
+    selected: list[Path] = []
+    found: set[int] = set()
+    for path in files:
+        match = re.fullmatch(r"(\d+)_e", path.stem, flags=re.IGNORECASE)
+        if match and int(match.group(1)) in requested:
+            selected.append(path)
+            found.add(int(match.group(1)))
+    missing = requested - found
+    if missing:
+        raise FileNotFoundError(f"Requested subjects missing EDF files in {input_folder}: {sorted(missing)}")
+    return selected
 
 
 def discover_processed_files(output_folder: Path) -> set[str]:
     processed_files: set[str] = set()
     if output_folder.exists():
         for file_path in output_folder.iterdir():
-            if file_path.suffix == ".xlsx":
-                processed_files.add(file_path.stem)
+            if file_path.suffix == ".xlsx" and file_path.is_file() and file_path.stat().st_size > 0:
+                try:
+                    with zipfile.ZipFile(file_path) as archive:
+                        if {"[Content_Types].xml", "xl/workbook.xml", "xl/worksheets/sheet1.xml"}.issubset(
+                            archive.namelist()
+                        ):
+                            processed_files.add(file_path.stem)
+                except (OSError, zipfile.BadZipFile):
+                    continue
     return processed_files
 
 
@@ -46,6 +90,8 @@ def convert_edf_to_excel(edf_path: Path, output_folder: Path) -> bool:
     import mne
 
     base_name = edf_path.stem
+    output_file = output_folder / f"{base_name}.xlsx"
+    temporary_file = output_folder / f".{base_name}.tmp.xlsx"
 
     try:
         print(f"\n正在处理: {edf_path.name}")
@@ -74,13 +120,19 @@ def convert_edf_to_excel(edf_path: Path, output_folder: Path) -> bool:
         df = pd.DataFrame(signal_data.T, columns=labels)
         df["Time"] = time_strings
 
-        output_file = output_folder / f"{base_name}.xlsx"
-        df.to_excel(output_file, index=False)
+        output_folder.mkdir(parents=True, exist_ok=True)
+        df.to_excel(temporary_file, index=False)
+        temporary_file.replace(output_file)
         print(f"  ✓ 成功导出: {output_file.name}")
         return True
     except Exception as exc:
         print(f"  ✗ 处理 {edf_path.name} 时出错: {exc}")
         return False
+    finally:
+        try:
+            temporary_file.unlink(missing_ok=True)
+        except OSError:
+            pass
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -96,6 +148,7 @@ def main(argv: list[str] | None = None) -> None:
         print(f"✗ 输入目录不存在: {input_folder}")
         return
 
+    edf_files = select_edf_files(input_folder, args.subject_ids)
     output_folder.mkdir(parents=True, exist_ok=True)
 
     processed_files = discover_processed_files(output_folder)
@@ -106,9 +159,7 @@ def main(argv: list[str] | None = None) -> None:
     processed_count = 0
     error_count = 0
 
-    for edf_path in sorted(input_folder.iterdir()):
-        if edf_path.suffix.lower() != ".edf":
-            continue
+    for edf_path in edf_files:
         total_files += 1
         base_name = edf_path.stem
 
@@ -129,6 +180,8 @@ def main(argv: list[str] | None = None) -> None:
     print(f"新处理: {processed_count}")
     print(f"错误数: {error_count}")
     print("=" * 50)
+    if error_count:
+        raise RuntimeError(f"Failed to convert {error_count} EDF file(s); incomplete outputs were not published")
 
 
 if __name__ == "__main__":

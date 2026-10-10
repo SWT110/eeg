@@ -485,6 +485,106 @@ class BuildActivityGlobalIndexTests(unittest.TestCase):
         self.assertEqual(arrs["metadata"]["n_records"], 6)
         self.assertEqual(arrs["metadata"]["n_samples"], 12)
 
+    def test_excluded_subjects_are_never_loaded_and_source_records_remain(self) -> None:
+        for sid in ("1", "6", "8"):
+            for label in ("1", "2", "3"):
+                _write_xlsx(self.input_root / sid, sid, label, 4)
+        original_loader = self.module.load_xlsx_file
+
+        def checked_loader(path):
+            self.assertNotIn(int(path.parent.name), {6, 8})
+            return original_loader(path)
+
+        requested = self.temp_dir / "cohort" / "window_1_stride_1"
+        with patch.object(self.module, "load_xlsx_file", side_effect=checked_loader):
+            actual = self.module.build_global_dataset(
+                self.input_root, requested, 1.0, 1.0,
+                exclude_subject_ids="8,6,6", require_complete_records=True,
+            )
+        self.assertEqual(actual, self.temp_dir / "cohort_exclude_S6_S8" / "window_1_stride_1")
+        np.testing.assert_array_equal(np.unique(np.load(actual / "subject_ids.npy")), [1])
+        metadata = json.loads((actual / "metadata.json").read_text())
+        self.assertEqual(metadata["excluded_subject_ids"], [6, 8])
+        self.assertEqual(metadata["included_subject_ids"], [1])
+        self.assertEqual(metadata["n_records"], 3)
+        self.assertEqual(set(metadata["record_sources"]), {"1_e_1", "1_e_2", "1_e_3"})
+        self.assertTrue((self.input_root / "6" / "6_e_2.xlsx").exists())
+        self.assertFalse(requested.exists())
+
+    def test_include_selection_is_applied_before_exclusion(self) -> None:
+        for sid in ("1", "2", "6"):
+            _write_xlsx(self.input_root / sid, sid, "1", 4)
+        actual = self.module.build_global_dataset(
+            self.input_root, self.output_root, 1.0, 1.0,
+            include_subject_ids="6,1", exclude_subject_ids="6",
+        )
+        self.assertEqual(np.unique(np.load(actual / "subject_ids.npy")).tolist(), [1])
+        metadata = json.loads((actual / "metadata.json").read_text())
+        self.assertEqual(metadata["requested_subject_ids"], [1, 6])
+        self.assertEqual(metadata["discovered_subject_ids"], [1, 2, 6])
+
+    def test_bad_selection_or_incomplete_subject_fails_before_outputs(self) -> None:
+        _write_xlsx(self.input_root / "6", "6", "1", 4)
+        with self.assertRaisesRegex(ValueError, "leaves no"):
+            self.module.build_global_dataset(self.input_root, self.output_root, 1.0,
+                                             exclude_subject_ids="6")
+        with self.assertRaisesRegex(ValueError, "absent from input"):
+            self.module.build_global_dataset(self.input_root, self.output_root, 1.0,
+                                             exclude_subject_ids="60")
+        with self.assertRaisesRegex(ValueError, "must have e_1"):
+            self.module.build_global_dataset(self.input_root, self.output_root, 1.0,
+                                             require_complete_records=True)
+        self.assertFalse(self.output_root.exists())
+
+    def test_existing_dataset_requires_explicit_rebuild(self) -> None:
+        _write_xlsx(self.input_root / "1", "1", "1", 4)
+        self._build()
+        original = (self.output_root / "X.npy").read_bytes()
+        with self.assertRaises(FileExistsError):
+            self._build()
+        self.assertEqual((self.output_root / "X.npy").read_bytes(), original)
+
+    def test_generator_does_not_reuse_unfiltered_dataset(self) -> None:
+        for sid in ("1", "6"):
+            _write_xlsx(self.input_root / sid, sid, "1", 4)
+        config = self.temp_dir / "windows.json"
+        config.write_text('[{"window_seconds": 1, "stride_seconds": 1}]')
+        existing = self.output_root / "window_1_stride_1"
+        existing.mkdir(parents=True)
+        (existing / "metadata.json").write_text('{"n_subjects": 11}')
+        module_path = MODULE_PATH.parent / "generate_datasets.py"
+        spec = importlib.util.spec_from_file_location("generate_dataset_exclusion_test", module_path)
+        generator = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(generator)
+        argv = [str(module_path), "--config", str(config), "--input-root", str(self.input_root),
+                "--output-base", str(self.output_root), "--exclude-subject-ids", "6"]
+        with patch("sys.argv", argv):
+            generator.main()
+        new_root = self.output_root.with_name("output_exclude_S6") / "window_1_stride_1"
+        self.assertEqual(np.unique(np.load(new_root / "subject_ids.npy")).tolist(), [1])
+        self.assertEqual(json.loads((existing / "metadata.json").read_text()), {"n_subjects": 11})
+
+    def test_generator_rejects_stale_default_cohort_and_fails_on_missing_records(self) -> None:
+        for sid in ("1", "6"):
+            _write_xlsx(self.input_root / sid, sid, "1", 4)
+        config = self.temp_dir / "windows.json"
+        config.write_text('[{"window_seconds": 1, "stride_seconds": 1}]')
+        module_path = MODULE_PATH.parent / "generate_datasets.py"
+        spec = importlib.util.spec_from_file_location("generate_stale_dataset_test", module_path)
+        generator = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(generator)
+        argv = [str(module_path), "--config", str(config), "--input-root", str(self.input_root),
+                "--output-base", str(self.output_root), "--exclude-subject-ids", "6"]
+        with patch("sys.argv", argv + ["--require-complete-records"]):
+            with self.assertRaisesRegex(ValueError, "must have e_1"):
+                generator.main()
+        with patch("sys.argv", argv):
+            generator.main()
+        _write_xlsx(self.input_root / "12", "12", "1", 4)
+        with patch("sys.argv", argv):
+            with self.assertRaisesRegex(ValueError, "已有数据集受试者选择不匹配"):
+                generator.main()
+
 
 if __name__ == "__main__":
     unittest.main()

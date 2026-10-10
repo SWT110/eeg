@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib.util
 import json
 import re
 import sys
 from pathlib import Path
+from typing import Sequence
 
 import numpy as np
 
@@ -43,6 +45,52 @@ SAMPLING_INTERVAL_ATOL = 1e-8
 
 EEG_FILE_PATTERN = re.compile(r"^(?P<subject>\d+)_e_(?P<label>[123])\.xlsx$")
 LABEL_MAP: dict[str, int] = {"e_1": 0, "e_2": 1, "e_3": 2}
+
+
+def parse_subject_ids(raw: str | Sequence[int] | None) -> list[int] | None:
+    """Resolve a subject selection without allowing typos or empty items."""
+    if raw is None:
+        return None
+    values = raw.split(",") if isinstance(raw, str) else list(raw)
+    if not values:
+        raise ValueError("Subject selection must not be empty")
+    resolved = []
+    for value in values:
+        item = str(value).strip()
+        if not item.isdigit() or int(item) < 1:
+            raise ValueError(f"Subject IDs must be positive integers: {value!r}")
+        resolved.append(int(item))
+    return sorted(set(resolved))
+
+
+def excluded_output_base(output_base: Path | str, exclude_subject_ids: Sequence[int] | None) -> Path:
+    """Give cohorts with different exclusion policies different directories."""
+    path = Path(output_base).expanduser()
+    excluded = parse_subject_ids(exclude_subject_ids) if exclude_subject_ids else []
+    if not excluded:
+        return path
+    suffix = "_exclude_" + "_".join(f"S{sid}" for sid in excluded)
+    if path.name.endswith(suffix):
+        return path
+    if "_exclude_" in path.name:
+        raise ValueError(f"Output name {path.name!r} conflicts with exclusion policy {suffix}")
+    return path.with_name(path.name + suffix)
+
+
+def resolve_dataset_output_root(output_root: Path | str, exclude_subject_ids: Sequence[int] | None) -> Path:
+    """Keep window directory names compatible with existing batch discovery."""
+    path = Path(output_root).expanduser()
+    if re.fullmatch(r"window_[0-9.]+_stride_[0-9.]+", path.name):
+        return excluded_output_base(path.parent, exclude_subject_ids) / path.name
+    return excluded_output_base(path, exclude_subject_ids)
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(8 * 1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 # ---------------------------------------------------------------------------
@@ -94,7 +142,12 @@ def build_global_dataset(
     output_root: Path | str,
     window_seconds: float,
     stride_seconds: float | None = None,
-) -> None:
+    *,
+    include_subject_ids: str | Sequence[int] | None = None,
+    exclude_subject_ids: str | Sequence[int] | None = None,
+    require_complete_records: bool = False,
+    overwrite: bool = False,
+) -> Path | None:
     """Build a global activity dataset suitable for LOSO three-class classification.
 
     Scans ``input_root`` for subject folders whose names are pure digits.  For
@@ -112,18 +165,34 @@ def build_global_dataset(
     metadata.json               dataset provenance
     """
     input_root = Path(input_root)
-    output_root = Path(output_root)
+    included = parse_subject_ids(include_subject_ids)
+    excluded = parse_subject_ids(exclude_subject_ids) or []
+    output_root = resolve_dataset_output_root(output_root, excluded)
 
     if stride_seconds is None:
         stride_seconds = window_seconds
 
     if not input_root.exists():
         raise FileNotFoundError(f"Input directory does not exist: {input_root}")
+    if (not np.isfinite(window_seconds) or window_seconds <= 0
+            or not np.isfinite(stride_seconds) or stride_seconds <= 0):
+        raise ValueError("Window and stride must be finite positive seconds")
+    if not overwrite and output_root.exists() and any(output_root.glob("*.npy")):
+        raise FileExistsError(f"Dataset already exists: {output_root}; use a new path or --overwrite")
 
     subject_dirs = sorted(
         [d for d in input_root.iterdir() if d.is_dir() and d.name.isdigit()],
         key=lambda d: int(d.name),
     )
+    discovered = sorted({int(directory.name) for directory in subject_dirs})
+    unknown = sorted(set((included or []) + excluded) - set(discovered))
+    if unknown:
+        raise ValueError(f"Subject IDs absent from input: {unknown}; available={discovered}")
+    selected = set(discovered if included is None else included) - set(excluded)
+    if not selected:
+        raise ValueError("Subject selection leaves no training cohort")
+    subject_dirs = [directory for directory in subject_dirs if int(directory.name) in selected]
+    print(f"Included subjects: {sorted(selected)}; excluded subjects: {excluded}")
 
     all_windows: list[np.ndarray] = []
     all_y: list[int] = []
@@ -132,6 +201,7 @@ def build_global_dataset(
     all_window_indices: list[int] = []
 
     record_id_map: dict[int, str] = {}
+    record_sources: dict[str, dict] = {}
     record_counter = 0
     n_subjects_contributed = 0
     expected_n_channels: int | None = None
@@ -151,8 +221,12 @@ def build_global_dataset(
                 xlsx_files.append((path, label))
 
         if not xlsx_files:
+            if require_complete_records:
+                raise ValueError(f"No EEG records for selected subject {subject_id_str}")
             print(f"No matching EEG files found for subject {subject_id_str}")
             continue
+        if require_complete_records and {label for _, label in xlsx_files} != {0, 1, 2}:
+            raise ValueError(f"Selected subject {subject_id_str} must have e_1, e_2, and e_3")
 
         xlsx_files.sort(key=lambda t: t[1])
 
@@ -163,6 +237,8 @@ def build_global_dataset(
 
             loaded = load_xlsx_file(xlsx_path)
             if loaded is None:
+                if require_complete_records:
+                    raise ValueError(f"Invalid EEG record: {xlsx_path}")
                 continue
 
             data, times = loaded
@@ -192,15 +268,27 @@ def build_global_dataset(
             try:
                 windows = extract_windows(data, times, window_seconds, stride_seconds)
             except ValueError as exc:
+                if require_complete_records:
+                    raise ValueError(f"Invalid windows in {xlsx_path}: {exc}") from exc
                 print(f"Skipping {xlsx_path.name}: {exc}")
                 continue
 
             if not windows:
+                if require_complete_records:
+                    raise ValueError(f"No complete windows in {xlsx_path}")
                 print(f"No windows extracted from {xlsx_path.name}")
                 continue
 
             record_int_id = record_counter
             record_id_map[record_int_id] = record_name
+            record_sources[record_name] = {
+                "relative_path": str(xlsx_path.relative_to(input_root)),
+                "sha256": sha256_file(xlsx_path),
+                "n_rows": int(len(data)),
+                "n_windows": len(windows),
+                "first_timestamp_seconds": float(times[0]),
+                "last_timestamp_seconds": float(times[-1]),
+            }
             record_counter += 1
 
             for win_idx, window in enumerate(windows):
@@ -227,6 +315,9 @@ def build_global_dataset(
     window_indices = np.array(all_window_indices, dtype=np.int64)
 
     output_root.mkdir(parents=True, exist_ok=True)
+    # metadata is the completion marker used by generate_datasets.py.
+    if (output_root / "metadata.json").exists():
+        (output_root / "metadata.json").unlink()
 
     np.save(output_root / "X.npy", X)
     np.save(output_root / "y.npy", y)
@@ -242,6 +333,17 @@ def build_global_dataset(
         "n_subjects": n_subjects_contributed,
         "n_records": len(record_id_map),
         "n_samples": len(all_windows),
+        "input_root": str(input_root.resolve()),
+        "discovered_subject_ids": discovered,
+        "requested_subject_ids": discovered if included is None else included,
+        "included_subject_ids": np.unique(subject_ids).astype(int).tolist(),
+        "excluded_subject_ids": excluded,
+        "excluded_stage": "global_window_dataset",
+        "record_sources": record_sources,
+        "n_channels": int(X.shape[1]),
+        "n_times": int(X.shape[2]),
+        "sampling_rate_hz": 1.0 / expected_sampling_interval,
+        "require_complete_records": require_complete_records,
     }
     with open(output_root / "metadata.json", "w", encoding="ascii") as fh:
         json.dump(metadata, fh, indent=2)
@@ -251,6 +353,7 @@ def build_global_dataset(
         f"{n_subjects_contributed} subjects, {len(record_id_map)} records"
     )
     print(f"Output: {output_root}")
+    return output_root
 
 
 # ---------------------------------------------------------------------------
@@ -285,6 +388,11 @@ def main() -> None:
         default=None,
         help="Stride size in seconds (prompts when omitted; defaults to window-seconds if blank)",
     )
+    parser.add_argument("--include-subject-ids", help="Only include these IDs, e.g. 1,2,3,12,17")
+    parser.add_argument("--exclude-subject-ids", help="Exclude whole subjects, e.g. 6 or 6,8; tags output folder")
+    parser.add_argument("--require-complete-records", action="store_true",
+                        help="Fail if any selected subject lacks a valid e_1/e_2/e_3 record")
+    parser.add_argument("--overwrite", action="store_true", help="Explicitly rebuild an existing derived dataset")
 
     args = parser.parse_args()
 
@@ -295,16 +403,20 @@ def main() -> None:
         stride_seconds=args.stride_seconds,
     )
 
-    build_global_dataset(
+    actual_output_root = build_global_dataset(
         input_root=input_root,
         output_root=output_root,
         window_seconds=window_seconds,
         stride_seconds=stride_seconds,
+        include_subject_ids=args.include_subject_ids,
+        exclude_subject_ids=args.exclude_subject_ids,
+        require_complete_records=args.require_complete_records,
+        overwrite=args.overwrite,
     )
 
     print()
     print("Done.")
-    print(f"Output directory: {output_root}")
+    print(f"Output directory: {actual_output_root}")
 
 
 if __name__ == "__main__":
