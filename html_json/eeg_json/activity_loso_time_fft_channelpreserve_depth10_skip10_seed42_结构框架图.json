@@ -1,0 +1,5252 @@
+{
+  "nodes": [
+    {
+      "id": "panel_overview",
+      "type": "rect",
+      "x": 35,
+      "y": 125,
+      "w": 7930,
+      "h": 775,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 18
+    },
+    {
+      "id": "panel_patch",
+      "type": "rect",
+      "x": 35,
+      "y": 930,
+      "w": 7930,
+      "h": 710,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 18
+    },
+    {
+      "id": "panel_transformer",
+      "type": "rect",
+      "x": 35,
+      "y": 1670,
+      "w": 7930,
+      "h": 860,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 18
+    },
+    {
+      "id": "panel_crossdepth",
+      "type": "rect",
+      "x": 35,
+      "y": 2560,
+      "w": 7930,
+      "h": 1030,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 18
+    },
+    {
+      "id": "panel_headloss",
+      "type": "rect",
+      "x": 35,
+      "y": 3620,
+      "w": 7930,
+      "h": 830,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 18
+    },
+    {
+      "id": "raw_window",
+      "type": "rect",
+      "x": 75,
+      "y": 452,
+      "w": 250,
+      "h": 86,
+      "label": "EEG window (B,1,21,1920)",
+      "fill": "#dfe4eb",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "time_zscore",
+      "type": "rect",
+      "x": 380,
+      "y": 310,
+      "w": 330,
+      "h": 86,
+      "label": "Time train-only Z-score",
+      "fill": "#c9dcf3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "time_input_qkv_off",
+      "type": "rect",
+      "x": 765,
+      "y": 310,
+      "w": 300,
+      "h": 86,
+      "label": "Input QKV = none (Identity)",
+      "fill": "#eeeeee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "time_patch_summary",
+      "type": "rect",
+      "x": 1120,
+      "y": 300,
+      "w": 365,
+      "h": 106,
+      "label": "Time PatchEmbedding -> (B,21,122,40)",
+      "fill": "#bfd2ee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_time_enc_10",
+      "type": "rect",
+      "x": 1540,
+      "y": 300,
+      "w": 380,
+      "h": 106,
+      "label": "Time Blocks #1-#5 (per electrode)",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_time_updated",
+      "type": "rect",
+      "x": 2800,
+      "y": 300,
+      "w": 320,
+      "h": 106,
+      "label": "T10 (B,122,40)",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_time_flat",
+      "type": "rect",
+      "x": 3180,
+      "y": 300,
+      "w": 355,
+      "h": 106,
+      "label": "Flatten Time -> (B,4880)",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "fft_transform",
+      "type": "rect",
+      "x": 380,
+      "y": 665,
+      "w": 330,
+      "h": 90,
+      "label": "rFFT -> abs(.)^2 -> log1p",
+      "fill": "#ddcbea",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "fft_zscore",
+      "type": "rect",
+      "x": 765,
+      "y": 665,
+      "w": 300,
+      "h": 90,
+      "label": "FFT train-only Z-score",
+      "fill": "#ddcbea",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "fft_patch_summary",
+      "type": "rect",
+      "x": 1120,
+      "y": 665,
+      "w": 365,
+      "h": 106,
+      "label": "FFT PatchEmbedding -> (B,21,58,40)",
+      "fill": "#bfd2ee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_fft_enc_10",
+      "type": "rect",
+      "x": 1540,
+      "y": 665,
+      "w": 380,
+      "h": 106,
+      "label": "FFT Blocks #1-#5 (per electrode)",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_fft_updated",
+      "type": "rect",
+      "x": 2800,
+      "y": 665,
+      "w": 320,
+      "h": 106,
+      "label": "F10 (B,58,40)",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_fft_flat",
+      "type": "rect",
+      "x": 3180,
+      "y": 665,
+      "w": 355,
+      "h": 106,
+      "label": "Flatten FFT -> (B,2320)",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_concat_10",
+      "type": "rect",
+      "x": 3685,
+      "y": 450,
+      "w": 300,
+      "h": 88,
+      "label": "Concat Time + FFT -> f(B,7200)",
+      "fill": "#b9dcf1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_head_10",
+      "type": "rect",
+      "x": 4045,
+      "y": 450,
+      "w": 310,
+      "h": 88,
+      "label": "Single Head: 7200->256->32->3",
+      "fill": "#9be1e5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_branch_10",
+      "type": "rect",
+      "x": 4415,
+      "y": 450,
+      "w": 285,
+      "h": 88,
+      "label": "logits z (B,3)",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_prediction",
+      "type": "rect",
+      "x": 4850,
+      "y": 255,
+      "w": 1030,
+      "h": 98,
+      "label": "argmax(z) -> e_1 / e_2 / e_3",
+      "fill": "#9edfe3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_total_loss",
+      "type": "rect",
+      "x": 4850,
+      "y": 660,
+      "w": 530,
+      "h": 105,
+      "label": "Ltotal = CE(z,y) | no depth auxiliary loss",
+      "fill": "#f2c2c5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_backprop",
+      "type": "rect",
+      "x": 5440,
+      "y": 665,
+      "w": 440,
+      "h": 95,
+      "label": "Adam + Backprop all modules",
+      "fill": "#9edfe3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "panel_overview_config",
+      "type": "rect",
+      "x": 5940,
+      "y": 190,
+      "w": 1965,
+      "h": 650,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 14
+    },
+    {
+      "id": "cfg_arch",
+      "type": "rect",
+      "x": 5990,
+      "y": 255,
+      "w": 900,
+      "h": 110,
+      "label": "C=21 | T=1920 | FFT F=961 | emb=40 | heads=5 | classes=3",
+      "fill": "#ffffff",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cfg_depth",
+      "type": "rect",
+      "x": 6940,
+      "y": 255,
+      "w": 900,
+      "h": 110,
+      "label": "depth=10 (5+5) | skip to all 10 Block ends | cross_depth=off",
+      "fill": "#ffffff",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cfg_drop",
+      "type": "rect",
+      "x": 5990,
+      "y": 405,
+      "w": 900,
+      "h": 110,
+      "label": "Dropout: stem=.5 | encoder=.5 | head=.5/.3 | baseline defaults",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cfg_train",
+      "type": "rect",
+      "x": 6940,
+      "y": 405,
+      "w": 900,
+      "h": 110,
+      "label": "epochs=200 | batch=72 | lr=0.0002 | Adam betas=(0.5,0.999)",
+      "fill": "#ffffff",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cfg_init",
+      "type": "rect",
+      "x": 5990,
+      "y": 555,
+      "w": 900,
+      "h": 110,
+      "label": "C=21 EEG electrodes | N=122/58 tokens | D=40 learned features",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cfg_loss",
+      "type": "rect",
+      "x": 6940,
+      "y": 555,
+      "w": 900,
+      "h": 110,
+      "label": "single CE | depth aux=0 | class weights=None | seed=42",
+      "fill": "#f2c2c5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "panel_patch_time",
+      "type": "rect",
+      "x": 65,
+      "y": 1000,
+      "w": 3890,
+      "h": 570,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 14
+    },
+    {
+      "id": "panel_patch_fft",
+      "type": "rect",
+      "x": 4045,
+      "y": 1000,
+      "w": 3890,
+      "h": 570,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 14
+    },
+    {
+      "id": "pt_in",
+      "type": "rect",
+      "x": 95,
+      "y": 1115,
+      "w": 250,
+      "h": 92,
+      "label": "Input",
+      "fill": "#dfe4eb",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pt_conv_t",
+      "type": "rect",
+      "x": 400,
+      "y": 1115,
+      "w": 390,
+      "h": 92,
+      "label": "Conv2d 1->40, k=(1,25), s=1, pad=0",
+      "fill": "#bfd2ee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pt_conv_s",
+      "type": "rect",
+      "x": 845,
+      "y": 1115,
+      "w": 420,
+      "h": 92,
+      "label": "Identity: keep 21 electrodes (defer spatial fusion)",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pt_bn",
+      "type": "rect",
+      "x": 1320,
+      "y": 1115,
+      "w": 360,
+      "h": 92,
+      "label": "BatchNorm2d(40), eps=1e-5, mom=.1",
+      "fill": "#edf1f5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pt_elu",
+      "type": "rect",
+      "x": 1735,
+      "y": 1115,
+      "w": 210,
+      "h": 92,
+      "label": "ELU",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pt_pool",
+      "type": "rect",
+      "x": 2000,
+      "y": 1115,
+      "w": 390,
+      "h": 92,
+      "label": "AvgPool2d k=(1,75), s=(1,15)",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pt_drop",
+      "type": "rect",
+      "x": 2445,
+      "y": 1115,
+      "w": 260,
+      "h": 92,
+      "label": "Dropout p=0.5",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pt_proj",
+      "type": "rect",
+      "x": 2760,
+      "y": 1115,
+      "w": 340,
+      "h": 92,
+      "label": "Projection Conv2d 40->40, k=1",
+      "fill": "#bfd2ee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pt_squeeze",
+      "type": "rect",
+      "x": 3155,
+      "y": 1115,
+      "w": 250,
+      "h": 92,
+      "label": "Identity: no squeeze",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pt_transpose",
+      "type": "rect",
+      "x": 3460,
+      "y": 1115,
+      "w": 300,
+      "h": 92,
+      "label": "Permute -> (B,C,N,D)",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pf_in",
+      "type": "rect",
+      "x": 4075,
+      "y": 1115,
+      "w": 250,
+      "h": 92,
+      "label": "Input",
+      "fill": "#dfe4eb",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pf_conv_t",
+      "type": "rect",
+      "x": 4380,
+      "y": 1115,
+      "w": 390,
+      "h": 92,
+      "label": "Conv2d 1->40, k=(1,25), s=1, pad=0",
+      "fill": "#bfd2ee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pf_conv_s",
+      "type": "rect",
+      "x": 4825,
+      "y": 1115,
+      "w": 420,
+      "h": 92,
+      "label": "Identity: keep 21 electrodes (defer spatial fusion)",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pf_bn",
+      "type": "rect",
+      "x": 5300,
+      "y": 1115,
+      "w": 360,
+      "h": 92,
+      "label": "BatchNorm2d(40), eps=1e-5, mom=.1",
+      "fill": "#edf1f5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pf_elu",
+      "type": "rect",
+      "x": 5715,
+      "y": 1115,
+      "w": 210,
+      "h": 92,
+      "label": "ELU",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pf_pool",
+      "type": "rect",
+      "x": 5980,
+      "y": 1115,
+      "w": 390,
+      "h": 92,
+      "label": "AvgPool2d k=(1,75), s=(1,15)",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pf_drop",
+      "type": "rect",
+      "x": 6425,
+      "y": 1115,
+      "w": 260,
+      "h": 92,
+      "label": "Dropout p=0.5",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pf_proj",
+      "type": "rect",
+      "x": 6740,
+      "y": 1115,
+      "w": 340,
+      "h": 92,
+      "label": "Projection Conv2d 40->40, k=1",
+      "fill": "#bfd2ee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pf_squeeze",
+      "type": "rect",
+      "x": 7135,
+      "y": 1115,
+      "w": 250,
+      "h": 92,
+      "label": "Identity: no squeeze",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "pf_transpose",
+      "type": "rect",
+      "x": 7440,
+      "y": 1115,
+      "w": 300,
+      "h": 92,
+      "label": "Permute -> (B,C,N,D)",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "panel_encoder_repeats",
+      "type": "rect",
+      "x": 65,
+      "y": 1750,
+      "w": 2680,
+      "h": 710,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 14
+    },
+    {
+      "id": "panel_encoder_block",
+      "type": "rect",
+      "x": 2785,
+      "y": 1750,
+      "w": 5150,
+      "h": 710,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 14
+    },
+    {
+      "id": "enc_time_source",
+      "type": "rect",
+      "x": 95,
+      "y": 1950,
+      "w": 285,
+      "h": 100,
+      "label": "E_time (B,21,122,40)",
+      "fill": "#c9dcf3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "enc_fft_source",
+      "type": "rect",
+      "x": 95,
+      "y": 2280,
+      "w": 285,
+      "h": 100,
+      "label": "E_fft (B,21,58,40)",
+      "fill": "#ddcbea",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "et10_b1",
+      "type": "rect",
+      "x": 430,
+      "y": 1950,
+      "w": 430,
+      "h": 100,
+      "label": "Blocks #1-#5 per electrode",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "et10_b2",
+      "type": "rect",
+      "x": 915,
+      "y": 1950,
+      "w": 415,
+      "h": 100,
+      "label": "Channel Conv 21->1 + squeeze",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "et10_mid",
+      "type": "rect",
+      "x": 1385,
+      "y": 1950,
+      "w": 350,
+      "h": 100,
+      "label": "Blocks #6-#9 (each + F5)",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "et10_bn",
+      "type": "rect",
+      "x": 1790,
+      "y": 1950,
+      "w": 280,
+      "h": 100,
+      "label": "EncoderBlock #10 + F5",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "et10_out",
+      "type": "rect",
+      "x": 2125,
+      "y": 1950,
+      "w": 500,
+      "h": 100,
+      "label": "T10 (B,122,40)",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ef10_b1",
+      "type": "rect",
+      "x": 430,
+      "y": 2280,
+      "w": 430,
+      "h": 100,
+      "label": "Blocks #1-#5 per electrode",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ef10_b2",
+      "type": "rect",
+      "x": 915,
+      "y": 2280,
+      "w": 415,
+      "h": 100,
+      "label": "Channel Conv 21->1 + squeeze",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ef10_mid",
+      "type": "rect",
+      "x": 1385,
+      "y": 2280,
+      "w": 350,
+      "h": 100,
+      "label": "Blocks #6-#9 (each + F5)",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ef10_bn",
+      "type": "rect",
+      "x": 1790,
+      "y": 2280,
+      "w": 280,
+      "h": 100,
+      "label": "EncoderBlock #10 + F5",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ef10_out",
+      "type": "rect",
+      "x": 2125,
+      "y": 2280,
+      "w": 500,
+      "h": 100,
+      "label": "F10 (B,58,40)",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_x",
+      "type": "rect",
+      "x": 2835,
+      "y": 1860,
+      "w": 210,
+      "h": 76,
+      "label": "Input (B_eff,N,40)",
+      "fill": "#dfe4eb",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_ln1",
+      "type": "rect",
+      "x": 3090,
+      "y": 1860,
+      "w": 220,
+      "h": 76,
+      "label": "LayerNorm(40)",
+      "fill": "#edf1f5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_qkv",
+      "type": "rect",
+      "x": 3355,
+      "y": 1860,
+      "w": 405,
+      "h": 76,
+      "label": "Q/K/V: three Linear 40->40",
+      "fill": "#e8d5aa",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_heads",
+      "type": "rect",
+      "x": 3805,
+      "y": 1860,
+      "w": 270,
+      "h": 76,
+      "label": "Split 5 heads x 8",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_score",
+      "type": "rect",
+      "x": 4120,
+      "y": 1860,
+      "w": 365,
+      "h": 76,
+      "label": "Scores = Q*K^T / sqrt(40)",
+      "fill": "#e8d5aa",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_softmax",
+      "type": "rect",
+      "x": 4530,
+      "y": 1860,
+      "w": 250,
+      "h": 76,
+      "label": "Softmax over keys",
+      "fill": "#d7c7ee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_attdrop",
+      "type": "rect",
+      "x": 4825,
+      "y": 1860,
+      "w": 270,
+      "h": 76,
+      "label": "Attention Dropout p=.5",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_av",
+      "type": "rect",
+      "x": 5140,
+      "y": 1860,
+      "w": 220,
+      "h": 76,
+      "label": "A * V",
+      "fill": "#e8d5aa",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_concat",
+      "type": "rect",
+      "x": 5405,
+      "y": 1860,
+      "w": 250,
+      "h": 76,
+      "label": "Concat heads -> 40",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_outlinear",
+      "type": "rect",
+      "x": 5700,
+      "y": 1860,
+      "w": 280,
+      "h": 76,
+      "label": "Output Linear 40->40",
+      "fill": "#e8d5aa",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_postattdrop",
+      "type": "rect",
+      "x": 6025,
+      "y": 1860,
+      "w": 270,
+      "h": 76,
+      "label": "Post-MHA Dropout p=.5",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_add1",
+      "type": "residual",
+      "x": 6345,
+      "y": 1872,
+      "w": 52,
+      "h": 52,
+      "label": "+",
+      "fill": "#ffffff",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 26
+    },
+    {
+      "id": "blk_x1",
+      "type": "rect",
+      "x": 6445,
+      "y": 1860,
+      "w": 240,
+      "h": 76,
+      "label": "X1 = X + Attn",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ff_x1",
+      "type": "rect",
+      "x": 3355,
+      "y": 2180,
+      "w": 230,
+      "h": 76,
+      "label": "X1",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ff_ln",
+      "type": "rect",
+      "x": 3630,
+      "y": 2180,
+      "w": 220,
+      "h": 76,
+      "label": "LayerNorm(40)",
+      "fill": "#edf1f5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ff_l1",
+      "type": "rect",
+      "x": 3895,
+      "y": 2180,
+      "w": 290,
+      "h": 76,
+      "label": "Linear 40->160",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ff_gelu",
+      "type": "rect",
+      "x": 4230,
+      "y": 2180,
+      "w": 200,
+      "h": 76,
+      "label": "GELU",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ff_innerdrop",
+      "type": "rect",
+      "x": 4475,
+      "y": 2180,
+      "w": 260,
+      "h": 76,
+      "label": "FFN Dropout p=.5",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ff_l2",
+      "type": "rect",
+      "x": 4780,
+      "y": 2180,
+      "w": 290,
+      "h": 76,
+      "label": "Linear 160->40",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ff_outerdrop",
+      "type": "rect",
+      "x": 5115,
+      "y": 2180,
+      "w": 285,
+      "h": 76,
+      "label": "Post-FFN Dropout p=.5",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ff_add",
+      "type": "residual",
+      "x": 5450,
+      "y": 2192,
+      "w": 52,
+      "h": 52,
+      "label": "+",
+      "fill": "#ffffff",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 26
+    },
+    {
+      "id": "ff_out",
+      "type": "rect",
+      "x": 5550,
+      "y": 2180,
+      "w": 330,
+      "h": 76,
+      "label": "Block output (B_eff,N,40)",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_params",
+      "type": "rect",
+      "x": 6080,
+      "y": 2130,
+      "w": 1740,
+      "h": 115,
+      "label": "Block params: emb=40 | heads=5 | head_dim=8 | FFN expansion=4 | all encoder dropout=.5",
+      "fill": "#ffffff",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "blk_flags",
+      "type": "rect",
+      "x": 6080,
+      "y": 2280,
+      "w": 1740,
+      "h": 115,
+      "label": "cumulative_query_attention=false | no cross-block Q accumulation | score scale is sqrt(40), matching source code",
+      "fill": "#eeeeee",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "panel_cross_generic",
+      "type": "rect",
+      "x": 65,
+      "y": 2645,
+      "w": 7870,
+      "h": 430,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 14
+    },
+    {
+      "id": "panel_cross_t11",
+      "type": "rect",
+      "x": 65,
+      "y": 3100,
+      "w": 7870,
+      "h": 420,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 14
+    },
+    {
+      "id": "panel_heads_detail",
+      "type": "rect",
+      "x": 65,
+      "y": 3710,
+      "w": 4290,
+      "h": 650,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 14
+    },
+    {
+      "id": "panel_loss_detail",
+      "type": "rect",
+      "x": 4395,
+      "y": 3710,
+      "w": 3540,
+      "h": 650,
+      "label": "",
+      "fill": "transparent",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 14
+    },
+    {
+      "id": "h10_tf",
+      "type": "rect",
+      "x": 85,
+      "y": 4010,
+      "w": 300,
+      "h": 68,
+      "label": "Flatten T10 (B,4880)",
+      "fill": "#c9dcf3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h10_ff",
+      "type": "rect",
+      "x": 430,
+      "y": 4010,
+      "w": 300,
+      "h": 68,
+      "label": "Flatten F10 (B,2320)",
+      "fill": "#ddcbea",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h10_cat",
+      "type": "rect",
+      "x": 775,
+      "y": 4010,
+      "w": 300,
+      "h": 68,
+      "label": "Concat f (B,7200)",
+      "fill": "#b9dcf1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h10_l1",
+      "type": "rect",
+      "x": 1120,
+      "y": 4010,
+      "w": 290,
+      "h": 68,
+      "label": "Linear 7200->256",
+      "fill": "#9be1e5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h10_elu1",
+      "type": "rect",
+      "x": 1455,
+      "y": 4010,
+      "w": 170,
+      "h": 68,
+      "label": "ELU",
+      "fill": "#9be1e5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h10_d1",
+      "type": "rect",
+      "x": 1670,
+      "y": 4010,
+      "w": 240,
+      "h": 68,
+      "label": "Dropout p=.5",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h10_l2",
+      "type": "rect",
+      "x": 1955,
+      "y": 4010,
+      "w": 270,
+      "h": 68,
+      "label": "Linear 256->32",
+      "fill": "#9be1e5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h10_elu2",
+      "type": "rect",
+      "x": 2270,
+      "y": 4010,
+      "w": 170,
+      "h": 68,
+      "label": "ELU",
+      "fill": "#9be1e5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h10_d2",
+      "type": "rect",
+      "x": 2485,
+      "y": 4010,
+      "w": 240,
+      "h": 68,
+      "label": "Dropout p=.3",
+      "fill": "#f4cfd1",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h10_l3",
+      "type": "rect",
+      "x": 2770,
+      "y": 4010,
+      "w": 250,
+      "h": 68,
+      "label": "Linear 32->3",
+      "fill": "#9be1e5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h10_z",
+      "type": "rect",
+      "x": 3065,
+      "y": 4010,
+      "w": 230,
+      "h": 68,
+      "label": "logits z (B,3)",
+      "fill": "#9edfe3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h10_ce",
+      "type": "rect",
+      "x": 3340,
+      "y": 4010,
+      "w": 530,
+      "h": 68,
+      "label": "CrossEntropy(z,y), class weights=None",
+      "fill": "#f2c2c5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "h10_loss",
+      "type": "rect",
+      "x": 3915,
+      "y": 4010,
+      "w": 310,
+      "h": 68,
+      "label": "L scalar",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "loss_argmax",
+      "type": "rect",
+      "x": 5050,
+      "y": 3830,
+      "w": 2760,
+      "h": 90,
+      "label": "argmax(z) -> e_1 / e_2 / e_3 (class 0 / 1 / 2)",
+      "fill": "#9edfe3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "loss_total",
+      "type": "rect",
+      "x": 4440,
+      "y": 4130,
+      "w": 1000,
+      "h": 102,
+      "label": "Ltotal = CE(z,y)",
+      "fill": "#f2c2c5",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "loss_adam",
+      "type": "rect",
+      "x": 5500,
+      "y": 4115,
+      "w": 2310,
+      "h": 117,
+      "label": "Adam: lr=.0002, betas=(.5,.999), eps=1e-8, weight_decay=0 | Backprop Stem + channel Conv + Encoders + Head",
+      "fill": "#9edfe3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_time_channel_fuse",
+      "type": "rect",
+      "x": 1980,
+      "y": 300,
+      "w": 350,
+      "h": 106,
+      "label": "Channel Conv 21->1 + squeeze",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_time_late",
+      "type": "rect",
+      "x": 2390,
+      "y": 300,
+      "w": 350,
+      "h": 106,
+      "label": "Time Blocks #6-#10 (each + F5)",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_time_channel_skip",
+      "type": "rect",
+      "x": 1540,
+      "y": 198,
+      "w": 790,
+      "h": 65,
+      "label": "Cross-electrode Conv 21->21 | skip to outputs of Blocks #1-#5",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_fft_channel_fuse",
+      "type": "rect",
+      "x": 1980,
+      "y": 665,
+      "w": 350,
+      "h": 106,
+      "label": "Channel Conv 21->1 + squeeze",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_fft_late",
+      "type": "rect",
+      "x": 2390,
+      "y": 665,
+      "w": 350,
+      "h": 106,
+      "label": "FFT Blocks #6-#10 (each + F5)",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ov_fft_channel_skip",
+      "type": "rect",
+      "x": 1540,
+      "y": 563,
+      "w": 790,
+      "h": 65,
+      "label": "Cross-electrode Conv 21->21 | skip to outputs of Blocks #1-#5",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "et10_skip",
+      "type": "rect",
+      "x": 430,
+      "y": 1820,
+      "w": 900,
+      "h": 70,
+      "label": "Input Conv 21->21 -> skip to outputs of Blocks #1-#5",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "ef10_skip",
+      "type": "rect",
+      "x": 430,
+      "y": 2150,
+      "w": 900,
+      "h": 70,
+      "label": "Input Conv 21->21 -> skip to outputs of Blocks #1-#5",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "skip_x0",
+      "type": "rect",
+      "x": 95,
+      "y": 2825,
+      "w": 440,
+      "h": 90,
+      "label": "X0 (B,21,N,40)",
+      "fill": "#dfe4eb",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "skip_conv",
+      "type": "rect",
+      "x": 595,
+      "y": 2705,
+      "w": 550,
+      "h": 80,
+      "label": "Cross-electrode Conv C:21->21",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "skip_s",
+      "type": "rect",
+      "x": 1205,
+      "y": 2705,
+      "w": 550,
+      "h": 80,
+      "label": "S (B,21,N,40)",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "skip_block_1",
+      "type": "rect",
+      "x": 2070,
+      "y": 2830,
+      "w": 670,
+      "h": 80,
+      "label": "Per-electrode EncoderBlock #1",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "skip_add_1",
+      "type": "residual",
+      "x": 2820,
+      "y": 2844,
+      "w": 52,
+      "h": 52,
+      "label": "+",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 26
+    },
+    {
+      "id": "skip_block_2",
+      "type": "rect",
+      "x": 3090,
+      "y": 2830,
+      "w": 670,
+      "h": 80,
+      "label": "Per-electrode EncoderBlock #2",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "skip_add_2",
+      "type": "residual",
+      "x": 3840,
+      "y": 2844,
+      "w": 52,
+      "h": 52,
+      "label": "+",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 26
+    },
+    {
+      "id": "skip_block_3",
+      "type": "rect",
+      "x": 4110,
+      "y": 2830,
+      "w": 670,
+      "h": 80,
+      "label": "Per-electrode EncoderBlock #3",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "skip_add_3",
+      "type": "residual",
+      "x": 4860,
+      "y": 2844,
+      "w": 52,
+      "h": 52,
+      "label": "+",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 26
+    },
+    {
+      "id": "skip_block_4",
+      "type": "rect",
+      "x": 5130,
+      "y": 2830,
+      "w": 670,
+      "h": 80,
+      "label": "Per-electrode EncoderBlock #4",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "skip_add_4",
+      "type": "residual",
+      "x": 5880,
+      "y": 2844,
+      "w": 52,
+      "h": 52,
+      "label": "+",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 26
+    },
+    {
+      "id": "skip_block_5",
+      "type": "rect",
+      "x": 6150,
+      "y": 2830,
+      "w": 670,
+      "h": 80,
+      "label": "Per-electrode EncoderBlock #5",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "skip_add_5",
+      "type": "residual",
+      "x": 6900,
+      "y": 2844,
+      "w": 52,
+      "h": 52,
+      "label": "+",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 26
+    },
+    {
+      "id": "skip_h5",
+      "type": "rect",
+      "x": 7120,
+      "y": 2830,
+      "w": 650,
+      "h": 80,
+      "label": "H5 (B,21,N,40)",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "late_h5",
+      "type": "rect",
+      "x": 95,
+      "y": 3240,
+      "w": 500,
+      "h": 90,
+      "label": "H5 (B,21,N,40)",
+      "fill": "#dfe4eb",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "late_conv",
+      "type": "rect",
+      "x": 655,
+      "y": 3240,
+      "w": 630,
+      "h": 90,
+      "label": "Cross-electrode Conv C:21->1",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "late_squeeze",
+      "type": "rect",
+      "x": 1345,
+      "y": 3240,
+      "w": 580,
+      "h": 90,
+      "label": "Squeeze -> F5 (B,N,40)",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "late_block_6",
+      "type": "rect",
+      "x": 2130,
+      "y": 3240,
+      "w": 600,
+      "h": 90,
+      "label": "EncoderBlock #6 (B,N,40)",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "late_add_6",
+      "type": "residual",
+      "x": 2820,
+      "y": 3259,
+      "w": 52,
+      "h": 52,
+      "label": "+",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 26
+    },
+    {
+      "id": "late_block_7",
+      "type": "rect",
+      "x": 3140,
+      "y": 3240,
+      "w": 600,
+      "h": 90,
+      "label": "EncoderBlock #7 (B,N,40)",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "late_add_7",
+      "type": "residual",
+      "x": 3830,
+      "y": 3259,
+      "w": 52,
+      "h": 52,
+      "label": "+",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 26
+    },
+    {
+      "id": "late_block_8",
+      "type": "rect",
+      "x": 4150,
+      "y": 3240,
+      "w": 600,
+      "h": 90,
+      "label": "EncoderBlock #8 (B,N,40)",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "late_add_8",
+      "type": "residual",
+      "x": 4840,
+      "y": 3259,
+      "w": 52,
+      "h": 52,
+      "label": "+",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 26
+    },
+    {
+      "id": "late_block_9",
+      "type": "rect",
+      "x": 5160,
+      "y": 3240,
+      "w": 600,
+      "h": 90,
+      "label": "EncoderBlock #9 (B,N,40)",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "late_add_9",
+      "type": "residual",
+      "x": 5850,
+      "y": 3259,
+      "w": 52,
+      "h": 52,
+      "label": "+",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 26
+    },
+    {
+      "id": "late_block_10",
+      "type": "rect",
+      "x": 6170,
+      "y": 3240,
+      "w": 600,
+      "h": 90,
+      "label": "EncoderBlock #10 (B,N,40)",
+      "fill": "#c9ddb8",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "late_add_10",
+      "type": "residual",
+      "x": 6860,
+      "y": 3259,
+      "w": 52,
+      "h": 52,
+      "label": "+",
+      "fill": "#fff0da",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 26
+    },
+    {
+      "id": "late_out",
+      "type": "rect",
+      "x": 7050,
+      "y": 3240,
+      "w": 750,
+      "h": 90,
+      "label": "Final output (B,N,40)",
+      "fill": "#c7e4dc",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "late_flat",
+      "type": "rect",
+      "x": 7050,
+      "y": 3390,
+      "w": 750,
+      "h": 65,
+      "label": "Flatten: Time (B,4880) | FFT (B,2320)",
+      "fill": "#9edfe3",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "loss_logits",
+      "type": "rect",
+      "x": 4440,
+      "y": 3830,
+      "w": 550,
+      "h": 90,
+      "label": "Single logits z (B,3)",
+      "fill": "#f1dfb9",
+      "textColor": "#20242c",
+      "orientation": "horizontal",
+      "radius": 10
+    }
+  ],
+  "edges": [
+    {
+      "id": "e048_pt_in_pt_conv_t",
+      "from": {
+        "nodeId": "pt_in",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pt_conv_t",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e049_pt_conv_t_pt_conv_s",
+      "from": {
+        "nodeId": "pt_conv_t",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pt_conv_s",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e050_pt_conv_s_pt_bn",
+      "from": {
+        "nodeId": "pt_conv_s",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pt_bn",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e051_pt_bn_pt_elu",
+      "from": {
+        "nodeId": "pt_bn",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pt_elu",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e052_pt_elu_pt_pool",
+      "from": {
+        "nodeId": "pt_elu",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pt_pool",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e053_pt_pool_pt_drop",
+      "from": {
+        "nodeId": "pt_pool",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pt_drop",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e054_pt_drop_pt_proj",
+      "from": {
+        "nodeId": "pt_drop",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pt_proj",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e055_pt_proj_pt_squeeze",
+      "from": {
+        "nodeId": "pt_proj",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pt_squeeze",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e056_pt_squeeze_pt_transpose",
+      "from": {
+        "nodeId": "pt_squeeze",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pt_transpose",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e057_pf_in_pf_conv_t",
+      "from": {
+        "nodeId": "pf_in",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pf_conv_t",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e058_pf_conv_t_pf_conv_s",
+      "from": {
+        "nodeId": "pf_conv_t",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pf_conv_s",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e059_pf_conv_s_pf_bn",
+      "from": {
+        "nodeId": "pf_conv_s",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pf_bn",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e060_pf_bn_pf_elu",
+      "from": {
+        "nodeId": "pf_bn",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pf_elu",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e061_pf_elu_pf_pool",
+      "from": {
+        "nodeId": "pf_elu",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pf_pool",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e062_pf_pool_pf_drop",
+      "from": {
+        "nodeId": "pf_pool",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pf_drop",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e063_pf_drop_pf_proj",
+      "from": {
+        "nodeId": "pf_drop",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pf_proj",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e064_pf_proj_pf_squeeze",
+      "from": {
+        "nodeId": "pf_proj",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pf_squeeze",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e065_pf_squeeze_pf_transpose",
+      "from": {
+        "nodeId": "pf_squeeze",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "pf_transpose",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e096_blk_x_blk_ln1",
+      "from": {
+        "nodeId": "blk_x",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "blk_ln1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e097_blk_ln1_blk_qkv",
+      "from": {
+        "nodeId": "blk_ln1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "blk_qkv",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e098_blk_qkv_blk_heads",
+      "from": {
+        "nodeId": "blk_qkv",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "blk_heads",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e099_blk_heads_blk_score",
+      "from": {
+        "nodeId": "blk_heads",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "blk_score",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e100_blk_score_blk_softmax",
+      "from": {
+        "nodeId": "blk_score",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "blk_softmax",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e101_blk_softmax_blk_attdrop",
+      "from": {
+        "nodeId": "blk_softmax",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "blk_attdrop",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e102_blk_attdrop_blk_av",
+      "from": {
+        "nodeId": "blk_attdrop",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "blk_av",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e103_blk_av_blk_concat",
+      "from": {
+        "nodeId": "blk_av",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "blk_concat",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e104_blk_concat_blk_outlinear",
+      "from": {
+        "nodeId": "blk_concat",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "blk_outlinear",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e105_blk_outlinear_blk_postattdrop",
+      "from": {
+        "nodeId": "blk_outlinear",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "blk_postattdrop",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e106_blk_postattdrop_blk_add1",
+      "from": {
+        "nodeId": "blk_postattdrop",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "blk_add1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e107_blk_add1_blk_x1",
+      "from": {
+        "nodeId": "blk_add1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "blk_x1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e108_blk_x_blk_add1",
+      "from": {
+        "nodeId": "blk_x",
+        "port": "top"
+      },
+      "to": {
+        "nodeId": "blk_add1",
+        "port": "top"
+      },
+      "route": "arch-top",
+      "arrow": false,
+      "bulge": 115,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#5e6875"
+    },
+    {
+      "id": "e109_ff_x1_ff_ln",
+      "from": {
+        "nodeId": "ff_x1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ff_ln",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e110_ff_ln_ff_l1",
+      "from": {
+        "nodeId": "ff_ln",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ff_l1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e111_ff_l1_ff_gelu",
+      "from": {
+        "nodeId": "ff_l1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ff_gelu",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e112_ff_gelu_ff_innerdrop",
+      "from": {
+        "nodeId": "ff_gelu",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ff_innerdrop",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e113_ff_innerdrop_ff_l2",
+      "from": {
+        "nodeId": "ff_innerdrop",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ff_l2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e114_ff_l2_ff_outerdrop",
+      "from": {
+        "nodeId": "ff_l2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ff_outerdrop",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e115_ff_outerdrop_ff_add",
+      "from": {
+        "nodeId": "ff_outerdrop",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ff_add",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e116_ff_add_ff_out",
+      "from": {
+        "nodeId": "ff_add",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ff_out",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e117_ff_x1_ff_add",
+      "from": {
+        "nodeId": "ff_x1",
+        "port": "bottom"
+      },
+      "to": {
+        "nodeId": "ff_add",
+        "port": "bottom"
+      },
+      "route": "arch-bottom",
+      "arrow": false,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#5e6875"
+    },
+    {
+      "id": "e118_blk_x1_ff_x1",
+      "from": {
+        "nodeId": "blk_x1",
+        "port": "bottom"
+      },
+      "to": {
+        "nodeId": "ff_x1",
+        "port": "top"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e166_h10_tf_h10_cat",
+      "from": {
+        "nodeId": "h10_tf",
+        "port": "top"
+      },
+      "to": {
+        "nodeId": "h10_cat",
+        "port": "top"
+      },
+      "route": "arch-top",
+      "arrow": true,
+      "bulge": 42,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "e167_h10_ff_h10_cat",
+      "from": {
+        "nodeId": "h10_ff",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h10_cat",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "e168_h10_cat_h10_l1",
+      "from": {
+        "nodeId": "h10_cat",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h10_l1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e169_h10_l1_h10_elu1",
+      "from": {
+        "nodeId": "h10_l1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h10_elu1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e170_h10_elu1_h10_d1",
+      "from": {
+        "nodeId": "h10_elu1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h10_d1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e171_h10_d1_h10_l2",
+      "from": {
+        "nodeId": "h10_d1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h10_l2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e172_h10_l2_h10_elu2",
+      "from": {
+        "nodeId": "h10_l2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h10_elu2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e173_h10_elu2_h10_d2",
+      "from": {
+        "nodeId": "h10_elu2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h10_d2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e174_h10_d2_h10_l3",
+      "from": {
+        "nodeId": "h10_d2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h10_l3",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e175_h10_l3_h10_z",
+      "from": {
+        "nodeId": "h10_l3",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h10_z",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "e176_h10_z_h10_ce",
+      "from": {
+        "nodeId": "h10_z",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h10_ce",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "e177_h10_ce_h10_loss",
+      "from": {
+        "nodeId": "h10_ce",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "h10_loss",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "v2_e001",
+      "from": {
+        "nodeId": "raw_window",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "time_zscore",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e002",
+      "from": {
+        "nodeId": "time_zscore",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "time_input_qkv_off",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e003",
+      "from": {
+        "nodeId": "time_input_qkv_off",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "time_patch_summary",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e004",
+      "from": {
+        "nodeId": "time_patch_summary",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_time_enc_10",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e005",
+      "from": {
+        "nodeId": "ov_time_enc_10",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_time_channel_fuse",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e006",
+      "from": {
+        "nodeId": "ov_time_channel_fuse",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_time_late",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e007",
+      "from": {
+        "nodeId": "ov_time_late",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_time_updated",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e008",
+      "from": {
+        "nodeId": "ov_time_updated",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_time_flat",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e009",
+      "from": {
+        "nodeId": "time_patch_summary",
+        "port": "top"
+      },
+      "to": {
+        "nodeId": "ov_time_channel_skip",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e010",
+      "from": {
+        "nodeId": "ov_time_channel_skip",
+        "port": "bottom"
+      },
+      "to": {
+        "nodeId": "ov_time_enc_10",
+        "port": "top"
+      },
+      "route": "turn-left-down",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e011",
+      "from": {
+        "edgeId": "v2_e006",
+        "anchor": "mid"
+      },
+      "to": {
+        "nodeId": "ov_time_late",
+        "port": "top"
+      },
+      "route": "arch-top",
+      "arrow": true,
+      "bulge": 60,
+      "corner": 12,
+      "width": 2,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e012",
+      "from": {
+        "nodeId": "raw_window",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "fft_transform",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "v2_e013",
+      "from": {
+        "nodeId": "fft_transform",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "fft_zscore",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "v2_e014",
+      "from": {
+        "nodeId": "fft_zscore",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "fft_patch_summary",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "v2_e015",
+      "from": {
+        "nodeId": "fft_patch_summary",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_fft_enc_10",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "v2_e016",
+      "from": {
+        "nodeId": "ov_fft_enc_10",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_fft_channel_fuse",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "v2_e017",
+      "from": {
+        "nodeId": "ov_fft_channel_fuse",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_fft_late",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "v2_e018",
+      "from": {
+        "nodeId": "ov_fft_late",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_fft_updated",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "v2_e019",
+      "from": {
+        "nodeId": "ov_fft_updated",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_fft_flat",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "v2_e020",
+      "from": {
+        "nodeId": "fft_patch_summary",
+        "port": "top"
+      },
+      "to": {
+        "nodeId": "ov_fft_channel_skip",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e021",
+      "from": {
+        "nodeId": "ov_fft_channel_skip",
+        "port": "bottom"
+      },
+      "to": {
+        "nodeId": "ov_fft_enc_10",
+        "port": "top"
+      },
+      "route": "turn-left-down",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e022",
+      "from": {
+        "edgeId": "v2_e017",
+        "anchor": "mid"
+      },
+      "to": {
+        "nodeId": "ov_fft_late",
+        "port": "top"
+      },
+      "route": "arch-top",
+      "arrow": true,
+      "bulge": 60,
+      "corner": 12,
+      "width": 2,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e023",
+      "from": {
+        "nodeId": "ov_time_flat",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_concat_10",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e024",
+      "from": {
+        "nodeId": "ov_fft_flat",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_concat_10",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "v2_e025",
+      "from": {
+        "nodeId": "ov_concat_10",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_head_10",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "v2_e026",
+      "from": {
+        "nodeId": "ov_head_10",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_branch_10",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "v2_e027",
+      "from": {
+        "nodeId": "ov_branch_10",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_prediction",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "v2_e028",
+      "from": {
+        "nodeId": "ov_branch_10",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_total_loss",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "v2_e029",
+      "from": {
+        "nodeId": "ov_total_loss",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ov_backprop",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "v2_e030",
+      "from": {
+        "nodeId": "enc_time_source",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "et10_b1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e031",
+      "from": {
+        "nodeId": "et10_b1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "et10_b2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e032",
+      "from": {
+        "nodeId": "et10_b2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "et10_mid",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e033",
+      "from": {
+        "nodeId": "et10_mid",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "et10_bn",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e034",
+      "from": {
+        "nodeId": "et10_bn",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "et10_out",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e035",
+      "from": {
+        "nodeId": "enc_time_source",
+        "port": "top"
+      },
+      "to": {
+        "nodeId": "et10_skip",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e036",
+      "from": {
+        "nodeId": "et10_skip",
+        "port": "bottom"
+      },
+      "to": {
+        "nodeId": "et10_b1",
+        "port": "top"
+      },
+      "route": "turn-left-down",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e037",
+      "from": {
+        "edgeId": "v2_e032",
+        "anchor": "mid"
+      },
+      "to": {
+        "nodeId": "et10_mid",
+        "port": "top"
+      },
+      "route": "arch-top",
+      "arrow": true,
+      "bulge": 45,
+      "corner": 12,
+      "width": 2,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e038",
+      "from": {
+        "edgeId": "v2_e032",
+        "anchor": "mid"
+      },
+      "to": {
+        "nodeId": "et10_bn",
+        "port": "top"
+      },
+      "route": "arch-top",
+      "arrow": true,
+      "bulge": 45,
+      "corner": 12,
+      "width": 2,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e039",
+      "from": {
+        "nodeId": "enc_fft_source",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ef10_b1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "v2_e040",
+      "from": {
+        "nodeId": "ef10_b1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ef10_b2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "v2_e041",
+      "from": {
+        "nodeId": "ef10_b2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ef10_mid",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "v2_e042",
+      "from": {
+        "nodeId": "ef10_mid",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ef10_bn",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "v2_e043",
+      "from": {
+        "nodeId": "ef10_bn",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "ef10_out",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#9a5f9e"
+    },
+    {
+      "id": "v2_e044",
+      "from": {
+        "nodeId": "enc_fft_source",
+        "port": "top"
+      },
+      "to": {
+        "nodeId": "ef10_skip",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e045",
+      "from": {
+        "nodeId": "ef10_skip",
+        "port": "bottom"
+      },
+      "to": {
+        "nodeId": "ef10_b1",
+        "port": "top"
+      },
+      "route": "turn-left-down",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e046",
+      "from": {
+        "edgeId": "v2_e041",
+        "anchor": "mid"
+      },
+      "to": {
+        "nodeId": "ef10_mid",
+        "port": "top"
+      },
+      "route": "arch-top",
+      "arrow": true,
+      "bulge": 45,
+      "corner": 12,
+      "width": 2,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e047",
+      "from": {
+        "edgeId": "v2_e041",
+        "anchor": "mid"
+      },
+      "to": {
+        "nodeId": "ef10_bn",
+        "port": "top"
+      },
+      "route": "arch-top",
+      "arrow": true,
+      "bulge": 45,
+      "corner": 12,
+      "width": 2,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e048",
+      "from": {
+        "nodeId": "skip_x0",
+        "port": "top"
+      },
+      "to": {
+        "nodeId": "skip_conv",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e049",
+      "from": {
+        "nodeId": "skip_conv",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "skip_s",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e050",
+      "from": {
+        "nodeId": "skip_s",
+        "port": "right"
+      },
+      "to": {
+        "x": 6946,
+        "y": 2745
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 100,
+      "corner": 0,
+      "width": 2,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e051",
+      "from": {
+        "nodeId": "skip_x0",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "skip_block_1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "v2_e052",
+      "from": {
+        "nodeId": "skip_block_1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "skip_add_1",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "v2_e053",
+      "from": {
+        "x": 2846,
+        "y": 2745
+      },
+      "to": {
+        "nodeId": "skip_add_1",
+        "port": "top"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 2,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e054",
+      "from": {
+        "nodeId": "skip_add_1",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "skip_block_2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "v2_e055",
+      "from": {
+        "nodeId": "skip_block_2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "skip_add_2",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "v2_e056",
+      "from": {
+        "x": 3866,
+        "y": 2745
+      },
+      "to": {
+        "nodeId": "skip_add_2",
+        "port": "top"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 2,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e057",
+      "from": {
+        "nodeId": "skip_add_2",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "skip_block_3",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "v2_e058",
+      "from": {
+        "nodeId": "skip_block_3",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "skip_add_3",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "v2_e059",
+      "from": {
+        "x": 4886,
+        "y": 2745
+      },
+      "to": {
+        "nodeId": "skip_add_3",
+        "port": "top"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 2,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e060",
+      "from": {
+        "nodeId": "skip_add_3",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "skip_block_4",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "v2_e061",
+      "from": {
+        "nodeId": "skip_block_4",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "skip_add_4",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "v2_e062",
+      "from": {
+        "x": 5906,
+        "y": 2745
+      },
+      "to": {
+        "nodeId": "skip_add_4",
+        "port": "top"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 2,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e063",
+      "from": {
+        "nodeId": "skip_add_4",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "skip_block_5",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "v2_e064",
+      "from": {
+        "nodeId": "skip_block_5",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "skip_add_5",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "v2_e065",
+      "from": {
+        "x": 6926,
+        "y": 2745
+      },
+      "to": {
+        "nodeId": "skip_add_5",
+        "port": "top"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 2,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e066",
+      "from": {
+        "nodeId": "skip_add_5",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "skip_h5",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#343a40"
+    },
+    {
+      "id": "v2_e067",
+      "from": {
+        "nodeId": "late_h5",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "late_conv",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e068",
+      "from": {
+        "nodeId": "late_conv",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "late_squeeze",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e069",
+      "from": {
+        "nodeId": "late_squeeze",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "late_block_6",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e070",
+      "from": {
+        "nodeId": "late_block_6",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "late_add_6",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e071",
+      "from": {
+        "x": 2846,
+        "y": 3180
+      },
+      "to": {
+        "nodeId": "late_add_6",
+        "port": "top"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 2,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e072",
+      "from": {
+        "nodeId": "late_add_6",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "late_block_7",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e073",
+      "from": {
+        "nodeId": "late_block_7",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "late_add_7",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e074",
+      "from": {
+        "x": 3856,
+        "y": 3180
+      },
+      "to": {
+        "nodeId": "late_add_7",
+        "port": "top"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 2,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e075",
+      "from": {
+        "nodeId": "late_add_7",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "late_block_8",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e076",
+      "from": {
+        "nodeId": "late_block_8",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "late_add_8",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e077",
+      "from": {
+        "x": 4866,
+        "y": 3180
+      },
+      "to": {
+        "nodeId": "late_add_8",
+        "port": "top"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 2,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e078",
+      "from": {
+        "nodeId": "late_add_8",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "late_block_9",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e079",
+      "from": {
+        "nodeId": "late_block_9",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "late_add_9",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e080",
+      "from": {
+        "x": 5876,
+        "y": 3180
+      },
+      "to": {
+        "nodeId": "late_add_9",
+        "port": "top"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 2,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e081",
+      "from": {
+        "nodeId": "late_add_9",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "late_block_10",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e082",
+      "from": {
+        "nodeId": "late_block_10",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "late_add_10",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e083",
+      "from": {
+        "x": 6886,
+        "y": 3180
+      },
+      "to": {
+        "nodeId": "late_add_10",
+        "port": "top"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 2,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e084",
+      "from": {
+        "edgeId": "v2_e069",
+        "anchor": "mid"
+      },
+      "to": {
+        "x": 2027.5,
+        "y": 3180
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 100,
+      "corner": 0,
+      "width": 2,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e085",
+      "from": {
+        "x": 2027.5,
+        "y": 3180
+      },
+      "to": {
+        "x": 6886,
+        "y": 3180
+      },
+      "route": "straight",
+      "arrow": false,
+      "bulge": 100,
+      "corner": 0,
+      "width": 2,
+      "color": "#b27318"
+    },
+    {
+      "id": "v2_e086",
+      "from": {
+        "nodeId": "late_add_10",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "late_out",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e087",
+      "from": {
+        "nodeId": "late_out",
+        "port": "bottom"
+      },
+      "to": {
+        "nodeId": "late_flat",
+        "port": "top"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#4776b4"
+    },
+    {
+      "id": "v2_e088",
+      "from": {
+        "nodeId": "h10_z",
+        "port": "top"
+      },
+      "to": {
+        "nodeId": "loss_logits",
+        "port": "top"
+      },
+      "route": "arch-top",
+      "arrow": true,
+      "bulge": 50,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "v2_e089",
+      "from": {
+        "nodeId": "loss_logits",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "loss_argmax",
+        "port": "left"
+      },
+      "route": "straight",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 0,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "v2_e090",
+      "from": {
+        "nodeId": "h10_loss",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "loss_total",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#c04b54"
+    },
+    {
+      "id": "v2_e091",
+      "from": {
+        "nodeId": "loss_total",
+        "port": "right"
+      },
+      "to": {
+        "nodeId": "loss_adam",
+        "port": "left"
+      },
+      "route": "auto",
+      "arrow": true,
+      "bulge": 100,
+      "corner": 12,
+      "width": 1.8,
+      "color": "#c04b54"
+    }
+  ],
+  "notes": [
+    {
+      "id": "title",
+      "x": 4000,
+      "y": 38,
+      "text": "超详细结构框图：Time + FFT 保留电极通道 EEG-Conformer + 单深度10层 + 前后5层双段跳接",
+      "fontSize": 36,
+      "color": "#111111",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "subtitle",
+      "x": 4000,
+      "y": 86,
+      "text": "基于原 11/10/8 JSON 修改 | window=15s, stride=3s | depth=10 (5+5) | skip to Block #1-#10 ends | seed=42 | 正式15人；真实训练待执行",
+      "fontSize": 19,
+      "color": "#555d68",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "overview_title",
+      "x": 4000,
+      "y": 151,
+      "text": "① 端到端总流程（保留原图布局；详细模块仍在下方对应分区展开）",
+      "fontSize": 23,
+      "color": "#111111",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "overview_time",
+      "x": 1710,
+      "y": 178,
+      "text": "Time 域：单一 depth=10",
+      "fontSize": 19,
+      "color": "#315f9b",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "overview_fft",
+      "x": 1710,
+      "y": 570,
+      "text": "FFT 域：单一 depth=10",
+      "fontSize": 19,
+      "color": "#7d487f",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "overview_config_title",
+      "x": 6920,
+      "y": 218,
+      "text": "已确认本地基线默认参数；depth=10 按录音单独覆盖",
+      "fontSize": 20,
+      "color": "#111111",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "cfg_result_note",
+      "x": 6920,
+      "y": 710,
+      "text": "新方案未训练；旧多深度权重 w、CrossDepth gamma 和旧结果不适用于本图。",
+      "fontSize": 16,
+      "color": "#6b4a18",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "cfg_disabled_note",
+      "x": 6920,
+      "y": 785,
+      "text": "fft_global=none | input_qkv=none | cumulative_query_attention=false | 无类别加权、无重采样、无 S&R",
+      "fontSize": 14,
+      "color": "#555d68",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "patch_title",
+      "x": 4000,
+      "y": 958,
+      "text": "② PatchEmbedding 全步骤（Time / FFT 参数独立；电极维 C=21 全程保留）",
+      "fontSize": 23,
+      "color": "#111111",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "patch_time_title",
+      "x": 2010,
+      "y": 1030,
+      "text": "Time PatchEmbedding: (B,1,21,1920) -> (B,21,122,40)",
+      "fontSize": 19,
+      "color": "#315f9b",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "patch_fft_title",
+      "x": 5990,
+      "y": 1030,
+      "text": "FFT PatchEmbedding: (B,1,21,961) -> (B,21,58,40)",
+      "fontSize": 19,
+      "color": "#7d487f",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_in_shape",
+      "x": 220.0,
+      "y": 1240,
+      "text": "(B,1,21,1920)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_conv_t_shape",
+      "x": 595.0,
+      "y": 1240,
+      "text": "(B,40,21,1896)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_conv_s_shape",
+      "x": 1055.0,
+      "y": 1240,
+      "text": "(B,40,21,1896)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_bn_shape",
+      "x": 1500.0,
+      "y": 1240,
+      "text": "(B,40,21,1896)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_elu_shape",
+      "x": 1840.0,
+      "y": 1240,
+      "text": "(B,40,21,1896)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_pool_shape",
+      "x": 2195.0,
+      "y": 1240,
+      "text": "(B,40,21,122)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_drop_shape",
+      "x": 2575.0,
+      "y": 1240,
+      "text": "(B,40,21,122)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_proj_shape",
+      "x": 2930.0,
+      "y": 1240,
+      "text": "(B,40,21,122)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_squeeze_shape",
+      "x": 3280.0,
+      "y": 1240,
+      "text": "(B,40,21,122)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pt_transpose_shape",
+      "x": 3610.0,
+      "y": 1240,
+      "text": "(B,21,122,40)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pf_in_shape",
+      "x": 4200.0,
+      "y": 1240,
+      "text": "(B,1,21,961)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pf_conv_t_shape",
+      "x": 4575.0,
+      "y": 1240,
+      "text": "(B,40,21,937)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pf_conv_s_shape",
+      "x": 5035.0,
+      "y": 1240,
+      "text": "(B,40,21,937)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pf_bn_shape",
+      "x": 5480.0,
+      "y": 1240,
+      "text": "(B,40,21,937)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pf_elu_shape",
+      "x": 5820.0,
+      "y": 1240,
+      "text": "(B,40,21,937)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pf_pool_shape",
+      "x": 6175.0,
+      "y": 1240,
+      "text": "(B,40,21,58)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pf_drop_shape",
+      "x": 6555.0,
+      "y": 1240,
+      "text": "(B,40,21,58)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pf_proj_shape",
+      "x": 6910.0,
+      "y": 1240,
+      "text": "(B,40,21,58)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pf_squeeze_shape",
+      "x": 7260.0,
+      "y": 1240,
+      "text": "(B,40,21,58)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "pf_transpose_shape",
+      "x": 7590.0,
+      "y": 1240,
+      "text": "(B,21,58,40)",
+      "fontSize": 13,
+      "color": "#626b77",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "patch_formula_time",
+      "x": 2010,
+      "y": 1510,
+      "text": "Time patch count: ((1920-24)-75)//15 + 1 = 122 | C=21 remains | D=40 is feature size",
+      "fontSize": 14,
+      "color": "#555d68",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "patch_formula_fft",
+      "x": 5990,
+      "y": 1510,
+      "text": "FFT patch count: ((961-24)-75)//15 + 1 = 58 | C=21 remains | independent stem parameters",
+      "fontSize": 14,
+      "color": "#555d68",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "patch_preprocess_note",
+      "x": 4000,
+      "y": 1602,
+      "text": "FFT = log1p(abs(rFFT(x))^2); train-only standardization unchanged | 删除 squeeze 本身不能恢复已被卷积融合的电极维",
+      "fontSize": 15,
+      "color": "#555d68",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "transformer_title",
+      "x": 4000,
+      "y": 1698,
+      "text": "③ 两个独立的10层 Encoder（各域5+5）+ 单个 TransformerEncoderBlock 完整内部流程",
+      "fontSize": 23,
+      "color": "#111111",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "encoder_repeats_title",
+      "x": 1405,
+      "y": 1780,
+      "text": "Time / FFT 各一条10层链；同域各电极共享每层 Block 参数",
+      "fontSize": 18,
+      "color": "#314c35",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "encoder_block_title",
+      "x": 5360,
+      "y": 1780,
+      "text": "TransformerEncoderBlock 模板（每个 Block 都按此执行）",
+      "fontSize": 18,
+      "color": "#314c35",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "encoder_repeat_note1",
+      "x": 1405,
+      "y": 2090,
+      "text": "Time: F5 (B,122,40) -> skip to each Block #6-#10 output",
+      "fontSize": 17,
+      "color": "#4776b4",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "encoder_repeat_note2",
+      "x": 1405,
+      "y": 2410,
+      "text": "FFT: F5 (B,58,40) -> skip to each Block #6-#10 output",
+      "fontSize": 17,
+      "color": "#9a5f9e",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "encoder_repeat_note3",
+      "x": 1405,
+      "y": 2460,
+      "text": "共20个 Block；各层、Time/FFT 两域参数独立；同域各电极共享每层参数。",
+      "fontSize": 15,
+      "color": "#555d68",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "blk_dropout_note",
+      "x": 5360,
+      "y": 2425,
+      "text": "Encoder 中共有四处 p=.5：attention-weight dropout、MHA 输出 dropout、FFN 内部 dropout、FFN 输出 dropout",
+      "fontSize": 14,
+      "color": "#934047",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "cross_title",
+      "x": 4000,
+      "y": 2588,
+      "text": "④ 双段跳接：入口21->21卷积接前5层末尾；第5层后21->1融合特征接后5层末尾",
+      "fontSize": 23,
+      "color": "#111111",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "cross_generic_title",
+      "x": 4000,
+      "y": 2673,
+      "text": "入口旁路：每域各计算一次 S；同一 S 分别接入前5个完整 Block 的末尾；Time N=122，FFT N=58",
+      "fontSize": 17,
+      "color": "#6b4a18",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "cross_generic_note",
+      "x": 4000,
+      "y": 3025,
+      "text": "S=Conv_C_21to21(X0); H_i=Block_i(H_(i-1))+S, i=1..5 | 固定同一 S，分别加到前5个完整 Block 的输出。",
+      "fontSize": 18,
+      "color": "#6b4a18",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "cross_t11_title",
+      "x": 4000,
+      "y": 3128,
+      "text": "第5层后：C=21 -> 1，再 squeeze 得到 F5；F5 作为第6层输入，并分别跳接到第6-10层末尾",
+      "fontSize": 17,
+      "color": "#315f9b",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "t11_key_note",
+      "x": 3500,
+      "y": 3465,
+      "text": "F5 在后5层复用；21->1融合卷积只在第5层后计算一次。21是电极数，40是特征维。",
+      "fontSize": 20,
+      "color": "#b27318",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "cross_scope_note",
+      "x": 4000,
+      "y": 3550,
+      "text": "已确认 Conv2d(C,C,1) / Conv2d(C,1,1)，groups=1，含 bias；两段固定特征相加，Time/FFT 独立。",
+      "fontSize": 18,
+      "color": "#6b4a18",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "headloss_title",
+      "x": 4000,
+      "y": 3648,
+      "text": "⑤ 单一分类头、Time/FFT 特征拼接、单一分类损失与训练参数（不再有多深度权重）",
+      "fontSize": 23,
+      "color": "#111111",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "heads_detail_title",
+      "x": 2210,
+      "y": 3740,
+      "text": "保留原图中间一套 MLP Head：两域特征拼接后做三分类",
+      "fontSize": 17,
+      "color": "#116066",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "loss_detail_title",
+      "x": 6165,
+      "y": 3740,
+      "text": "预测直接使用单一 logits；训练直接对其计算分类交叉熵",
+      "fontSize": 17,
+      "color": "#5b3c83",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "head_loss_note",
+      "x": 6165,
+      "y": 4320,
+      "text": "已确认单一无权重 CE、原始采样、无 S&R；S6 与 S17 单列，正式队列 15 人。",
+      "fontSize": 19,
+      "color": "#934047",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "training_note",
+      "x": 6165,
+      "y": 4380,
+      "text": "epochs=200 | batch_size=72 | lr=.0002 | seed=42；训练入口 train_activity_channelpreserve.py；真实训练待服务器执行。",
+      "fontSize": 17,
+      "color": "#555d68",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "ov_time_late_skip_note",
+      "x": 2650,
+      "y": 210,
+      "text": "F5 -> each Block #6-#10 output",
+      "fontSize": 16,
+      "color": "#b27318",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "ov_time_early_shape",
+      "x": 1730,
+      "y": 445,
+      "text": "Before fusion: (B,21,122,40)",
+      "fontSize": 16,
+      "color": "#4776b4",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "ov_fft_late_skip_note",
+      "x": 2650,
+      "y": 575,
+      "text": "F5 -> each Block #6-#10 output",
+      "fontSize": 16,
+      "color": "#b27318",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "ov_fft_early_shape",
+      "x": 1730,
+      "y": 810,
+      "text": "Before fusion: (B,21,58,40)",
+      "fontSize": 16,
+      "color": "#9a5f9e",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "patch_time_change",
+      "x": 2010,
+      "y": 1375,
+      "text": "原 k=(21,1) 空间卷积移出 Stem；第 5 个 EncoderBlock 之后再融合电极。",
+      "fontSize": 20,
+      "color": "#b27318",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "patch_fft_change",
+      "x": 5990,
+      "y": 1375,
+      "text": "保留原图位置的 Identity 框便于对比；它们不代表新增可学习模块。",
+      "fontSize": 20,
+      "color": "#b27318",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "block_batch_note",
+      "x": 5360,
+      "y": 2480,
+      "text": "前5层：B_eff=B×21，可 reshape 为 (B×21,N,40)；后5层：B_eff=B。Block 内部结构沿用基线。",
+      "fontSize": 16,
+      "color": "#555d68",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "late_skip_bus_label",
+      "x": 4700,
+      "y": 3155,
+      "text": "同一融合特征 F5 分别跳接到 Block #6、#7、#8、#9、#10 的末尾（两域各自计算）",
+      "fontSize": 18,
+      "color": "#b27318",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "late_skip_formula",
+      "x": 3500,
+      "y": 3395,
+      "text": "F5=squeeze(Conv_C_21to1(H5)); Z5=F5; Z_i=Block_i(Z_(i-1))+F5, i=6..10",
+      "fontSize": 18,
+      "color": "#555d68",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "single_head_note",
+      "x": 2210,
+      "y": 3870,
+      "text": "原三套 depth Head 改为单套；保留 7200->256->32->3、ELU、Dropout .5/.3。",
+      "fontSize": 20,
+      "color": "#4776b4",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "single_loss_removed",
+      "x": 6165,
+      "y": 4020,
+      "text": "移除 alpha / softmax 深度权重、weighted logits、三分支 CE 和 depth auxiliary loss。",
+      "fontSize": 20,
+      "color": "#b27318",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    }
+  ],
+  "settings": {
+    "corner": 12,
+    "gridSize": 5,
+    "snap": true,
+    "lastBulge": 100,
+    "lastRoute": "auto",
+    "dragDelay": 180,
+    "routeMemory": {
+      "arch": {
+        "bulge": 110,
+        "corner": 12
+      },
+      "turn-right-up": {
+        "corner": 12
+      },
+      "turn-right-down": {
+        "corner": 12
+      },
+      "turn-left-up": {
+        "corner": 12
+      },
+      "turn-left-down": {
+        "corner": 12
+      },
+      "auto": {
+        "corner": 12
+      },
+      "straight": {
+        "corner": 0
+      }
+    }
+  },
+  "profileGroups": {
+    "arch": [
+      {
+        "id": "p_arch_72",
+        "name": "标准绕行",
+        "bulge": 72,
+        "corner": 14
+      },
+      {
+        "id": "p_arch_110",
+        "name": "结构图绕行",
+        "bulge": 110,
+        "corner": 12
+      }
+    ],
+    "turn-right-up": [
+      {
+        "id": "p_tru_14",
+        "name": "右转向上",
+        "corner": 14
+      },
+      {
+        "id": "p_tru_12",
+        "name": "右转向上",
+        "corner": 12
+      }
+    ],
+    "turn-right-down": [
+      {
+        "id": "p_trd_14",
+        "name": "右转向下",
+        "corner": 14
+      },
+      {
+        "id": "p_trd_12",
+        "name": "右转向下",
+        "corner": 12
+      }
+    ],
+    "turn-left-up": [
+      {
+        "id": "p_tlu_14",
+        "name": "左转向上",
+        "corner": 14
+      },
+      {
+        "id": "p_tlu_12",
+        "name": "左转向上",
+        "corner": 12
+      }
+    ],
+    "turn-left-down": [
+      {
+        "id": "p_tld_14",
+        "name": "左转向下",
+        "corner": 14
+      },
+      {
+        "id": "p_tld_12",
+        "name": "左转向下",
+        "corner": 12
+      }
+    ]
+  },
+  "palette": "soft",
+  "view": {
+    "x": 0,
+    "y": 0,
+    "w": 8000,
+    "h": 4500
+  }
+}

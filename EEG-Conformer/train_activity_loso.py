@@ -78,6 +78,7 @@ DEFAULT_DROPOUT = 0.5
 DEFAULT_TRANSFORMER_ENCODER_DROPOUT = 0.5
 DEFAULT_ENV_NAME = "eegconformer310"
 DEFAULT_ARCHITECTURE = "eegconformer"
+CHANNEL_PRESERVING_ARCHITECTURE = "channelpreserving"
 DEFAULT_INPUT_DOMAIN = "time"
 FFT_INPUT_DOMAIN = "fft"
 DUAL_INPUT_DOMAIN = "time_fft"
@@ -2143,7 +2144,11 @@ def train_loso_fold(
     resolved_architecture = (
         DEFAULT_ARCHITECTURE
         if architecture_value == DEFAULT_ARCHITECTURE
-        else normalize_comparison_model_name(architecture)
+        else (
+            CHANNEL_PRESERVING_ARCHITECTURE
+            if architecture_value == CHANNEL_PRESERVING_ARCHITECTURE
+            else normalize_comparison_model_name(architecture)
+        )
     )
     resolved_input_domain = validate_input_domain(input_domain)
     classification_mode = validate_classification_mode(classification_mode)
@@ -2201,6 +2206,7 @@ def train_loso_fold(
         )
     transformer_weights_independent_by_domain = (
         resolved_transformer_fusion == TRANSFORMER_FUSION_SOFTMAX
+        or resolved_architecture == CHANNEL_PRESERVING_ARCHITECTURE
     )
     loss_name = (
         "LearnableSoftmaxWeightedBranchCrossEntropyLoss"
@@ -2223,7 +2229,19 @@ def train_loso_fold(
         **({"train_sampling": train_sampling} if train_sampling != "original" else {}),
     )
 
-    is_comparison_model = resolved_architecture != DEFAULT_ARCHITECTURE
+    is_channel_preserving = resolved_architecture == CHANNEL_PRESERVING_ARCHITECTURE
+    is_comparison_model = resolved_architecture not in {
+        DEFAULT_ARCHITECTURE, CHANNEL_PRESERVING_ARCHITECTURE,
+    }
+    if is_channel_preserving and (
+        resolved_input_domain != DUAL_INPUT_DOMAIN or depth != 10
+        or resolved_transformer_branches != 1 or resolved_conv_type != DEFAULT_CONV_TYPE
+        or resolved_fft_global != DEFAULT_FFT_GLOBAL or resolved_input_qkv != DEFAULT_INPUT_QKV
+        or resolved_cumulative_query_attention or resolved_branch_loss_aux_weight != 0
+        or resolved_transformer_branch_qkv != DEFAULT_TRANSFORMER_BRANCH_QKV
+        or classification_mode != "flat"
+    ):
+        raise ValueError("channelpreserving requires time_fft, depth=10, one depth branch, flat CE, and no legacy QKV/fusion extras")
     if is_comparison_model:
         incompatible_options: list[str] = []
         if resolved_input_domain != DEFAULT_INPUT_DOMAIN:
@@ -2278,35 +2296,46 @@ def train_loso_fold(
             branch_shape_metadata.update({"input_qkv_time_preferred_token_len": DEFAULT_INPUT_QKV_TIME_TOKEN_LEN})
             branch_shape_metadata.update(temporal_qkv_shape_metadata("time_", n_channels, time_n_times))
             branch_shape_metadata.update(temporal_qkv_shape_metadata("fft_", n_channels, fft_n_times))
-        model = DualBranchActivityConformer(
-            n_channels=n_channels,
-            time_n_times=time_n_times,
-            fft_n_times=fft_n_times,
-            n_classes=n_classes,
-            emb_size=emb_size,
-            depth=depth,
-            num_heads=num_heads,
-            dropout=dropout,
-            transformer_encoder_dropout=resolved_transformer_encoder_dropout,
-            conv_type=resolved_conv_type,
-            fft_global=resolved_fft_global,
-            input_qkv=resolved_input_qkv,
-            input_qkv_dim=resolved_input_qkv_dim,
-            input_qkv_heads=resolved_input_qkv_heads,
-            input_qkv_dropout=resolved_input_qkv_dropout,
-            input_qkv_res_scale=resolved_input_qkv_res_scale,
-            cumulative_query_attention=resolved_cumulative_query_attention,
-            transformer_depths=(
-                resolved_transformer_depths
-                if resolved_transformer_branches > 1
-                else None
-            ),
-            transformer_branch_fusion=resolved_transformer_fusion,
-            classification_mode=classification_mode,
-            branch_loss_aux_weight=resolved_branch_loss_aux_weight,
-            transformer_branch_qkv=resolved_transformer_branch_qkv,
-            transformer_branch_qkv_dropout=resolved_transformer_branch_qkv_dropout,
-        ).to(device_obj)
+        if is_channel_preserving:
+            # Lazy import: the new model reuses the ordinary Block and Head
+            # defined in this module, while historical model paths stay intact.
+            from channel_preserving_model import ChannelPreservingDualConformer
+            model = ChannelPreservingDualConformer(
+                n_channels=n_channels, time_n_times=time_n_times, fft_n_times=fft_n_times,
+                n_classes=n_classes, emb_size=emb_size, depth=depth, num_heads=num_heads,
+                dropout=dropout, transformer_encoder_dropout=resolved_transformer_encoder_dropout,
+            ).to(device_obj)
+            architecture_config = dict(model.architecture_config)
+        else:
+            model = DualBranchActivityConformer(
+                n_channels=n_channels,
+                time_n_times=time_n_times,
+                fft_n_times=fft_n_times,
+                n_classes=n_classes,
+                emb_size=emb_size,
+                depth=depth,
+                num_heads=num_heads,
+                dropout=dropout,
+                transformer_encoder_dropout=resolved_transformer_encoder_dropout,
+                conv_type=resolved_conv_type,
+                fft_global=resolved_fft_global,
+                input_qkv=resolved_input_qkv,
+                input_qkv_dim=resolved_input_qkv_dim,
+                input_qkv_heads=resolved_input_qkv_heads,
+                input_qkv_dropout=resolved_input_qkv_dropout,
+                input_qkv_res_scale=resolved_input_qkv_res_scale,
+                cumulative_query_attention=resolved_cumulative_query_attention,
+                transformer_depths=(
+                    resolved_transformer_depths
+                    if resolved_transformer_branches > 1
+                    else None
+                ),
+                transformer_branch_fusion=resolved_transformer_fusion,
+                classification_mode=classification_mode,
+                branch_loss_aux_weight=resolved_branch_loss_aux_weight,
+                transformer_branch_qkv=resolved_transformer_branch_qkv,
+                transformer_branch_qkv_dropout=resolved_transformer_branch_qkv_dropout,
+            ).to(device_obj)
     else:
         if resolved_input_qkv == INPUT_QKV_TIME:
             branch_shape_metadata.update({"input_qkv_time_preferred_token_len": DEFAULT_INPUT_QKV_TIME_TOKEN_LEN})
@@ -2422,7 +2451,7 @@ def train_loso_fold(
         "loss": loss_name,
         **branch_shape_metadata,
     }
-    if is_comparison_model:
+    if is_comparison_model or is_channel_preserving:
         history_metadata.update(
             {
                 "architecture": resolved_architecture,
