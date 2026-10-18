@@ -97,7 +97,10 @@ def validate_run(args: argparse.Namespace, formal: Dataset, case: Dataset) -> tu
     return plan, records
 
 
-def evaluate(args: argparse.Namespace) -> dict:
+def evaluate(args: argparse.Namespace, *, run_validator=None, checkpoint_restorer=None,
+             architecture: str = ARCHITECTURE,
+             protocol: str = "channelpreserving_excluded_subject_equal_fold_probability_v1",
+             evaluation_metadata: dict | None = None) -> dict:
     output = args.output_dir.expanduser().resolve()
     if output.exists():
         raise FileExistsError(f"Refusing to overwrite failurecase output: {output}")
@@ -107,12 +110,13 @@ def evaluate(args: argparse.Namespace) -> dict:
     device = torch.device(validate_device(args.device))
     torch.set_num_threads(args.cpu_threads)
     formal, case = load_dataset(args.dataset_root), load_dataset(args.failurecase_root)
-    plan, records = validate_run(args, formal, case)
+    plan, records = (run_validator or validate_run)(args, formal, case)
     subjects = plan["included_subject_ids"]
     output.mkdir(parents=True, exist_ok=False)
     manifest = {
-        "protocol": "channelpreserving_excluded_subject_equal_fold_probability_v1",
-        "architecture": ARCHITECTURE, "architecture_config": plan["architecture_config"],
+        "protocol": protocol,
+        "architecture": architecture, "architecture_config": plan["architecture_config"],
+        "training_class_weights": plan["class_weights"],
         "case_subject_id": args.case_subject_id, "seed": plan["seed"],
         "formal_subject_ids": subjects, "excluded_subject_ids": [6, 17],
         "ensemble_rule": "mean of per-window softmax probabilities along the fold axis only",
@@ -136,6 +140,7 @@ def evaluate(args: argparse.Namespace) -> dict:
             "Fold models share training participants. Their ensemble is separate from the formal LOSO mean.",
         ],
     }
+    manifest.update(evaluation_metadata or {})
     atomic_json_dump(manifest, output / "evaluation_manifest.json")
     formal_X = formal.X.astype(np.float32, copy=False)
     case_X = case.X.astype(np.float32, copy=False)
@@ -149,7 +154,7 @@ def evaluate(args: argparse.Namespace) -> dict:
         }
         atomic_json_dump(normalizers, output / "normalizers.json")
         checkpoint_path = record["directory"] / "best_model.pt"
-        model = restore_checkpoint(load_best_checkpoint(checkpoint_path), record["metrics"], plan).to(device)
+        model = (checkpoint_restorer or restore_checkpoint)(load_best_checkpoint(checkpoint_path), record["metrics"], plan).to(device)
         test_mask = formal.subject_ids == subject
         held_inputs = apply_legacy_normalizers(formal_X[test_mask], stats, dual=True)
         _, replay = predict_probabilities(model, held_inputs, device, record["metrics"]["batch_size"])
@@ -179,7 +184,8 @@ def evaluate(args: argparse.Namespace) -> dict:
         atomic_json_dump(metrics, output / f"fold_subject_{subject}" / "metrics.json")
         per_fold.append(metrics)
     summary = {
-        "protocol": manifest["protocol"], "architecture": ARCHITECTURE,
+        "protocol": manifest["protocol"], "architecture": architecture,
+        "training_class_weights": plan["class_weights"],
         "case_subject_id": args.case_subject_id, "seed": plan["seed"],
         "formal_subject_ids": subjects, "excluded_subject_ids": [6, 17],
         "case_used_for_training_or_selection": False, "n_fold_models": len(subjects),

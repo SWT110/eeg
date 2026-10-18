@@ -45,17 +45,23 @@ class ElectrodePreservingPatchEmbedding(nn.Module):
 
 
 class TwoStageElectrodeEncoder(nn.Module):
-    """Ten ordinary Blocks, with fixed features injected at all ten outputs."""
+    """Two stages of ordinary Blocks, each reusing one fixed skip feature."""
 
     def __init__(self, n_channels: int, emb_size: int, num_heads: int,
-                 dropout: float, activation_checkpointing: bool = True) -> None:
+                 dropout: float, activation_checkpointing: bool = True, *,
+                 depth: int = DEPTH, split_after_block: int = SPLIT_AFTER_BLOCK) -> None:
         super().__init__()
         if n_channels < 1 or emb_size < 1 or num_heads < 1 or emb_size % num_heads:
             raise ValueError("Positive channel/feature/head counts and emb_size divisible by heads required")
         if not 0 <= dropout < 1:
             raise ValueError("dropout must be in [0,1)")
+        if (type(depth) is not int or type(split_after_block) is not int
+                or not 0 < split_after_block < depth):
+            raise ValueError("depth/split_after_block must be integers with 0 < split < depth")
         self.n_channels = n_channels
         self.emb_size = emb_size
+        self.depth = depth
+        self.split_after_block = split_after_block
         self.activation_checkpointing = bool(activation_checkpointing)
         # In this layout Conv2d's channel dimension IS the EEG electrode axis.
         # Each (patch,feature) position mixes C electrodes with the same weights.
@@ -63,11 +69,11 @@ class TwoStageElectrodeEncoder(nn.Module):
         self.fuse_channels = nn.Conv2d(n_channels, 1, 1)
         self.early_blocks = nn.ModuleList([
             TransformerEncoderBlock(emb_size, num_heads, drop_p=dropout, forward_drop_p=dropout)
-            for _ in range(SPLIT_AFTER_BLOCK)
+            for _ in range(split_after_block)
         ])
         self.late_blocks = nn.ModuleList([
             TransformerEncoderBlock(emb_size, num_heads, drop_p=dropout, forward_drop_p=dropout)
-            for _ in range(DEPTH - SPLIT_AFTER_BLOCK)
+            for _ in range(depth - split_after_block)
         ])
 
     def _block(self, block: nn.Module, x: Tensor) -> Tensor:
