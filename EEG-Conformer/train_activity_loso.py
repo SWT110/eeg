@@ -2129,6 +2129,7 @@ def train_loso_fold(
     architecture: str = DEFAULT_ARCHITECTURE,
     classification_mode: str = "flat",
     train_sampling: str = "original",
+    split_after_blocks: list[int] | tuple[int, ...] | None = None,
 ) -> Path:
     """Train one LOSO fold and return path to metrics.json."""
 
@@ -2247,7 +2248,7 @@ def train_loso_fold(
     ):
         raise ValueError("channelpreserving requires time_fft, depth=10, one depth branch, flat CE, and no legacy QKV/fusion extras")
     if is_multidepth_channel_preserving and (
-        resolved_input_domain != DUAL_INPUT_DOMAIN or list(resolved_transformer_depths) != [4, 10, 16]
+        resolved_input_domain != DUAL_INPUT_DOMAIN or resolved_transformer_branches != 3
         or resolved_conv_type != DEFAULT_CONV_TYPE or resolved_fft_global != DEFAULT_FFT_GLOBAL
         or resolved_input_qkv != DEFAULT_INPUT_QKV or resolved_cumulative_query_attention
         or resolved_transformer_fusion != TRANSFORMER_FUSION_LOSS_SOFTMAX
@@ -2255,7 +2256,9 @@ def train_loso_fold(
         or resolved_transformer_branch_qkv != TRANSFORMER_BRANCH_QKV_CROSS_DEPTH
         or classification_mode != "flat" or train_sampling != "original"
     ):
-        raise ValueError("channelpreservingmultidepth requires D: time_fft, depths=4/10/16, cross_depth, loss_softmax, aux=.2, flat/original")
+        raise ValueError("channelpreservingmultidepth requires D: time_fft, three depth branches, cross_depth, loss_softmax, aux=.2, flat/original")
+    if split_after_blocks is not None and not is_multidepth_channel_preserving:
+        raise ValueError("split_after_blocks is supported only by channelpreservingmultidepth")
     if is_comparison_model:
         incompatible_options: list[str] = []
         if resolved_input_domain != DEFAULT_INPUT_DOMAIN:
@@ -2286,7 +2289,7 @@ def train_loso_fold(
             else "single_branch"
         )
     )
-    branch_shape_metadata: dict[str, int] = {"n_times": int(n_times)}
+    branch_shape_metadata: dict[str, int | list[int]] = {"n_times": int(n_times)}
     architecture_config: dict = {}
     if is_comparison_model:
         model = build_comparison_model(
@@ -2317,8 +2320,11 @@ def train_loso_fold(
                 n_classes=n_classes, emb_size=emb_size, num_heads=num_heads, dropout=dropout,
                 transformer_encoder_dropout=resolved_transformer_encoder_dropout,
                 transformer_branch_qkv_dropout=resolved_transformer_branch_qkv_dropout,
+                transformer_depths=resolved_transformer_depths,
+                split_after_blocks=split_after_blocks,
             ).to(device_obj)
             architecture_config = dict(model.architecture_config)
+            branch_shape_metadata["split_after_blocks"] = list(model.split_after_blocks)
         elif is_channel_preserving:
             # Lazy import: the new model reuses the ordinary Block and Head
             # defined in this module, while historical model paths stay intact.

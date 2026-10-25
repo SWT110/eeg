@@ -38,10 +38,13 @@ def validate_run(args: argparse.Namespace, formal: Dataset, case: Dataset) -> tu
     if args.seed is not None and args.seed != plan["seed"]:
         raise ValueError("Seed assertion mismatch")
     weights = training.parse_weight_sets(",".join(map(str, plan.get("class_weights", []))))
+    config = plan.get("architecture_config", {})
     expected_args = training.parse_args([
         "--dataset-root", str(formal.root), "--output-root", str(root.parent),
         "--class-weight-sets", ",".join(map(str, weights[0])), "--seed", str(plan["seed"]),
         "--cpu-threads", str(plan.get("cpu_threads")), "--device", str(plan.get("device")),
+        "--transformer-depths", ",".join(map(str, config.get("depths", []))),
+        "--split-after-blocks", ",".join(map(str, config.get("split_after_blocks", []))),
     ])
     expected = training.build_batch_plan(expected_args)["runs"][0]
     if plan != expected:

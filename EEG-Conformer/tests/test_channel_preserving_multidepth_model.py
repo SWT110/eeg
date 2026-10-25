@@ -24,12 +24,12 @@ def one_thread():
     torch.set_num_threads(previous)
 
 
-@pytest.mark.parametrize("depth,split", zip(DEPTHS, SPLITS))
+@pytest.mark.parametrize("depth,split", [(2, 1), (5, 2), (8, 4), (4, 2), (10, 5), (16, 8), (5, 3)])
 def test_every_stage_output_gets_its_own_fixed_skip_once(depth, split):
     encoder = TwoStageElectrodeEncoder(3, 10, 5, 0, False, depth=depth, split_after_block=split)
-    assert len(encoder.early_blocks) == len(encoder.late_blocks) == split
+    assert len(encoder.early_blocks) == split and len(encoder.late_blocks) == depth - split
     encoder.early_blocks = nn.ModuleList([nn.Identity() for _ in range(split)])
-    encoder.late_blocks = nn.ModuleList([nn.Identity() for _ in range(split)])
+    encoder.late_blocks = nn.ModuleList([nn.Identity() for _ in range(depth - split)])
     x = torch.arange(2 * 3 * 4 * 10).reshape(2, 3, 4, 10).float()
     early_inputs, late_inputs, convolutions = [], [], []
     for block in encoder.early_blocks:
@@ -49,7 +49,7 @@ def test_every_stage_output_gets_its_own_fixed_skip_once(depth, split):
         fused = encoder.fuse_channels(x + split * early).squeeze(1)
         convolutions.clear()
         actual = encoder(x)
-    torch.testing.assert_close(actual, (split + 1) * fused)
+    torch.testing.assert_close(actual, (depth - split + 1) * fused)
     assert convolutions == ["early", "fuse"]
     for index, value in enumerate(early_inputs):
         assert value.shape == (6, 4, 10)
@@ -58,14 +58,16 @@ def test_every_stage_output_gets_its_own_fixed_skip_once(depth, split):
         torch.testing.assert_close(value, (index + 1) * fused)
 
 
-def test_original_shape_single_stem_per_domain_independent_encoders_heads_and_exact_fusion():
-    model = MultiDepthChannelPreservingConformer(21, 1920, 961).eval()
+@pytest.mark.parametrize("depths,splits", [(DEPTHS, SPLITS), ((4, 10, 16), (2, 5, 8)), ((2, 5, 8), (1, 3, 6))])
+def test_original_shape_single_stem_per_domain_independent_encoders_heads_and_exact_fusion(depths, splits):
+    model = MultiDepthChannelPreservingConformer(21, 1920, 961,
+        transformer_depths=depths, split_after_blocks=splits).eval()
     shapes, head_inputs = [], []
     parameter_sets = []
     for branch in (model.time_branch, model.fft_branch):
         branch.patch_embedding.register_forward_hook(lambda _m, _a, out: shapes.append(tuple(out.shape)))
-        assert [e.depth for e in branch.encoders] == list(DEPTHS)
-        assert [e.split_after_block for e in branch.encoders] == list(SPLITS)
+        assert [e.depth for e in branch.encoders] == list(depths)
+        assert [e.split_after_block for e in branch.encoders] == list(splits)
         for encoder in branch.encoders:
             parameter_sets.append({p.data_ptr() for p in encoder.parameters()})
     for head in model.branch_cls_heads:
@@ -86,8 +88,8 @@ def test_original_shape_single_stem_per_domain_independent_encoders_heads_and_ex
     torch.testing.assert_close(logits, sum(w * z for w, z in zip(weights, branches)))
     metadata = model.transformer_weight_metadata()
     assert metadata["transformer_branch_loss_weights"] == weights.tolist()
-    assert model.architecture_config["early_skip_targets"] == [list(range(1, s + 1)) for s in SPLITS]
-    assert model.architecture_config["late_skip_targets"] == [list(range(s + 1, d + 1)) for d, s in zip(DEPTHS, SPLITS)]
+    assert model.architecture_config["early_skip_targets"] == [list(range(1, s + 1)) for s in splits]
+    assert model.architecture_config["late_skip_targets"] == [list(range(s + 1, d + 1)) for d, s in zip(depths, splits)]
 
 
 def test_class_weighted_branch_loss_matches_legacy_formula_and_all_parameters_receive_gradients():
@@ -138,6 +140,29 @@ def test_dropout_checkpointing_preserves_logits_gradients_and_strict_reload():
     with torch.no_grad():
         torch.testing.assert_close(direct(time, fft)[1], restored(time, fft)[1], rtol=0, atol=0)
     bad = copy.deepcopy(direct.architecture_config)
-    bad["split_after_blocks"] = [1, 5, 8]
+    bad["late_skip_targets"] = [[2], [5], [8]]
     with pytest.raises(ValueError, match="metadata differs"):
         restore_from_config(bad)
+
+
+def test_old_depths_config_restores_without_using_new_defaults():
+    original = MultiDepthChannelPreservingConformer(3, 256, 129,
+        transformer_depths=(4, 10, 16), split_after_blocks=(2, 5, 8)).eval()
+    restored = restore_from_config(copy.deepcopy(original.architecture_config))
+    restored.load_state_dict(original.state_dict(), strict=True)
+    restored.eval()
+    assert restored.transformer_branch_depths == (4, 10, 16) and restored.split_after_blocks == (2, 5, 8)
+    time, fft = torch.randn(1, 1, 3, 256), torch.randn(1, 1, 3, 129)
+    with torch.no_grad():
+        torch.testing.assert_close(original(time, fft)[1], restored(time, fft)[1], rtol=0, atol=0)
+
+
+@pytest.mark.parametrize("changes", [
+    {"transformer_depths": (1, 5, 8)}, {"transformer_depths": (2, 5)},
+    {"transformer_depths": (2, 5., 8)}, {"transformer_depths": (True, 5, 8)},
+    {"split_after_blocks": (1, 2)}, {"split_after_blocks": (0, 2, 4)},
+    {"split_after_blocks": (1, 5, 4)}, {"split_after_blocks": (1, 2.5, 4)},
+])
+def test_invalid_branch_or_stage_config_rejected(changes):
+    with pytest.raises(ValueError):
+        MultiDepthChannelPreservingConformer(3, 256, 129, **changes)

@@ -27,7 +27,8 @@ if str(SCRIPT_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPT_ROOT))
 
 from channel_preserving_multidepth_model import (
-    ARCHITECTURE, AUX_WEIGHT, DEPTHS, MultiDepthChannelPreservingConformer, restore_from_config,
+    ARCHITECTURE, AUX_WEIGHT, DEPTHS, SPLITS, MultiDepthChannelPreservingConformer,
+    resolve_depth_config, restore_from_config,
 )
 from evaluate_activity_failurecase import load_best_checkpoint
 from experiment_manifest import collect_environment_info
@@ -45,6 +46,7 @@ MODEL_KWARGS = {
     "emb_size": DEFAULT_EMB_SIZE, "num_heads": DEFAULT_NUM_HEADS,
     "dropout": DEFAULT_DROPOUT, "transformer_encoder_dropout": DEFAULT_DROPOUT,
     "transformer_branches": 3, "transformer_depths": list(DEPTHS),
+    "split_after_blocks": list(SPLITS),
     "transformer_branch_fusion": "loss_softmax", "branch_loss_aux_weight": AUX_WEIGHT,
     "transformer_branch_qkv": "cross_depth",
     "transformer_branch_qkv_dropout": DEFAULT_TRANSFORMER_BRANCH_QKV_DROPOUT,
@@ -85,8 +87,19 @@ def weight_key(values: list[float]) -> str:
     return "weights_" + "_".join(token(v) for v in values)
 
 
+def parse_integer_triplet(raw: str) -> tuple[int, ...]:
+    try:
+        values = tuple(int(piece.strip()) for piece in raw.split(","))
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("Expected three comma-separated integers, e.g. 2,5,8") from exc
+    if len(values) != 3:
+        raise argparse.ArgumentTypeError("Expected exactly three comma-separated integers")
+    return values
+
+
 def build_batch_plan(args: argparse.Namespace) -> dict:
     weights = parse_weight_sets(args.class_weight_sets)
+    depths, splits = resolve_depth_config(args.transformer_depths, args.split_after_blocks)
     # Retain the existing cohort, provenance and content-hash validation.
     base = single.build_plan(args)
     root = args.output_base.expanduser().resolve()
@@ -94,7 +107,8 @@ def build_batch_plan(args: argparse.Namespace) -> dict:
         root = root / "smoke"
     if sorted(base["test_subject_ids"]) != base["included_subject_ids"]:
         root = root / ("partial_test_" + "_".join(f"S{s}" for s in base["test_subject_ids"]))
-    model = MultiDepthChannelPreservingConformer(21, 1920, 961)
+    model = MultiDepthChannelPreservingConformer(21, 1920, 961,
+        transformer_depths=depths, split_after_blocks=splits)
     config = model.architecture_config
     parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
     hashes = code_hashes()
@@ -105,7 +119,8 @@ def build_batch_plan(args: argparse.Namespace) -> dict:
             **base, "protocol": PROTOCOL, "models": [ARCHITECTURE],
             "architecture_config": config, "trainable_parameters": parameters,
             "class_weights": values, "class_weight_order": ["e_1", "e_2", "e_3"],
-            "model_kwargs": {**MODEL_KWARGS, "class_weights": values},
+            "model_kwargs": {**MODEL_KWARGS, "transformer_depths": list(depths),
+                             "split_after_blocks": list(splits), "class_weights": values},
             "weight_selection_rule": "manual comparison after experiment summaries; no automatic winner",
             "output_dir": str(output), "model_output_dir": str(output / "model"),
             "code_sha256": hashes,
@@ -151,7 +166,8 @@ def validate_metrics(metrics: dict, plan: dict, subject: int) -> None:
         "test_subject_id": subject, "seed": plan["seed"], "epochs": plan["epochs"],
         "batch_size": plan["batch_size"], "lr": plan["lr"],
         "optimizer": "Adam", "optimizer_betas": plan["adam_betas"],
-        "transformer_branch_depths": list(DEPTHS), "transformer_weights_independent_by_domain": False,
+        "transformer_branch_depths": plan["model_kwargs"]["transformer_depths"],
+        "transformer_weights_independent_by_domain": False,
         "n_channels": 21, "n_times": 1920, "n_classes": 3,
         "trainable_parameters": plan["trainable_parameters"],
         "n_train_samples": plan["dataset_shape"][0] - plan["subject_window_counts"][str(subject)],
@@ -183,6 +199,8 @@ def restore_checkpoint(checkpoint: dict, metrics: dict, plan: dict) -> torch.nn.
             "transformer_branch_fusion", "branch_loss_aux_weight", "transformer_branch_qkv",
             "transformer_branch_qkv_dropout", "transformer_branch_loss_weights",
             "time_transformer_branch_qkv_gamma", "fft_transformer_branch_qkv_gamma")
+    if "split_after_blocks" in plan["model_kwargs"]:
+        keys += ("split_after_blocks",)
     for key in keys:
         if key not in checkpoint or checkpoint[key] != metrics.get(key):
             raise ValueError(f"Checkpoint and metrics disagree: {key}")
@@ -353,7 +371,10 @@ def summarize_weight_runs(root: Path) -> dict:
                           "e1_recall", "e2_recall", "e3_recall", "min_e1_e2_recall", "e1_f1", "e2_f1", "e3_f1",
                           "learned_branch_weights", "confusion_matrix"]
         atomic_write_text(root / "subject_results.csv", csv_text(all_subjects, subject_fields))
-        lines = ["# D 版类别权重实验汇总", "",
+        geometry = ("分支层数：" + str(signature["architecture_config"]["depths"])
+                    + "；分段位置：" + str(signature["architecture_config"]["split_after_blocks"]) + "。"
+                    if signature else "尚无实验记录。")
+        lines = ["# D 版类别权重实验汇总", "", geometry, "",
                  "指标先逐受试者计算再等权平均。数值单位为 %；不自动选取最佳权重。", "",
                  "每折仍按最高外层测试准确率选 epoch；结果属于探索性选参。未完成组仅展示进度，其均值不是完整 15 折成绩。", "",
                  "| e₁/e₂/e₃ 权重 | 状态 | 完成折数 | Acc | Macro-F1 | R₁ | R₂ | R₃ | 逐人 min(R₁,R₂) |",
@@ -449,9 +470,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dataset-root", type=Path)
     parser.add_argument("--output-root", "--output-base", dest="output_base", type=Path,
-                        default=SCRIPT_ROOT.parent / "local_artifacts/outputs/activity_channelpreserve_D_weights_seed42")
+                        default=SCRIPT_ROOT.parent / "local_artifacts/outputs/activity_channelpreserve_D_2_5_8_weights_seed42")
     parser.add_argument("--class-weight-sets", "--class-weights", dest="class_weight_sets",
                         help="User-selected triples in e_1/e_2/e_3 order; quote the | separators")
+    parser.add_argument("--transformer-depths", type=parse_integer_triplet, default=DEPTHS,
+                        help="Three branch depths, default 2,5,8; each must be >=2")
+    parser.add_argument("--split-after-blocks", type=parse_integer_triplet,
+                        help="Three stage boundaries, e.g. 1,2,4; default floor(depth/2)")
     parser.add_argument("--cohort-subject-ids", default=",".join(map(str, range(1, 18))))
     parser.add_argument("--exclude-subject-ids", default="6,17")
     parser.add_argument("--test-subject-ids", help="Separate partial job; defaults to all 15 formal subjects")

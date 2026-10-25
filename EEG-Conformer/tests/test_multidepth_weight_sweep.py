@@ -59,8 +59,9 @@ def test_defaults_complete_cohort_manual_weights_and_appendable_per_weight_ident
     batch = runner.build_batch_plan(args)
     assert batch["candidate_count"] == 2 and batch["planned_training_folds"] == 30
     first = batch["runs"][0]
-    assert first["architecture_config"]["depths"] == [4, 10, 16]
-    assert first["architecture_config"]["split_after_blocks"] == [2, 5, 8]
+    assert first["architecture_config"]["depths"] == [2, 5, 8]
+    assert first["architecture_config"]["split_after_blocks"] == [1, 2, 4]
+    assert first["model_kwargs"]["split_after_blocks"] == [1, 2, 4]
     assert first["epochs"] == 200 and first["batch_size"] == 72 and first["lr"] == .0002
     assert first["architecture_config"]["num_heads"] == 5
     assert first["architecture_config"]["transformer_branch_qkv_dropout"] == .1
@@ -100,9 +101,11 @@ def test_excluded_people_cannot_leak_into_any_weight_run(tmp_path, leaked):
         runner.build_batch_plan(arguments(tmp_path, dataset))
 
 
-def test_real_two_candidate_training_prediction_replay_resume_and_corruption(tmp_path, monkeypatch):
+@pytest.mark.parametrize("geometry", [(), ("--transformer-depths", "4,10,16", "--split-after-blocks", "2,5,8"),
+                                      ("--transformer-depths", "2,5,8", "--split-after-blocks", "1,3,5")])
+def test_real_two_candidate_training_prediction_replay_resume_and_corruption(tmp_path, monkeypatch, geometry):
     dataset = write_dataset(tmp_path / "formal")
-    args = arguments(tmp_path, dataset, "3,2,1|3,3,1", "--smoke-test")
+    args = arguments(tmp_path, dataset, "3,2,1|3,3,1", "--smoke-test", *geometry)
     batch = runner.build_batch_plan(args)
     monkeypatch.setattr(runner, "collect_environment_info", lambda *_: {})
     events = []
@@ -128,6 +131,8 @@ def test_real_two_candidate_training_prediction_replay_resume_and_corruption(tmp
     assert checkpoint["class_weights"] == [3., 2., 1.]
     assert metrics["transformer_weights_independent_by_domain"] is False
     assert len(metrics["transformer_branch_loss_weights"]) == 3
+    assert metrics["split_after_blocks"] == plan["model_kwargs"]["split_after_blocks"]
+    assert checkpoint["split_after_blocks"] == metrics["split_after_blocks"]
     model = runner.restore_checkpoint(checkpoint, metrics, plan)
     formal = load_dataset(dataset)
     stats = fit_legacy_normalizers(formal.X[formal.subject_ids != 1], dual=True)
@@ -135,7 +140,7 @@ def test_real_two_candidate_training_prediction_replay_resume_and_corruption(tmp
     _, pred = predict_probabilities(model, inputs, torch.device("cpu"), 2)
     verify_saved_predictions(pred, formal.y[formal.subject_ids == 1], {"directory": fold, "metrics": metrics})
     monkeypatch.setattr(runner, "train_loso_fold", lambda **_: pytest.fail("Completed fold retrained"))
-    reordered = runner.build_batch_plan(arguments(tmp_path, dataset, "3,3,1|3,2,1", "--smoke-test"))
+    reordered = runner.build_batch_plan(arguments(tmp_path, dataset, "3,3,1|3,2,1", "--smoke-test", *geometry))
     runner.run_batch(reordered, resume=True)
     with pytest.raises(FileExistsError):
         runner.run_batch(batch)
@@ -257,11 +262,11 @@ def test_two_real_processes_can_train_disjoint_candidates_in_one_output_root(tmp
     assert all(g["completed_folds"] == 1 for g in summary["groups"])
 
 
-def full_case_fixture(tmp_path, case_id):
+def full_case_fixture(tmp_path, case_id, geometry=()):
     subjects = [s for s in range(1, 18) if s not in (6, 17)]
     formal = write_dataset(tmp_path / "formal", subjects)
     case = write_dataset(tmp_path / "case", (case_id,), excluded=())
-    plan = runner.build_batch_plan(arguments(tmp_path, formal, "3,2,1", small=False))["runs"][0]
+    plan = runner.build_batch_plan(arguments(tmp_path, formal, "3,2,1", *geometry, small=False))["runs"][0]
     root = Path(plan["output_dir"])
     root.mkdir(parents=True)
     (root / "run_plan.json").write_text(json.dumps(plan))
@@ -279,9 +284,10 @@ def full_case_fixture(tmp_path, case_id):
     return args, plan
 
 
-@pytest.mark.parametrize("case_id", [6, 17])
-def test_d_failurecases_use_one_frozen_weight_candidate_and_all_15_folds(tmp_path, monkeypatch, case_id):
-    args, plan = full_case_fixture(tmp_path, case_id)
+@pytest.mark.parametrize("case_id,geometry", [(6, ("--transformer-depths", "4,10,16")),
+                                            (6, ("--split-after-blocks", "1,3,5")), (17, ())])
+def test_d_failurecases_use_one_frozen_weight_candidate_and_all_15_folds(tmp_path, monkeypatch, case_id, geometry):
+    args, plan = full_case_fixture(tmp_path, case_id, geometry)
     monkeypatch.setattr(runner, "restore_checkpoint", fake_restore)
     monkeypatch.setattr(evaluation.engine, "collect_environment_info", lambda *_: {})
     result = evaluation.evaluate(args)
@@ -304,3 +310,27 @@ def test_d_failurecase_rejects_smoke_partial_changed_weights_or_code(tmp_path, m
     with pytest.raises(ValueError, match="production plan"):
         evaluation.evaluate(args)
     assert not args.output_dir.exists()
+
+
+def test_command_configuration_infers_half_stages_and_requires_separate_experiments(tmp_path, monkeypatch):
+    dataset = write_dataset(tmp_path / "formal")
+    default = runner.build_batch_plan(arguments(tmp_path, dataset, "3,2,1"))
+    legacy = runner.build_batch_plan(arguments(tmp_path, dataset, "3,2,1", "--transformer-depths", "4,10,16"))
+    custom = runner.build_batch_plan(arguments(tmp_path, dataset, "3,2,1", "--transformer-depths", "2,5,8",
+                                                 "--split-after-blocks", "1,3,5"))
+    assert legacy["runs"][0]["architecture_config"]["split_after_blocks"] == [2, 5, 8]
+    assert custom["runs"][0]["model_kwargs"]["split_after_blocks"] == [1, 3, 5]
+    monkeypatch.setattr(runner, "run_weight", lambda *_a, **_k: None)
+    runner.run_batch(default)
+    with pytest.raises(ValueError, match="incompatible experiments"):
+        runner.run_batch(legacy, resume=True)
+    with pytest.raises(ValueError, match="incompatible experiments"):
+        runner.run_batch(custom, resume=True)
+
+
+@pytest.mark.parametrize("options", [("--transformer-depths", "1,5,8"),
+                                      ("--split-after-blocks", "2,2,4"),
+                                      ("--split-after-blocks", "1,0,4")])
+def test_invalid_geometry_is_rejected_before_data_access(tmp_path, options):
+    with pytest.raises(ValueError):
+        runner.build_batch_plan(arguments(tmp_path, tmp_path / "does_not_exist", "3,2,1", *options))
