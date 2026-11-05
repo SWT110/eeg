@@ -31,6 +31,7 @@ local_artifacts*.tar
 local_artifacts*.tar.gz
 local_artifacts*.tgz
 EEG-Conformer/outputs/
+EEG-Conformer/logs/
 eeg-data-processing/data_to_list/npy_dataset/
 eeg-data-processing/data_to_list/npy_dataset*/
 eeg-data-processing/data_to_list/global_activity_dataset/
