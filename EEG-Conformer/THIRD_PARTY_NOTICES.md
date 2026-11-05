@@ -38,3 +38,28 @@ SOFTWARE.
 Scientific use of each model also requires citation of the corresponding paper;
 the DOI and title are stored in `COMPARISON_MODEL_METADATA` and in the experiment
 protocol artifacts.
+
+## Additional architecture benchmark adapters
+
+`benchmark_models.py` provides task-specific PyTorch implementations of nine
+additional architecture families. Paper links, reference repositories, pinned
+commits, configurations and adaptation notes are recorded in
+`benchmark_vendor/sources.json`.
+
+- DeepConvNet/Deep4 and EEG-ITNet use the Braindecode BSD-3-Clause implementation
+  as their reference. The complete notice is retained in
+  `benchmark_vendor/LICENSE-braindecode.txt`. The EEG-ITNet author's restricted
+  notebook is not included in this repository.
+- The TSception-related adaptation retains the CBCR notice in
+  `benchmark_vendor/LICENSE-TSception-CBCR.txt`; its upstream terms permit
+  redistribution and modification for non-commercial purposes. This benchmark
+  is intended for non-commercial academic research.
+- The CTNet reference notice is retained in `benchmark_vendor/LICENSE-CTNet.txt`.
+- EEG-TCNet, FBCNet, EEGNeX, EEGSimpleConv and EEG-Deformer architecture references
+  and explicit task adaptations are attributed in `sources.json`. Their full
+  upstream training repositories, datasets and pretrained weights are not
+  vendored here.
+
+These adapters do not claim exact reproduction of every author's preprocessing,
+training recipe or published benchmark result. Cite the relevant papers when
+using the corresponding architecture.

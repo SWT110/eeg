@@ -32,16 +32,16 @@ tar -xzf expanded_cohort_inputs_20261009.tar.gz
 EEG_TRAIN_PY="$PWD/.conda-envs/eegconformer310/bin/python"
 EEG_PREP_PY="$PWD/.venv-preprocessing/bin/python"
 
-export OMP_NUM_THREADS=1
-export MKL_NUM_THREADS=1
+export OMP_NUM_THREADS=6
+export MKL_NUM_THREADS=6
 export OPENBLAS_NUM_THREADS=1
 export BLIS_NUM_THREADS=1
 export NUMEXPR_NUM_THREADS=1
 export OMP_WAIT_POLICY=PASSIVE
 
 # 自动从当前允许使用的 CPU 中选取，每个作业最多使用 2 个逻辑 CPU。
-EEG_CPU_A="$("$EEG_TRAIN_PY" -c 'import os; c=sorted(os.sched_getaffinity(0)); print(",".join(map(str,c[:2])))')"
-EEG_CPU_B="$("$EEG_TRAIN_PY" -c 'import os; c=sorted(os.sched_getaffinity(0)); print(",".join(map(str,c[2:4] or c[:2])))')"
+EEG_CPU_A="$("$EEG_TRAIN_PY" -c 'import os; c=sorted(os.sched_getaffinity(0)); print(",".join(map(str,c[:6])))')"
+EEG_CPU_B="$("$EEG_TRAIN_PY" -c 'import os; c=sorted(os.sched_getaffinity(0)); print(",".join(map(str,c[6:12] or c[:6])))')"
 printf 'CPU A=%s; CPU B=%s\n' "$EEG_CPU_A" "$EEG_CPU_B"
 command -v taskset
 nvidia-smi
@@ -121,7 +121,7 @@ EEG_JOB_BASE="$EEG_RUN_BASE/global_activity_dataset_1to17_S17_first3_exclude_S6_
 
 taskset -c "$EEG_CPU_A" "$EEG_TRAIN_PY" -u EEG-Conformer/run_activity_channelpreserve_five_models.py \
   --dataset-root "$EEG_NEW_DATA" --output-base "$EEG_RUN_BASE" \
-  --exclude-subject-ids 6,17 --device cuda:0 --cpu-threads 1 --dry-run
+  --exclude-subject-ids 6,17 --device cuda:0 --cpu-threads 6 --dry-run
 ```
 
 期望计划为 15 名正式受试者、5 个模型、`planned_training_folds=75`，排除 `[6,17]`，200 epochs、batch=72、lr=.0002、`class_weights=null`。程序核对真实数组、元数据、来源记录以及数据和代码哈希；S6 或 S17 仍在数组里会直接报错。`--dry-run` 不训练、不创建结果目录。
@@ -136,7 +136,7 @@ taskset -c "$EEG_CPU_A" "$EEG_TRAIN_PY" -u EEG-Conformer/run_activity_channelpre
 mkdir -p EEG-Conformer/logs
 nohup taskset -c "$EEG_CPU_A" "$EEG_TRAIN_PY" -u EEG-Conformer/run_activity_channelpreserve_five_models.py \
   --dataset-root "$EEG_NEW_DATA" --output-base "$EEG_RUN_BASE" \
-  --exclude-subject-ids 6,17 --device cuda:0 --cpu-threads 1 \
+  --exclude-subject-ids 6,17 --device cuda:0 --cpu-threads 6 \
   > EEG-Conformer/logs/channelpreserve_five_seed42_all.log 2>&1 < /dev/null &
 echo $! > EEG-Conformer/logs/channelpreserve_five_seed42_all.pid
 ```
@@ -157,7 +157,7 @@ mkdir -p EEG-Conformer/logs
 # GPU 0：新结构，15 折。
 nohup taskset -c "$EEG_CPU_A" "$EEG_TRAIN_PY" -u EEG-Conformer/run_activity_channelpreserve_five_models.py \
   --dataset-root "$EEG_NEW_DATA" --output-base "$EEG_RUN_BASE" \
-  --models channelpreserving --exclude-subject-ids 6,17 --device cuda:0 --cpu-threads 1 \
+  --models channelpreserving --exclude-subject-ids 6,17 --device cuda:0 --cpu-threads 6 \
   > EEG-Conformer/logs/channelpreserve_five_seed42_main.log 2>&1 < /dev/null &
 echo $! > EEG-Conformer/logs/channelpreserve_five_seed42_main.pid
 
@@ -165,7 +165,7 @@ echo $! > EEG-Conformer/logs/channelpreserve_five_seed42_main.pid
 nohup taskset -c "$EEG_CPU_B" "$EEG_TRAIN_PY" -u EEG-Conformer/run_activity_channelpreserve_five_models.py \
   --dataset-root "$EEG_NEW_DATA" --output-base "$EEG_RUN_BASE" \
   --models eegnet,shallowconvnet,atcnet,tcformer \
-  --exclude-subject-ids 6,17 --device cuda:1 --cpu-threads 1 \
+  --exclude-subject-ids 6,17 --device cuda:1 --cpu-threads 6 \
   > EEG-Conformer/logs/channelpreserve_five_seed42_external.log 2>&1 < /dev/null &
 echo $! > EEG-Conformer/logs/channelpreserve_five_seed42_external.pid
 ```
@@ -196,14 +196,14 @@ tail -f EEG-Conformer/logs/channelpreserve_five_seed42_external.log
 ```bash
 nohup taskset -c "$EEG_CPU_A" "$EEG_TRAIN_PY" -u EEG-Conformer/run_activity_channelpreserve_five_models.py \
   --dataset-root "$EEG_NEW_DATA" --output-base "$EEG_RUN_BASE" \
-  --models channelpreserving --exclude-subject-ids 6,17 --device cuda:0 --cpu-threads 1 --resume \
+  --models channelpreserving --exclude-subject-ids 6,17 --device cuda:0 --cpu-threads 6 --resume \
   > EEG-Conformer/logs/channelpreserve_five_seed42_main_resume.log 2>&1 < /dev/null &
 echo $! > EEG-Conformer/logs/channelpreserve_five_seed42_main_resume.pid
 
 nohup taskset -c "$EEG_CPU_B" "$EEG_TRAIN_PY" -u EEG-Conformer/run_activity_channelpreserve_five_models.py \
   --dataset-root "$EEG_NEW_DATA" --output-base "$EEG_RUN_BASE" \
   --models eegnet,shallowconvnet,atcnet,tcformer \
-  --exclude-subject-ids 6,17 --device cuda:1 --cpu-threads 1 --resume \
+  --exclude-subject-ids 6,17 --device cuda:1 --cpu-threads 6 --resume \
   > EEG-Conformer/logs/channelpreserve_five_seed42_external_resume.log 2>&1 < /dev/null &
 echo $! > EEG-Conformer/logs/channelpreserve_five_seed42_external_resume.pid
 ```
@@ -229,7 +229,7 @@ for EEG_CASE_ID in 6 17; do
     --failurecase-root "$EEG_DATA_BASE/global_activity_failurecase_S${EEG_CASE_ID}/window_15_stride_3" \
     --run-root "$EEG_JOB_BASE/job_channelpreserving" \
     --output-dir "$PWD/local_artifacts/outputs/activity_channelpreserve_failurecase_S${EEG_CASE_ID}_seed42_main" \
-    --case-subject-id "$EEG_CASE_ID" --seed 42 --device cuda:0 --batch-size 72 --cpu-threads 1 || break
+    --case-subject-id "$EEG_CASE_ID" --seed 42 --device cuda:0 --batch-size 72 --cpu-threads 6 || break
 
   # 四个对照模型的 Failure case。
   taskset -c "$EEG_CPU_B" "$EEG_TRAIN_PY" -u EEG-Conformer/evaluate_channelpreserve_five_models_failurecase.py \
@@ -237,7 +237,7 @@ for EEG_CASE_ID in 6 17; do
     --failurecase-root "$EEG_DATA_BASE/global_activity_failurecase_S${EEG_CASE_ID}/window_15_stride_3" \
     --run-root "$EEG_JOB_BASE/job_eegnet_shallowconvnet_atcnet_tcformer" \
     --output-dir "$PWD/local_artifacts/outputs/activity_channelpreserve_failurecase_S${EEG_CASE_ID}_seed42_external" \
-    --case-subject-id "$EEG_CASE_ID" --seed 42 --device cuda:1 --batch-size 72 --cpu-threads 1 || break
+    --case-subject-id "$EEG_CASE_ID" --seed 42 --device cuda:1 --batch-size 72 --cpu-threads 6 || break
 done
 ```
 
@@ -250,7 +250,7 @@ for EEG_CASE_ID in 6 17; do
     --failurecase-root "$EEG_DATA_BASE/global_activity_failurecase_S${EEG_CASE_ID}/window_15_stride_3" \
     --run-root "$EEG_JOB_BASE/job_channelpreserving_eegnet_shallowconvnet_atcnet_tcformer" \
     --output-dir "$PWD/local_artifacts/outputs/activity_channelpreserve_failurecase_S${EEG_CASE_ID}_seed42_all" \
-    --case-subject-id "$EEG_CASE_ID" --seed 42 --device cuda:0 --batch-size 72 --cpu-threads 1 || break
+    --case-subject-id "$EEG_CASE_ID" --seed 42 --device cuda:0 --batch-size 72 --cpu-threads 6 || break
 done
 ```
 

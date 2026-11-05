@@ -1,0 +1,2842 @@
+{
+  "nodes": [
+    {
+      "id": "overview_panel",
+      "type": "rect",
+      "x": 35,
+      "y": 135,
+      "w": 2330,
+      "h": 490,
+      "label": "",
+      "fill": "#ffffff",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 14
+    },
+    {
+      "id": "stem_panel",
+      "type": "rect",
+      "x": 35,
+      "y": 650,
+      "w": 2330,
+      "h": 340,
+      "label": "",
+      "fill": "#ffffff",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 14
+    },
+    {
+      "id": "encoder_panel",
+      "type": "rect",
+      "x": 35,
+      "y": 1015,
+      "w": 2330,
+      "h": 600,
+      "label": "",
+      "fill": "#ffffff",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 14
+    },
+    {
+      "id": "details_panel",
+      "type": "rect",
+      "x": 35,
+      "y": 1640,
+      "w": 2330,
+      "h": 365,
+      "label": "",
+      "fill": "#ffffff",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 14
+    },
+    {
+      "id": "raw",
+      "type": "rect",
+      "x": 65,
+      "y": 337,
+      "w": 190,
+      "h": 108,
+      "label": "",
+      "fill": "#f3f5f8",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "timepre",
+      "type": "rect",
+      "x": 320,
+      "y": 235,
+      "w": 220,
+      "h": 100,
+      "label": "",
+      "fill": "#e6f0fb",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "timestem",
+      "type": "rect",
+      "x": 600,
+      "y": 235,
+      "w": 235,
+      "h": 100,
+      "label": "",
+      "fill": "#e6f0fb",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "timefirst",
+      "type": "rect",
+      "x": 895,
+      "y": 235,
+      "w": 240,
+      "h": 100,
+      "label": "",
+      "fill": "#e7f0dd",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "timemerge",
+      "type": "rect",
+      "x": 1195,
+      "y": 235,
+      "w": 185,
+      "h": 100,
+      "label": "",
+      "fill": "#fff0da",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "timelast",
+      "type": "rect",
+      "x": 1440,
+      "y": 235,
+      "w": 235,
+      "h": 100,
+      "label": "",
+      "fill": "#e7f0dd",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "timeflatten",
+      "type": "rect",
+      "x": 1735,
+      "y": 235,
+      "w": 180,
+      "h": 100,
+      "label": "",
+      "fill": "#e1f0ed",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "fftpre",
+      "type": "rect",
+      "x": 320,
+      "y": 455,
+      "w": 220,
+      "h": 100,
+      "label": "",
+      "fill": "#f0e9f8",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "fftstem",
+      "type": "rect",
+      "x": 600,
+      "y": 455,
+      "w": 235,
+      "h": 100,
+      "label": "",
+      "fill": "#f0e9f8",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "fftfirst",
+      "type": "rect",
+      "x": 895,
+      "y": 455,
+      "w": 240,
+      "h": 100,
+      "label": "",
+      "fill": "#e7f0dd",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "fftmerge",
+      "type": "rect",
+      "x": 1195,
+      "y": 455,
+      "w": 185,
+      "h": 100,
+      "label": "",
+      "fill": "#fff0da",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "fftlast",
+      "type": "rect",
+      "x": 1440,
+      "y": 455,
+      "w": 235,
+      "h": 100,
+      "label": "",
+      "fill": "#e7f0dd",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "fftflatten",
+      "type": "rect",
+      "x": 1735,
+      "y": 455,
+      "w": 180,
+      "h": 100,
+      "label": "",
+      "fill": "#e1f0ed",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "fusion",
+      "type": "rect",
+      "x": 1975,
+      "y": 345,
+      "w": 160,
+      "h": 100,
+      "label": "",
+      "fill": "#e1f0ed",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "classifier",
+      "type": "rect",
+      "x": 2195,
+      "y": 345,
+      "w": 140,
+      "h": 100,
+      "label": "",
+      "fill": "#e6f0fb",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "si",
+      "type": "rect",
+      "x": 65,
+      "y": 745,
+      "w": 190,
+      "h": 123,
+      "label": "",
+      "fill": "#f3f5f8",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "sc",
+      "type": "rect",
+      "x": 315,
+      "y": 745,
+      "w": 270,
+      "h": 123,
+      "label": "",
+      "fill": "#e6f0fb",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "sn",
+      "type": "rect",
+      "x": 645,
+      "y": 745,
+      "w": 215,
+      "h": 123,
+      "label": "",
+      "fill": "#e7f0dd",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "sp",
+      "type": "rect",
+      "x": 920,
+      "y": 745,
+      "w": 280,
+      "h": 123,
+      "label": "",
+      "fill": "#fff0da",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "sj",
+      "type": "rect",
+      "x": 1260,
+      "y": 745,
+      "w": 265,
+      "h": 123,
+      "label": "",
+      "fill": "#e6f0fb",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "st",
+      "type": "rect",
+      "x": 1585,
+      "y": 745,
+      "w": 285,
+      "h": 123,
+      "label": "",
+      "fill": "#e1f0ed",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "so",
+      "type": "rect",
+      "x": 1930,
+      "y": 745,
+      "w": 400,
+      "h": 123,
+      "label": "",
+      "fill": "#e1f0ed",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "skip_conv",
+      "type": "rect",
+      "x": 410,
+      "y": 1065,
+      "w": 405,
+      "h": 90,
+      "label": "",
+      "fill": "#fff0da",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "early_1",
+      "type": "rect",
+      "x": 360,
+      "y": 1240,
+      "w": 230,
+      "h": 100,
+      "label": "",
+      "fill": "#e7f0dd",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "add_1",
+      "type": "residual",
+      "x": 624.0,
+      "y": 1269.0,
+      "w": 42,
+      "h": 42,
+      "label": "",
+      "fill": "#ffffff",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 21.0
+    },
+    {
+      "id": "early_2",
+      "type": "rect",
+      "x": 750,
+      "y": 1240,
+      "w": 230,
+      "h": 100,
+      "label": "",
+      "fill": "#e7f0dd",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "add_2",
+      "type": "residual",
+      "x": 1014.0,
+      "y": 1269.0,
+      "w": 42,
+      "h": 42,
+      "label": "",
+      "fill": "#ffffff",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 21.0
+    },
+    {
+      "id": "early_3",
+      "type": "rect",
+      "x": 1140,
+      "y": 1240,
+      "w": 230,
+      "h": 100,
+      "label": "",
+      "fill": "#e7f0dd",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "add_3",
+      "type": "residual",
+      "x": 1404.0,
+      "y": 1269.0,
+      "w": 42,
+      "h": 42,
+      "label": "",
+      "fill": "#ffffff",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 21.0
+    },
+    {
+      "id": "early_4",
+      "type": "rect",
+      "x": 1530,
+      "y": 1240,
+      "w": 230,
+      "h": 100,
+      "label": "",
+      "fill": "#e7f0dd",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "add_4",
+      "type": "residual",
+      "x": 1794.0,
+      "y": 1269.0,
+      "w": 42,
+      "h": 42,
+      "label": "",
+      "fill": "#ffffff",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 21.0
+    },
+    {
+      "id": "early_5",
+      "type": "rect",
+      "x": 1920,
+      "y": 1240,
+      "w": 230,
+      "h": 100,
+      "label": "",
+      "fill": "#e7f0dd",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "add_5",
+      "type": "residual",
+      "x": 2184.0,
+      "y": 1269.0,
+      "w": 42,
+      "h": 42,
+      "label": "",
+      "fill": "#ffffff",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 21.0
+    },
+    {
+      "id": "mid_fuse",
+      "type": "rect",
+      "x": 1920,
+      "y": 1460,
+      "w": 325,
+      "h": 100,
+      "label": "",
+      "fill": "#fff0da",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "late_6",
+      "type": "rect",
+      "x": 1530,
+      "y": 1460,
+      "w": 270,
+      "h": 100,
+      "label": "",
+      "fill": "#e7f0dd",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "late_7_9",
+      "type": "rect",
+      "x": 1140,
+      "y": 1460,
+      "w": 270,
+      "h": 100,
+      "label": "",
+      "fill": "#e7f0dd",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "late_10",
+      "type": "rect",
+      "x": 750,
+      "y": 1460,
+      "w": 270,
+      "h": 100,
+      "label": "",
+      "fill": "#e7f0dd",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "enc_out",
+      "type": "rect",
+      "x": 360,
+      "y": 1460,
+      "w": 270,
+      "h": 100,
+      "label": "",
+      "fill": "#e1f0ed",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "block_detail",
+      "type": "rect",
+      "x": 65,
+      "y": 1730,
+      "w": 740,
+      "h": 160,
+      "label": "",
+      "fill": "#e7f0dd",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "head_detail",
+      "type": "rect",
+      "x": 845,
+      "y": 1730,
+      "w": 670,
+      "h": 160,
+      "label": "",
+      "fill": "#e1f0ed",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "assumptions",
+      "type": "rect",
+      "x": 1555,
+      "y": 1730,
+      "w": 775,
+      "h": 160,
+      "label": "",
+      "fill": "#fff0da",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_4_0",
+      "from": {
+        "x": 255,
+        "y": 391.0
+      },
+      "to": {
+        "x": 285,
+        "y": 391
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_4_1",
+      "from": {
+        "x": 285,
+        "y": 391
+      },
+      "to": {
+        "x": 285,
+        "y": 285
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_4_2",
+      "from": {
+        "x": 285,
+        "y": 285
+      },
+      "to": {
+        "x": 320,
+        "y": 285.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_5_0",
+      "from": {
+        "x": 540,
+        "y": 285.0
+      },
+      "to": {
+        "x": 600,
+        "y": 285.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_6_0",
+      "from": {
+        "x": 835,
+        "y": 285.0
+      },
+      "to": {
+        "x": 895,
+        "y": 285.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_7_0",
+      "from": {
+        "x": 1135,
+        "y": 285.0
+      },
+      "to": {
+        "x": 1195,
+        "y": 285.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_8_0",
+      "from": {
+        "x": 1380,
+        "y": 285.0
+      },
+      "to": {
+        "x": 1440,
+        "y": 285.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_9_0",
+      "from": {
+        "x": 1675,
+        "y": 285.0
+      },
+      "to": {
+        "x": 1735,
+        "y": 285.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_10_0",
+      "from": {
+        "x": 255,
+        "y": 391.0
+      },
+      "to": {
+        "x": 285,
+        "y": 391
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_10_1",
+      "from": {
+        "x": 285,
+        "y": 391
+      },
+      "to": {
+        "x": 285,
+        "y": 505
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_10_2",
+      "from": {
+        "x": 285,
+        "y": 505
+      },
+      "to": {
+        "x": 320,
+        "y": 505.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_11_0",
+      "from": {
+        "x": 540,
+        "y": 505.0
+      },
+      "to": {
+        "x": 600,
+        "y": 505.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_12_0",
+      "from": {
+        "x": 835,
+        "y": 505.0
+      },
+      "to": {
+        "x": 895,
+        "y": 505.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_13_0",
+      "from": {
+        "x": 1135,
+        "y": 505.0
+      },
+      "to": {
+        "x": 1195,
+        "y": 505.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_14_0",
+      "from": {
+        "x": 1380,
+        "y": 505.0
+      },
+      "to": {
+        "x": 1440,
+        "y": 505.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_15_0",
+      "from": {
+        "x": 1675,
+        "y": 505.0
+      },
+      "to": {
+        "x": 1735,
+        "y": 505.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_16_0",
+      "from": {
+        "x": 1915,
+        "y": 285.0
+      },
+      "to": {
+        "x": 1945,
+        "y": 285
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_16_1",
+      "from": {
+        "x": 1945,
+        "y": 285
+      },
+      "to": {
+        "x": 1945,
+        "y": 395
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_16_2",
+      "from": {
+        "x": 1945,
+        "y": 395
+      },
+      "to": {
+        "x": 1975,
+        "y": 395.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_17_0",
+      "from": {
+        "x": 1915,
+        "y": 505.0
+      },
+      "to": {
+        "x": 1930,
+        "y": 505
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_17_1",
+      "from": {
+        "x": 1930,
+        "y": 505
+      },
+      "to": {
+        "x": 1930,
+        "y": 395
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_17_2",
+      "from": {
+        "x": 1930,
+        "y": 395
+      },
+      "to": {
+        "x": 1975,
+        "y": 395.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_18_0",
+      "from": {
+        "x": 2135,
+        "y": 395.0
+      },
+      "to": {
+        "x": 2195,
+        "y": 395.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_19_0",
+      "from": {
+        "x": 255,
+        "y": 806.5
+      },
+      "to": {
+        "x": 315,
+        "y": 806.5
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_20_0",
+      "from": {
+        "x": 585,
+        "y": 806.5
+      },
+      "to": {
+        "x": 645,
+        "y": 806.5
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_21_0",
+      "from": {
+        "x": 860,
+        "y": 806.5
+      },
+      "to": {
+        "x": 920,
+        "y": 806.5
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_22_0",
+      "from": {
+        "x": 1200,
+        "y": 806.5
+      },
+      "to": {
+        "x": 1260,
+        "y": 806.5
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_23_0",
+      "from": {
+        "x": 1525,
+        "y": 806.5
+      },
+      "to": {
+        "x": 1585,
+        "y": 806.5
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_24_0",
+      "from": {
+        "x": 1870,
+        "y": 806.5
+      },
+      "to": {
+        "x": 1930,
+        "y": 806.5
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_25_0",
+      "from": {
+        "x": 330,
+        "y": 1095
+      },
+      "to": {
+        "x": 370,
+        "y": 1095
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#a25d14"
+    },
+    {
+      "id": "edge_25_1",
+      "from": {
+        "x": 370,
+        "y": 1095
+      },
+      "to": {
+        "x": 370,
+        "y": 1110
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#a25d14"
+    },
+    {
+      "id": "edge_25_2",
+      "from": {
+        "x": 370,
+        "y": 1110
+      },
+      "to": {
+        "x": 410,
+        "y": 1110
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#a25d14"
+    },
+    {
+      "id": "edge_26_0",
+      "from": {
+        "x": 612.5,
+        "y": 1155
+      },
+      "to": {
+        "x": 612.5,
+        "y": 1190
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#a25d14"
+    },
+    {
+      "id": "edge_26_1",
+      "from": {
+        "x": 612.5,
+        "y": 1190
+      },
+      "to": {
+        "x": 2290,
+        "y": 1190
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#a25d14"
+    },
+    {
+      "id": "edge_27_0",
+      "from": {
+        "x": 590,
+        "y": 1290.0
+      },
+      "to": {
+        "x": 624.0,
+        "y": 1290.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_28_0",
+      "from": {
+        "x": 645,
+        "y": 1190
+      },
+      "to": {
+        "x": 645,
+        "y": 1269
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#a25d14"
+    },
+    {
+      "id": "edge_29_0",
+      "from": {
+        "x": 980,
+        "y": 1290.0
+      },
+      "to": {
+        "x": 1014.0,
+        "y": 1290.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_30_0",
+      "from": {
+        "x": 1035,
+        "y": 1190
+      },
+      "to": {
+        "x": 1035,
+        "y": 1269
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#a25d14"
+    },
+    {
+      "id": "edge_31_0",
+      "from": {
+        "x": 666.0,
+        "y": 1290.0
+      },
+      "to": {
+        "x": 750,
+        "y": 1290.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_32_0",
+      "from": {
+        "x": 1370,
+        "y": 1290.0
+      },
+      "to": {
+        "x": 1404.0,
+        "y": 1290.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_33_0",
+      "from": {
+        "x": 1425,
+        "y": 1190
+      },
+      "to": {
+        "x": 1425,
+        "y": 1269
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#a25d14"
+    },
+    {
+      "id": "edge_34_0",
+      "from": {
+        "x": 1056.0,
+        "y": 1290.0
+      },
+      "to": {
+        "x": 1140,
+        "y": 1290.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_35_0",
+      "from": {
+        "x": 1760,
+        "y": 1290.0
+      },
+      "to": {
+        "x": 1794.0,
+        "y": 1290.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_36_0",
+      "from": {
+        "x": 1815,
+        "y": 1190
+      },
+      "to": {
+        "x": 1815,
+        "y": 1269
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#a25d14"
+    },
+    {
+      "id": "edge_37_0",
+      "from": {
+        "x": 1446.0,
+        "y": 1290.0
+      },
+      "to": {
+        "x": 1530,
+        "y": 1290.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_38_0",
+      "from": {
+        "x": 2150,
+        "y": 1290.0
+      },
+      "to": {
+        "x": 2184.0,
+        "y": 1290.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_39_0",
+      "from": {
+        "x": 2205,
+        "y": 1190
+      },
+      "to": {
+        "x": 2205,
+        "y": 1269
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#a25d14"
+    },
+    {
+      "id": "edge_40_0",
+      "from": {
+        "x": 1836.0,
+        "y": 1290.0
+      },
+      "to": {
+        "x": 1920,
+        "y": 1290.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_41_0",
+      "from": {
+        "x": 115,
+        "y": 1118
+      },
+      "to": {
+        "x": 115,
+        "y": 1290
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_41_1",
+      "from": {
+        "x": 115,
+        "y": 1290
+      },
+      "to": {
+        "x": 360,
+        "y": 1290
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_42_0",
+      "from": {
+        "x": 2205.0,
+        "y": 1311.0
+      },
+      "to": {
+        "x": 2205,
+        "y": 1420
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_42_1",
+      "from": {
+        "x": 2205,
+        "y": 1420
+      },
+      "to": {
+        "x": 2082.5,
+        "y": 1420
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_42_2",
+      "from": {
+        "x": 2082.5,
+        "y": 1420
+      },
+      "to": {
+        "x": 2082.5,
+        "y": 1460
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_43_0",
+      "from": {
+        "x": 1920,
+        "y": 1510.0
+      },
+      "to": {
+        "x": 1800,
+        "y": 1510.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_44_0",
+      "from": {
+        "x": 1530,
+        "y": 1510.0
+      },
+      "to": {
+        "x": 1410,
+        "y": 1510.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_45_0",
+      "from": {
+        "x": 1140,
+        "y": 1510.0
+      },
+      "to": {
+        "x": 1020,
+        "y": 1510.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_46_0",
+      "from": {
+        "x": 750,
+        "y": 1510.0
+      },
+      "to": {
+        "x": 630,
+        "y": 1510.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    }
+  ],
+  "notes": [
+    {
+      "id": "text_47",
+      "x": 499.0,
+      "y": 48,
+      "text": "保留电极通道的 Time + FFT 双域 EEG-Conformer",
+      "fontSize": 39,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_48",
+      "x": 588.5,
+      "y": 94,
+      "text": "录音最终方案重绘 · 每路 depth=10 · 前 5 层保留 C=21，之后融合 · 方案图，尚未修改训练模型",
+      "fontSize": 25,
+      "color": "#53677c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_49",
+      "x": 139.0,
+      "y": 170,
+      "text": "① 总体结构",
+      "fontSize": 28,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_50",
+      "x": 2133.0,
+      "y": 170,
+      "text": "示例输入沿用原图；Time / FFT 参数各自独立",
+      "fontSize": 20,
+      "color": "#53677c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_52",
+      "x": 160.0,
+      "y": 374.9,
+      "text": "EEG window",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_53",
+      "x": 160.0,
+      "y": 407.1,
+      "text": "[B,1,21,1920]",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_55",
+      "x": 430.0,
+      "y": 270.3,
+      "text": "Time 标准化",
+      "fontSize": 21,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_56",
+      "x": 430.0,
+      "y": 299.7,
+      "text": "[B,1,21,1920]",
+      "fontSize": 21,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_58",
+      "x": 717.5,
+      "y": 268.9,
+      "text": "保留通道的 Stem",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_59",
+      "x": 717.5,
+      "y": 301.1,
+      "text": "[B,21,122,40]",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_61",
+      "x": 1015.0,
+      "y": 252.8,
+      "text": "Block #1–#5",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_62",
+      "x": 1015.0,
+      "y": 285.0,
+      "text": "逐电极序列建模",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_63",
+      "x": 1015.0,
+      "y": 317.2,
+      "text": "入口卷积逐层跳接",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_65",
+      "x": 1287.5,
+      "y": 268.9,
+      "text": "跨电极融合",
+      "fontSize": 23,
+      "color": "#a25d14",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_66",
+      "x": 1287.5,
+      "y": 301.1,
+      "text": "C: 21 → 1",
+      "fontSize": 23,
+      "color": "#a25d14",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_68",
+      "x": 1557.5,
+      "y": 268.9,
+      "text": "Block #6–#10",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_69",
+      "x": 1557.5,
+      "y": 301.1,
+      "text": "[B,122,40]",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_71",
+      "x": 1825.0,
+      "y": 268.9,
+      "text": "Flatten",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_72",
+      "x": 1825.0,
+      "y": 301.1,
+      "text": "[B,4880]",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_74",
+      "x": 430.0,
+      "y": 490.3,
+      "text": "rFFT → log1p 功率",
+      "fontSize": 21,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_75",
+      "x": 430.0,
+      "y": 519.7,
+      "text": "标准化 [B,1,21,961]",
+      "fontSize": 21,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_77",
+      "x": 717.5,
+      "y": 488.9,
+      "text": "保留通道的 Stem",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_78",
+      "x": 717.5,
+      "y": 521.1,
+      "text": "[B,21,58,40]",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_80",
+      "x": 1015.0,
+      "y": 472.8,
+      "text": "Block #1–#5",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_81",
+      "x": 1015.0,
+      "y": 505.0,
+      "text": "逐电极序列建模",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_82",
+      "x": 1015.0,
+      "y": 537.2,
+      "text": "入口卷积逐层跳接",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_84",
+      "x": 1287.5,
+      "y": 488.9,
+      "text": "跨电极融合",
+      "fontSize": 23,
+      "color": "#a25d14",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_85",
+      "x": 1287.5,
+      "y": 521.1,
+      "text": "C: 21 → 1",
+      "fontSize": 23,
+      "color": "#a25d14",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_87",
+      "x": 1557.5,
+      "y": 488.9,
+      "text": "Block #6–#10",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_88",
+      "x": 1557.5,
+      "y": 521.1,
+      "text": "[B,58,40]",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_90",
+      "x": 1825.0,
+      "y": 488.9,
+      "text": "Flatten",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_91",
+      "x": 1825.0,
+      "y": 521.1,
+      "text": "[B,2320]",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_93",
+      "x": 2055.0,
+      "y": 378.9,
+      "text": "特征拼接",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_94",
+      "x": 2055.0,
+      "y": 411.1,
+      "text": "[B,7200]",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_96",
+      "x": 2265.0,
+      "y": 379.6,
+      "text": "单一 MLP",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_97",
+      "x": 2265.0,
+      "y": 410.4,
+      "text": "3 类输出",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_98",
+      "x": 1200,
+      "y": 592,
+      "text": "每域由 11 / 10 / 8 三条深度链改为一条 10 层链；跨深度 QKV、深度权重与三组深度分类头随之取消。",
+      "fontSize": 22,
+      "color": "#53677c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_99",
+      "x": 437.5,
+      "y": 685,
+      "text": "② PatchEmbedding：保留电极维 C，不在入口把 21 压成 1",
+      "fontSize": 28,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_100",
+      "x": 2150.0,
+      "y": 685,
+      "text": "C=电极；D=特征；L=原始长度；N=token",
+      "fontSize": 20,
+      "color": "#53677c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_102",
+      "x": 160.0,
+      "y": 791.1,
+      "text": "输入",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_103",
+      "x": 160.0,
+      "y": 821.9,
+      "text": "[B,1,21,L]",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_105",
+      "x": 450.0,
+      "y": 775.7,
+      "text": "时间 / 频率轴卷积",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_106",
+      "x": 450.0,
+      "y": 806.5,
+      "text": "Conv2d 1→40, k=(1,25)",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_107",
+      "x": 450.0,
+      "y": 837.3,
+      "text": "[B,40,21,L−24]",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_109",
+      "x": 752.5,
+      "y": 791.1,
+      "text": "BatchNorm + ELU",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_110",
+      "x": 752.5,
+      "y": 821.9,
+      "text": "C 仍为 21",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_112",
+      "x": 1060.0,
+      "y": 775.7,
+      "text": "AvgPool + Dropout",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_113",
+      "x": 1060.0,
+      "y": 806.5,
+      "text": "k=(1,75), stride=(1,15)",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_114",
+      "x": 1060.0,
+      "y": 837.3,
+      "text": "[B,40,21,N]",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_116",
+      "x": 1392.5,
+      "y": 775.7,
+      "text": "1×1 特征投影",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_117",
+      "x": 1392.5,
+      "y": 806.5,
+      "text": "40 → D=40",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_118",
+      "x": 1392.5,
+      "y": 837.3,
+      "text": "[B,40,21,N]",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_120",
+      "x": 1727.5,
+      "y": 775.7,
+      "text": "Permute，保留 C",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_121",
+      "x": 1727.5,
+      "y": 806.5,
+      "text": "[B,D,C,N] → [B,C,N,D]",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_122",
+      "x": 1727.5,
+      "y": 837.3,
+      "text": "此处不做 squeeze",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_124",
+      "x": 2130.0,
+      "y": 775.7,
+      "text": "输出给 Encoder",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_125",
+      "x": 2130.0,
+      "y": 806.5,
+      "text": "Time [B,21,122,40]",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_126",
+      "x": 2130.0,
+      "y": 837.3,
+      "text": "FFT [B,21,58,40]",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_127",
+      "x": 604.5,
+      "y": 920,
+      "text": "移走原 Stem 的跨电极空间卷积 Conv2d(40→40, k=(21,1))；仅删除 squeeze 无法恢复已被融合的电极维。",
+      "fontSize": 23,
+      "color": "#a25d14",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_128",
+      "x": 577.5,
+      "y": 958,
+      "text": "N = floor((L−24−75)/15)+1；L_Time=1920 → N=122；L_FFT=961 → N=58。40 来自卷积滤波器 / 嵌入维。",
+      "fontSize": 22,
+      "color": "#53677c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_129",
+      "x": 366.5,
+      "y": 1050,
+      "text": "③ 单域 Encoder 展开：Time 和 FFT 各运行一套",
+      "fontSize": 28,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_130",
+      "x": 2058.5,
+      "y": 1050,
+      "text": "下图 N=122（Time）或 58（FFT）；橙色线为新增跨电极信息",
+      "fontSize": 20,
+      "color": "#53677c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_131",
+      "x": 185.5,
+      "y": 1095,
+      "text": "输入 X₀ = [B,21,N,40]",
+      "fontSize": 26,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_133",
+      "x": 612.5,
+      "y": 1093.9,
+      "text": "入口跨电极卷积 21→21",
+      "fontSize": 23,
+      "color": "#a25d14",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_134",
+      "x": 612.5,
+      "y": 1126.1,
+      "text": "S = Conv_C(X₀)，N 与 D 不变",
+      "fontSize": 23,
+      "color": "#a25d14",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_135",
+      "x": 1630,
+      "y": 1093,
+      "text": "同一 S 分别送到前 5 个 Block 的末尾",
+      "fontSize": 24,
+      "color": "#a25d14",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_137",
+      "x": 475.0,
+      "y": 1273.9,
+      "text": "Block #1",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_138",
+      "x": 475.0,
+      "y": 1306.1,
+      "text": "逐电极 [N,40]",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_140",
+      "x": 645.0,
+      "y": 1290.0,
+      "text": "+",
+      "fontSize": 27,
+      "color": "#a25d14",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_142",
+      "x": 865.0,
+      "y": 1273.9,
+      "text": "Block #2",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_143",
+      "x": 865.0,
+      "y": 1306.1,
+      "text": "逐电极 [N,40]",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_145",
+      "x": 1035.0,
+      "y": 1290.0,
+      "text": "+",
+      "fontSize": 27,
+      "color": "#a25d14",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_147",
+      "x": 1255.0,
+      "y": 1273.9,
+      "text": "Block #3",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_148",
+      "x": 1255.0,
+      "y": 1306.1,
+      "text": "逐电极 [N,40]",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_150",
+      "x": 1425.0,
+      "y": 1290.0,
+      "text": "+",
+      "fontSize": 27,
+      "color": "#a25d14",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_152",
+      "x": 1645.0,
+      "y": 1273.9,
+      "text": "Block #4",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_153",
+      "x": 1645.0,
+      "y": 1306.1,
+      "text": "逐电极 [N,40]",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_155",
+      "x": 1815.0,
+      "y": 1290.0,
+      "text": "+",
+      "fontSize": 27,
+      "color": "#a25d14",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_157",
+      "x": 2035.0,
+      "y": 1273.9,
+      "text": "Block #5",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_158",
+      "x": 2035.0,
+      "y": 1306.1,
+      "text": "逐电极 [N,40]",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_160",
+      "x": 2205.0,
+      "y": 1290.0,
+      "text": "+",
+      "fontSize": 27,
+      "color": "#a25d14",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_161",
+      "x": 1200,
+      "y": 1390,
+      "text": "各层输出均为 [B,21,N,40]；H_i = Block_i(H_(i−1)) + S，i=1…5（相加为绘图假设）",
+      "fontSize": 23,
+      "color": "#53677c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_163",
+      "x": 2082.5,
+      "y": 1479.2,
+      "text": "第 5 层后：跨电极融合",
+      "fontSize": 22,
+      "color": "#a25d14",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_164",
+      "x": 2082.5,
+      "y": 1510.0,
+      "text": "21→1，再 squeeze 电极维",
+      "fontSize": 22,
+      "color": "#a25d14",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_165",
+      "x": 2082.5,
+      "y": 1540.8,
+      "text": "[B,21,N,40] → [B,N,40]",
+      "fontSize": 22,
+      "color": "#a25d14",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_167",
+      "x": 1665.0,
+      "y": 1493.9,
+      "text": "Block #6",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_168",
+      "x": 1665.0,
+      "y": 1526.1,
+      "text": "融合后继续建模",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_170",
+      "x": 1275.0,
+      "y": 1493.9,
+      "text": "Block #7–#9",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_171",
+      "x": 1275.0,
+      "y": 1526.1,
+      "text": "[B,N,40]",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_173",
+      "x": 885.0,
+      "y": 1493.9,
+      "text": "Block #10",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_174",
+      "x": 885.0,
+      "y": 1526.1,
+      "text": "[B,N,40]",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_176",
+      "x": 495.0,
+      "y": 1494.6,
+      "text": "Flatten 输出",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_177",
+      "x": 495.0,
+      "y": 1525.4,
+      "text": "Time 4880 / FFT 2320",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_178",
+      "x": 401.5,
+      "y": 1675,
+      "text": "④ Block 与分类头：沿用基线结构，默认超参数先回归",
+      "fontSize": 28,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_179",
+      "x": 2020.5,
+      "y": 1675,
+      "text": "depth=10 为导师指定；仓库默认 depth=6，因此不能全部直接用默认值",
+      "fontSize": 20,
+      "color": "#53677c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_181",
+      "x": 435.0,
+      "y": 1759.6,
+      "text": "单个 TransformerEncoderBlock",
+      "fontSize": 24,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_182",
+      "x": 435.0,
+      "y": 1793.2,
+      "text": "x₁ = x + Dropout(MHA(LayerNorm(x)))",
+      "fontSize": 24,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_183",
+      "x": 435.0,
+      "y": 1826.8,
+      "text": "out = x₁ + Dropout(FFN(LayerNorm(x₁)))",
+      "fontSize": 24,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_184",
+      "x": 435.0,
+      "y": 1860.4,
+      "text": "D=40；heads=5；FFN=40→160→40；dropout=0.5",
+      "fontSize": 24,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_186",
+      "x": 1180.0,
+      "y": 1761.7,
+      "text": "末端分类（双域拼接按原图保留）",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_187",
+      "x": 1180.0,
+      "y": 1793.9,
+      "text": "4880 + 2320 → 7200 → 256 → 32 → 3",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_188",
+      "x": 1180.0,
+      "y": 1826.1,
+      "text": "ELU；分类头 dropout=0.5 / 0.3",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_189",
+      "x": 1180.0,
+      "y": 1858.3,
+      "text": "单一三分类交叉熵；不再做三组深度损失加权",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_191",
+      "x": 1942.5,
+      "y": 1761.7,
+      "text": "绘图假设 / 待实现确认",
+      "fontSize": 23,
+      "color": "#a25d14",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_192",
+      "x": 1942.5,
+      "y": 1793.9,
+      "text": "各电极共享 Encoder 参数，可展平为 [B×21,N,40]",
+      "fontSize": 23,
+      "color": "#a25d14",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_193",
+      "x": 1942.5,
+      "y": 1826.1,
+      "text": "跳接暂按相加；若用拼接，需要补投影与维度定义",
+      "fontSize": 23,
+      "color": "#a25d14",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_194",
+      "x": 1942.5,
+      "y": 1858.3,
+      "text": "21→21 与 21→1 的卷积核 / 分组方式未在录音定死",
+      "fontSize": 23,
+      "color": "#a25d14",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_195",
+      "x": 646.0,
+      "y": 1940,
+      "text": "基线出处：train_activity_loso.py。优化器默认 Adam，lr=0.0002，betas=(0.5,0.999)；旧 0.85 Encoder dropout 不沿用。",
+      "fontSize": 22,
+      "color": "#53677c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_196",
+      "x": 671.5,
+      "y": 1980,
+      "text": "图中省略了禁用的 Input QKV / FFT-global。类别权重、重采样与训练日程不由本图另行确定；此图不表示模型已实现或验证有效。",
+      "fontSize": 21,
+      "color": "#53677c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_197",
+      "x": 558.0,
+      "y": 2030,
+      "text": "设计依据：录音 16:38–16:49、19:19–24:38、25:17–27:51、28:32–29:20；结合原结构图和仓库模型定义核对。",
+      "fontSize": 20,
+      "color": "#53677c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    }
+  ],
+  "settings": {
+    "corner": 10,
+    "gridSize": 5,
+    "snap": true,
+    "lastBulge": 100,
+    "lastRoute": "straight",
+    "dragDelay": 180,
+    "routeMemory": {}
+  },
+  "profileGroups": {},
+  "palette": "past",
+  "view": {
+    "x": 0,
+    "y": 0,
+    "w": 2400,
+    "h": 2050
+  }
+}

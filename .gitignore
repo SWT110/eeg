@@ -45,3 +45,28 @@ eeg-data-processing/data_to_list/list_normalization_fixed_duration/
 eeg-data-processing/data_to_sorted/sort2/time_data/
 eeg-data-processing/data_to_sorted/sort2/data_cut*/
 eeg-data-processing/videos/
+
+# Analysis products stay local; share source code and documentation via Git.
+/analysis/
+
+# Model weights, numeric data and exported run archives
+*.pt
+*.pth
+*.ckpt
+*.npy
+*.npz
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+
+# Runtime logs and crash dumps
+*.log
+nohup.out
+/core
+core.[0-9]*
+
+# Local credentials (template files may be versioned)
+.env
+.env.*
+!.env.example

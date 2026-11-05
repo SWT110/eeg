@@ -1,0 +1,1046 @@
+{
+  "nodes": [
+    {
+      "id": "input",
+      "type": "rect",
+      "x": 35,
+      "y": 325,
+      "w": 170,
+      "h": 110,
+      "label": "",
+      "fill": "#f3f5f8",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "timeprep",
+      "type": "rect",
+      "x": 255,
+      "y": 220,
+      "w": 195,
+      "h": 100,
+      "label": "",
+      "fill": "#e6f0fb",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "timepatch",
+      "type": "rect",
+      "x": 500,
+      "y": 220,
+      "w": 220,
+      "h": 100,
+      "label": "",
+      "fill": "#e6f0fb",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "timeenc",
+      "type": "rect",
+      "x": 780,
+      "y": 210,
+      "w": 355,
+      "h": 120,
+      "label": "",
+      "fill": "#e7f0dd",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "timeskip",
+      "type": "rect",
+      "x": 780,
+      "y": 132,
+      "w": 355,
+      "h": 48,
+      "label": "",
+      "fill": "#fff0da",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "timeflat",
+      "type": "rect",
+      "x": 1190,
+      "y": 220,
+      "w": 200,
+      "h": 100,
+      "label": "",
+      "fill": "#e1f0ed",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "fftprep",
+      "type": "rect",
+      "x": 255,
+      "y": 490,
+      "w": 195,
+      "h": 100,
+      "label": "",
+      "fill": "#f0e9f8",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "fftpatch",
+      "type": "rect",
+      "x": 500,
+      "y": 490,
+      "w": 220,
+      "h": 100,
+      "label": "",
+      "fill": "#f0e9f8",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "fftenc",
+      "type": "rect",
+      "x": 780,
+      "y": 480,
+      "w": 355,
+      "h": 120,
+      "label": "",
+      "fill": "#e7f0dd",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "fftskip",
+      "type": "rect",
+      "x": 780,
+      "y": 402,
+      "w": 355,
+      "h": 48,
+      "label": "",
+      "fill": "#fff0da",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "fftflat",
+      "type": "rect",
+      "x": 1190,
+      "y": 490,
+      "w": 200,
+      "h": 100,
+      "label": "",
+      "fill": "#e1f0ed",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "cat",
+      "type": "rect",
+      "x": 780,
+      "y": 700,
+      "w": 250,
+      "h": 85,
+      "label": "",
+      "fill": "#e1f0ed",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    },
+    {
+      "id": "head",
+      "type": "rect",
+      "x": 1090,
+      "y": 700,
+      "w": 300,
+      "h": 85,
+      "label": "",
+      "fill": "#e6f0fb",
+      "textColor": "#243449",
+      "orientation": "horizontal",
+      "radius": 10
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_0_0",
+      "from": {
+        "x": 205,
+        "y": 380.0
+      },
+      "to": {
+        "x": 228,
+        "y": 380
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_0_1",
+      "from": {
+        "x": 228,
+        "y": 380
+      },
+      "to": {
+        "x": 228,
+        "y": 270
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_0_2",
+      "from": {
+        "x": 228,
+        "y": 270
+      },
+      "to": {
+        "x": 255,
+        "y": 270.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_1_0",
+      "from": {
+        "x": 450,
+        "y": 270.0
+      },
+      "to": {
+        "x": 500,
+        "y": 270.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_2_0",
+      "from": {
+        "x": 720,
+        "y": 270.0
+      },
+      "to": {
+        "x": 780,
+        "y": 270.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_3_0",
+      "from": {
+        "x": 1135,
+        "y": 270.0
+      },
+      "to": {
+        "x": 1190,
+        "y": 270.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_4_0",
+      "from": {
+        "x": 610.0,
+        "y": 220
+      },
+      "to": {
+        "x": 610,
+        "y": 156
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#a25d14"
+    },
+    {
+      "id": "edge_4_1",
+      "from": {
+        "x": 610,
+        "y": 156
+      },
+      "to": {
+        "x": 780,
+        "y": 156.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#a25d14"
+    },
+    {
+      "id": "edge_5_0",
+      "from": {
+        "x": 957.5,
+        "y": 180
+      },
+      "to": {
+        "x": 957.5,
+        "y": 210
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#a25d14"
+    },
+    {
+      "id": "edge_6_0",
+      "from": {
+        "x": 205,
+        "y": 380.0
+      },
+      "to": {
+        "x": 228,
+        "y": 380
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_6_1",
+      "from": {
+        "x": 228,
+        "y": 380
+      },
+      "to": {
+        "x": 228,
+        "y": 540
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_6_2",
+      "from": {
+        "x": 228,
+        "y": 540
+      },
+      "to": {
+        "x": 255,
+        "y": 540.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_7_0",
+      "from": {
+        "x": 450,
+        "y": 540.0
+      },
+      "to": {
+        "x": 500,
+        "y": 540.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_8_0",
+      "from": {
+        "x": 720,
+        "y": 540.0
+      },
+      "to": {
+        "x": 780,
+        "y": 540.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_9_0",
+      "from": {
+        "x": 1135,
+        "y": 540.0
+      },
+      "to": {
+        "x": 1190,
+        "y": 540.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_10_0",
+      "from": {
+        "x": 610.0,
+        "y": 490
+      },
+      "to": {
+        "x": 610,
+        "y": 426
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#a25d14"
+    },
+    {
+      "id": "edge_10_1",
+      "from": {
+        "x": 610,
+        "y": 426
+      },
+      "to": {
+        "x": 780,
+        "y": 426.0
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#a25d14"
+    },
+    {
+      "id": "edge_11_0",
+      "from": {
+        "x": 957.5,
+        "y": 450
+      },
+      "to": {
+        "x": 957.5,
+        "y": 480
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#a25d14"
+    },
+    {
+      "id": "edge_12_0",
+      "from": {
+        "x": 1390,
+        "y": 270.0
+      },
+      "to": {
+        "x": 1410,
+        "y": 270
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_12_1",
+      "from": {
+        "x": 1410,
+        "y": 270
+      },
+      "to": {
+        "x": 1410,
+        "y": 650
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_12_2",
+      "from": {
+        "x": 1410,
+        "y": 650
+      },
+      "to": {
+        "x": 905,
+        "y": 650
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_12_3",
+      "from": {
+        "x": 905,
+        "y": 650
+      },
+      "to": {
+        "x": 905.0,
+        "y": 700
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_13_0",
+      "from": {
+        "x": 1390,
+        "y": 540.0
+      },
+      "to": {
+        "x": 1425,
+        "y": 540
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_13_1",
+      "from": {
+        "x": 1425,
+        "y": 540
+      },
+      "to": {
+        "x": 1425,
+        "y": 807
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_13_2",
+      "from": {
+        "x": 1425,
+        "y": 807
+      },
+      "to": {
+        "x": 905,
+        "y": 807
+      },
+      "route": "straight",
+      "arrow": false,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_13_3",
+      "from": {
+        "x": 905,
+        "y": 807
+      },
+      "to": {
+        "x": 905.0,
+        "y": 785
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    },
+    {
+      "id": "edge_14_0",
+      "from": {
+        "x": 1030,
+        "y": 742.5
+      },
+      "to": {
+        "x": 1090,
+        "y": 742.5
+      },
+      "route": "straight",
+      "arrow": true,
+      "corner": 0,
+      "width": 2.2,
+      "color": "#6c8299"
+    }
+  ],
+  "notes": [
+    {
+      "id": "text_15",
+      "x": 324.0,
+      "y": 45,
+      "text": "保留电极通道的双域 EEG-Conformer",
+      "fontSize": 34,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_16",
+      "x": 382.5,
+      "y": 89,
+      "text": "每路单一深度 10 层：前 5 层逐电极处理 → 融合 21→1 → 后 5 层",
+      "fontSize": 24,
+      "color": "#53677c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_18",
+      "x": 120.0,
+      "y": 364.6,
+      "text": "EEG 窗口",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_19",
+      "x": 120.0,
+      "y": 395.4,
+      "text": "[B,1,21,1920]",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_21",
+      "x": 352.5,
+      "y": 253.9,
+      "text": "Time 时域",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_22",
+      "x": 352.5,
+      "y": 286.1,
+      "text": "标准化",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_24",
+      "x": 610.0,
+      "y": 239.2,
+      "text": "PatchEmbedding",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_25",
+      "x": 610.0,
+      "y": 270.0,
+      "text": "保留 21 个电极",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_26",
+      "x": 610.0,
+      "y": 300.8,
+      "text": "[B,21,122,40]",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_28",
+      "x": 957.5,
+      "y": 240.6,
+      "text": "10 层 Encoder",
+      "fontSize": 21,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_29",
+      "x": 957.5,
+      "y": 270.0,
+      "text": "前 5 层 → 21→1 → 后 5 层",
+      "fontSize": 21,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_30",
+      "x": 957.5,
+      "y": 299.4,
+      "text": "[B,21,122,40] → [B,122,40]",
+      "fontSize": 21,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_32",
+      "x": 957.5,
+      "y": 156.0,
+      "text": "入口卷积 21→21 → 前 5 层各末尾",
+      "fontSize": 19,
+      "color": "#a25d14",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_34",
+      "x": 1290.0,
+      "y": 253.2,
+      "text": "Flatten",
+      "fontSize": 24,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_35",
+      "x": 1290.0,
+      "y": 286.8,
+      "text": "[B,4880]",
+      "fontSize": 24,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_37",
+      "x": 352.5,
+      "y": 523.9,
+      "text": "FFT 频域",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_38",
+      "x": 352.5,
+      "y": 556.1,
+      "text": "rFFT → 对数功率",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_40",
+      "x": 610.0,
+      "y": 509.2,
+      "text": "PatchEmbedding",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_41",
+      "x": 610.0,
+      "y": 540.0,
+      "text": "保留 21 个电极",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_42",
+      "x": 610.0,
+      "y": 570.8,
+      "text": "[B,21,58,40]",
+      "fontSize": 22,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_44",
+      "x": 957.5,
+      "y": 510.6,
+      "text": "10 层 Encoder",
+      "fontSize": 21,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_45",
+      "x": 957.5,
+      "y": 540.0,
+      "text": "前 5 层 → 21→1 → 后 5 层",
+      "fontSize": 21,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_46",
+      "x": 957.5,
+      "y": 569.4,
+      "text": "[B,21,58,40] → [B,58,40]",
+      "fontSize": 21,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_48",
+      "x": 957.5,
+      "y": 426.0,
+      "text": "入口卷积 21→21 → 前 5 层各末尾",
+      "fontSize": 19,
+      "color": "#a25d14",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_50",
+      "x": 1290.0,
+      "y": 523.2,
+      "text": "Flatten",
+      "fontSize": 24,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_51",
+      "x": 1290.0,
+      "y": 556.8,
+      "text": "[B,2320]",
+      "fontSize": 24,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_53",
+      "x": 905.0,
+      "y": 725.7,
+      "text": "Time / FFT 拼接",
+      "fontSize": 24,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_54",
+      "x": 905.0,
+      "y": 759.3,
+      "text": "[B,7200]",
+      "fontSize": 24,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_56",
+      "x": 1240.0,
+      "y": 725.7,
+      "text": "单一分类头 → 3 类",
+      "fontSize": 24,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_57",
+      "x": 1240.0,
+      "y": 759.3,
+      "text": "e_1 / e_2 / e_3",
+      "fontSize": 24,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_58",
+      "x": 91.0,
+      "y": 675,
+      "text": "维度说明",
+      "fontSize": 23,
+      "color": "#243449",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_59",
+      "x": 115.5,
+      "y": 715,
+      "text": "21：电极通道",
+      "fontSize": 23,
+      "color": "#53677c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_60",
+      "x": 167.0,
+      "y": 753,
+      "text": "122 / 58：两路 token 数",
+      "fontSize": 23,
+      "color": "#53677c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_61",
+      "x": 150.0,
+      "y": 791,
+      "text": "40：学习到的特征维",
+      "fontSize": 23,
+      "color": "#53677c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "id": "text_62",
+      "x": 409.5,
+      "y": 837,
+      "text": "依据录音最终方案；跳接相加、跨电极共享 Encoder 参数及末端双域拼接为绘图假设。",
+      "fontSize": 19,
+      "color": "#53677c",
+      "parentId": null,
+      "anchor": "free",
+      "dx": 0,
+      "dy": 0
+    }
+  ],
+  "settings": {
+    "corner": 10,
+    "gridSize": 5,
+    "snap": true,
+    "lastBulge": 100,
+    "lastRoute": "straight",
+    "dragDelay": 180,
+    "routeMemory": {}
+  },
+  "profileGroups": {},
+  "palette": "past",
+  "view": {
+    "x": 0,
+    "y": 0,
+    "w": 1440,
+    "h": 860
+  }
+}

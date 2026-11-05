@@ -132,6 +132,20 @@ EEG_RUN_BASE="$PWD/local_artifacts/outputs/activity_expanded_cohort_seed42"
 
 ## 6. 开始完整训练
 
+训练前的参数传递
+```bash
+cd ~/SWT/work/eeg
+
+export OMP_NUM_THREADS=12
+export MKL_NUM_THREADS=12
+export OPENBLAS_NUM_THREADS=1
+
+EEG_TRAIN_PY="$PWD/.conda-envs/eegconformer310/bin/python"
+EEG_NEW_DATA="$PWD/local_artifacts/data_to_list/global_activity_dataset_1to17_S17_first3_exclude_S6/window_15_stride_3"
+EEG_RUN_BASE="$PWD/local_artifacts/outputs/activity_expanded_cohort_seed42"
+```
+
+单gpu完整训练
 ```bash
 "$EEG_TRAIN_PY" -u EEG-Conformer/run_activity_five_models.py \
   --dataset-root "$EEG_NEW_DATA" --output-base "$EEG_RUN_BASE" \
@@ -176,12 +190,36 @@ EEG_JOB_ROOT="$EEG_RUN_BASE/global_activity_dataset_1to17_S17_first3_exclude_S6/
 ## 7. 完成后单独评估 S6
 
 ```bash
+cd ~/SWT/work/eeg
+
+export OMP_NUM_THREADS=12
+export MKL_NUM_THREADS=12
+export OPENBLAS_NUM_THREADS=1
+
+EEG_TRAIN_PY="$PWD/.conda-envs/eegconformer310/bin/python"
+EEG_NEW_DATA="$PWD/local_artifacts/data_to_list/global_activity_dataset_1to17_S17_first3_exclude_S6/window_15_stride_3"
+EEG_CASE_DATA="$PWD/local_artifacts/data_to_list/global_activity_failurecase_S6/window_15_stride_3"
+EEG_JOB_BASE="$PWD/local_artifacts/outputs/activity_expanded_cohort_seed42/global_activity_dataset_1to17_S17_first3_exclude_S6/seed_42"
+
+# 核对两个训练计划文件
+ls "$EEG_JOB_BASE/job_mdtf/run_plan.json"
+ls "$EEG_JOB_BASE/job_eegnet_shallowconvnet_atcnet_tcformer/run_plan.json"
+
+# 评估 MDTF
 "$EEG_TRAIN_PY" -u EEG-Conformer/evaluate_activity_failurecase.py \
   --dataset-root "$EEG_NEW_DATA" \
-  --failurecase-root "$PWD/local_artifacts/data_to_list/global_activity_failurecase_S6/window_15_stride_3" \
-  --run-root "$EEG_JOB_ROOT" \
-  --output-dir "$PWD/local_artifacts/outputs/activity_expanded_failurecase_S6_seed42" \
-  --case-subject-id 6 --device cuda:0 --batch-size 72
+  --failurecase-root "$EEG_CASE_DATA" \
+  --run-root "$EEG_JOB_BASE/job_mdtf" \
+  --output-dir "$PWD/local_artifacts/outputs/activity_expanded_failurecase_S6_seed42_mdtf" \
+  --case-subject-id 6 --device cuda:0 --batch-size 72 --cpu-threads 12
+
+# 评估四个对比模型
+"$EEG_TRAIN_PY" -u EEG-Conformer/evaluate_activity_failurecase.py \
+  --dataset-root "$EEG_NEW_DATA" \
+  --failurecase-root "$EEG_CASE_DATA" \
+  --run-root "$EEG_JOB_BASE/job_eegnet_shallowconvnet_atcnet_tcformer" \
+  --output-dir "$PWD/local_artifacts/outputs/activity_expanded_failurecase_S6_seed42_external" \
+  --case-subject-id 6 --device cuda:1 --batch-size 72 --cpu-threads 12
 ```
 
 每个模型的 16 份最佳权重先重播各自原留出测试预测，核对架构与训练归一化恢复正确，然后各预测 S6 一次。所有概率固定后才使用 S6 标签计算指标；S6 不参与训练、选 epoch、调参或选择融合权重。

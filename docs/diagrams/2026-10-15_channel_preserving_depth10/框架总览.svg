@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="860" viewBox="0 0 1440 860">
+<title>保留电极通道的双域 EEG-Conformer · 方案总览</title>
+<rect width="100%" height="100%" fill="white"/>
+<polyline points="205,380.0 228,380 228,270 255,270.0" fill="none" stroke="#6c8299" stroke-width="2.2" stroke-linejoin="round"/>
+<polygon points="255,270.0 246.0,266.0 246.0,274.0" fill="#6c8299"/>
+<polyline points="450,270.0 500,270.0" fill="none" stroke="#6c8299" stroke-width="2.2" stroke-linejoin="round"/>
+<polygon points="500,270.0 491.0,266.0 491.0,274.0" fill="#6c8299"/>
+<polyline points="720,270.0 780,270.0" fill="none" stroke="#6c8299" stroke-width="2.2" stroke-linejoin="round"/>
+<polygon points="780,270.0 771.0,266.0 771.0,274.0" fill="#6c8299"/>
+<polyline points="1135,270.0 1190,270.0" fill="none" stroke="#6c8299" stroke-width="2.2" stroke-linejoin="round"/>
+<polygon points="1190,270.0 1181.0,266.0 1181.0,274.0" fill="#6c8299"/>
+<polyline points="610.0,220 610,156 780,156.0" fill="none" stroke="#a25d14" stroke-width="2.2" stroke-linejoin="round"/>
+<polygon points="780,156.0 771.0,152.0 771.0,160.0" fill="#a25d14"/>
+<polyline points="957.5,180 957.5,210" fill="none" stroke="#a25d14" stroke-width="2.2" stroke-linejoin="round"/>
+<polygon points="957.5,210 961.5,201.0 953.5,201.0" fill="#a25d14"/>
+<polyline points="205,380.0 228,380 228,540 255,540.0" fill="none" stroke="#6c8299" stroke-width="2.2" stroke-linejoin="round"/>
+<polygon points="255,540.0 246.0,536.0 246.0,544.0" fill="#6c8299"/>
+<polyline points="450,540.0 500,540.0" fill="none" stroke="#6c8299" stroke-width="2.2" stroke-linejoin="round"/>
+<polygon points="500,540.0 491.0,536.0 491.0,544.0" fill="#6c8299"/>
+<polyline points="720,540.0 780,540.0" fill="none" stroke="#6c8299" stroke-width="2.2" stroke-linejoin="round"/>
+<polygon points="780,540.0 771.0,536.0 771.0,544.0" fill="#6c8299"/>
+<polyline points="1135,540.0 1190,540.0" fill="none" stroke="#6c8299" stroke-width="2.2" stroke-linejoin="round"/>
+<polygon points="1190,540.0 1181.0,536.0 1181.0,544.0" fill="#6c8299"/>
+<polyline points="610.0,490 610,426 780,426.0" fill="none" stroke="#a25d14" stroke-width="2.2" stroke-linejoin="round"/>
+<polygon points="780,426.0 771.0,422.0 771.0,430.0" fill="#a25d14"/>
+<polyline points="957.5,450 957.5,480" fill="none" stroke="#a25d14" stroke-width="2.2" stroke-linejoin="round"/>
+<polygon points="957.5,480 961.5,471.0 953.5,471.0" fill="#a25d14"/>
+<polyline points="1390,270.0 1410,270 1410,650 905,650 905.0,700" fill="none" stroke="#6c8299" stroke-width="2.2" stroke-linejoin="round"/>
+<polygon points="905.0,700 909.0,691.0 901.0,691.0" fill="#6c8299"/>
+<polyline points="1390,540.0 1425,540 1425,807 905,807 905.0,785" fill="none" stroke="#6c8299" stroke-width="2.2" stroke-linejoin="round"/>
+<polygon points="905.0,785 901.0,794.0 909.0,794.0" fill="#6c8299"/>
+<polyline points="1030,742.5 1090,742.5" fill="none" stroke="#6c8299" stroke-width="2.2" stroke-linejoin="round"/>
+<polygon points="1090,742.5 1081.0,738.5 1081.0,746.5" fill="#6c8299"/>
+<text x="45" y="45" text-anchor="start" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="34" fill="#243449">保留电极通道的双域 EEG-Conformer</text>
+<text x="45" y="89" text-anchor="start" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="24" fill="#53677c">每路单一深度 10 层：前 5 层逐电极处理 → 融合 21→1 → 后 5 层</text>
+<rect x="35" y="325" width="170" height="110" rx="10" fill="#f3f5f8" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="120.0" y="364.6" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="22" fill="#243449">EEG 窗口</text>
+<text x="120.0" y="395.4" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="22" fill="#243449">[B,1,21,1920]</text>
+<rect x="255" y="220" width="195" height="100" rx="10" fill="#e6f0fb" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="352.5" y="253.9" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="23" fill="#243449">Time 时域</text>
+<text x="352.5" y="286.1" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="23" fill="#243449">标准化</text>
+<rect x="500" y="220" width="220" height="100" rx="10" fill="#e6f0fb" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="610.0" y="239.2" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="22" fill="#243449">PatchEmbedding</text>
+<text x="610.0" y="270.0" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="22" fill="#243449">保留 21 个电极</text>
+<text x="610.0" y="300.8" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="22" fill="#243449">[B,21,122,40]</text>
+<rect x="780" y="210" width="355" height="120" rx="10" fill="#e7f0dd" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="957.5" y="240.6" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="21" fill="#243449">10 层 Encoder</text>
+<text x="957.5" y="270.0" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="21" fill="#243449">前 5 层 → 21→1 → 后 5 层</text>
+<text x="957.5" y="299.4" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="21" fill="#243449">[B,21,122,40] → [B,122,40]</text>
+<rect x="780" y="132" width="355" height="48" rx="10" fill="#fff0da" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="957.5" y="156.0" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="19" fill="#a25d14">入口卷积 21→21 → 前 5 层各末尾</text>
+<rect x="1190" y="220" width="200" height="100" rx="10" fill="#e1f0ed" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="1290.0" y="253.2" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="24" fill="#243449">Flatten</text>
+<text x="1290.0" y="286.8" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="24" fill="#243449">[B,4880]</text>
+<rect x="255" y="490" width="195" height="100" rx="10" fill="#f0e9f8" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="352.5" y="523.9" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="23" fill="#243449">FFT 频域</text>
+<text x="352.5" y="556.1" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="23" fill="#243449">rFFT → 对数功率</text>
+<rect x="500" y="490" width="220" height="100" rx="10" fill="#f0e9f8" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="610.0" y="509.2" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="22" fill="#243449">PatchEmbedding</text>
+<text x="610.0" y="540.0" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="22" fill="#243449">保留 21 个电极</text>
+<text x="610.0" y="570.8" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="22" fill="#243449">[B,21,58,40]</text>
+<rect x="780" y="480" width="355" height="120" rx="10" fill="#e7f0dd" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="957.5" y="510.6" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="21" fill="#243449">10 层 Encoder</text>
+<text x="957.5" y="540.0" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="21" fill="#243449">前 5 层 → 21→1 → 后 5 层</text>
+<text x="957.5" y="569.4" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="21" fill="#243449">[B,21,58,40] → [B,58,40]</text>
+<rect x="780" y="402" width="355" height="48" rx="10" fill="#fff0da" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="957.5" y="426.0" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="19" fill="#a25d14">入口卷积 21→21 → 前 5 层各末尾</text>
+<rect x="1190" y="490" width="200" height="100" rx="10" fill="#e1f0ed" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="1290.0" y="523.2" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="24" fill="#243449">Flatten</text>
+<text x="1290.0" y="556.8" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="24" fill="#243449">[B,2320]</text>
+<rect x="780" y="700" width="250" height="85" rx="10" fill="#e1f0ed" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="905.0" y="725.7" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="24" fill="#243449">Time / FFT 拼接</text>
+<text x="905.0" y="759.3" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="24" fill="#243449">[B,7200]</text>
+<rect x="1090" y="700" width="300" height="85" rx="10" fill="#e6f0fb" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="1240.0" y="725.7" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="24" fill="#243449">单一分类头 → 3 类</text>
+<text x="1240.0" y="759.3" text-anchor="middle" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="24" fill="#243449">e_1 / e_2 / e_3</text>
+<text x="45" y="675" text-anchor="start" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="23" fill="#243449">维度说明</text>
+<text x="45" y="715" text-anchor="start" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="23" fill="#53677c">21：电极通道</text>
+<text x="45" y="753" text-anchor="start" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="23" fill="#53677c">122 / 58：两路 token 数</text>
+<text x="45" y="791" text-anchor="start" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="23" fill="#53677c">40：学习到的特征维</text>
+<text x="45" y="837" text-anchor="start" dominant-baseline="central" font-family="Arial Unicode MS, PingFang SC, Microsoft YaHei, sans-serif" font-size="19" fill="#53677c">依据录音最终方案；跳接相加、跨电极共享 Encoder 参数及末端双域拼接为绘图假设。</text>
+</svg>

@@ -32,7 +32,7 @@ import subprocess
 import sys
 import warnings
 from pathlib import Path
-from typing import NamedTuple
+from typing import Callable, NamedTuple
 
 import numpy as np
 import torch
@@ -2130,6 +2130,8 @@ def train_loso_fold(
     classification_mode: str = "flat",
     train_sampling: str = "original",
     split_after_blocks: list[int] | tuple[int, ...] | None = None,
+    external_model_factory: Callable[..., nn.Module] | None = None,
+    fail_on_nonfinite_loss: bool = False,
 ) -> Path:
     """Train one LOSO fold and return path to metrics.json."""
 
@@ -2143,7 +2145,7 @@ def train_loso_fold(
 
     device_obj = torch.device(device)
     architecture_value = str(architecture).strip().lower().replace("-", "").replace("_", "")
-    resolved_architecture = (
+    resolved_architecture = architecture_value if external_model_factory is not None else (
         DEFAULT_ARCHITECTURE
         if architecture_value == DEFAULT_ARCHITECTURE
         else (
@@ -2292,7 +2294,7 @@ def train_loso_fold(
     branch_shape_metadata: dict[str, int | list[int]] = {"n_times": int(n_times)}
     architecture_config: dict = {}
     if is_comparison_model:
-        model = build_comparison_model(
+        model = (external_model_factory or build_comparison_model)(
             resolved_architecture,
             n_channels=n_channels,
             n_times=n_times,
@@ -2679,6 +2681,8 @@ def train_loso_fold(
                 criterion,
                 branch_logits,
             )
+            if fail_on_nonfinite_loss and not bool(torch.isfinite(loss)):
+                raise FloatingPointError("Nonfinite training loss; refusing to produce benchmark results")
             loss.backward()
             optimizer.step()
 

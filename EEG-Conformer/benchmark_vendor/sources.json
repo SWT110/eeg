@@ -1,0 +1,238 @@
+{
+  "deepconvnet": {
+    "paper": "https://doi.org/10.1002/hbm.23730",
+    "repository": "https://github.com/braindecode/braindecode",
+    "commit": "d19b024aa37a334f783b4873285b1b52044721d5",
+    "filters": [
+      25,
+      50,
+      100,
+      200
+    ],
+    "temporal_kernel": 10,
+    "pool": 3,
+    "dropout": 0.5,
+    "initialization": "Xavier uniform; final flattened Linear initialized using equivalent Conv2d [classes,200,19,1] fan-out",
+    "final_features": 3800,
+    "adaptations": [
+      "21 channels and 1920 time samples",
+      "final spatial-temporal convolution expressed as equivalent flattened Linear"
+    ]
+  },
+  "fbcnet": {
+    "paper": "https://arxiv.org/abs/2104.01233",
+    "repository": "https://github.com/ravikiran-mane/FBCNet.git",
+    "commit": "de1bbdd8a54cb1e466830e3d47070e0e56761a37",
+    "bands_hz": [
+      [
+        4,
+        8
+      ],
+      [
+        8,
+        12
+      ],
+      [
+        12,
+        16
+      ],
+      [
+        16,
+        20
+      ],
+      [
+        20,
+        24
+      ],
+      [
+        24,
+        28
+      ],
+      [
+        28,
+        32
+      ],
+      [
+        32,
+        36
+      ],
+      [
+        36,
+        40
+      ]
+    ],
+    "spatial_filters_per_band": 32,
+    "time_segments": 4,
+    "variance": "unbiased, clamp[1e-6,1e6]",
+    "filter": "Chebyshev-II causal lfilter, pass3dB/stop30dB/transition2Hz",
+    "adaptations": [
+      "128Hz filter design",
+      "zero-padded FFT convolution equals length-1920 causal impulse filtering; numerical parity checked against scipy.lfilter",
+      "raw linear scores passed to common CE instead of original log-softmax plus NLL",
+      "common train-scalar standardization precedes fixed filter bank"
+    ]
+  },
+  "eegtcnet": {
+    "paper": "https://doi.org/10.1109/SMC42975.2020.9283028",
+    "repository": "https://github.com/iis-eth-zurich/eeg-tcnet.git",
+    "commit": "363c7e52d19285b0bac9a8846bbdbd6aac5aa851",
+    "F1": 8,
+    "D": 2,
+    "temporal_kernel": 32,
+    "eeg_dropout": 0.2,
+    "tcn_filters": 12,
+    "tcn_depth": 2,
+    "tcn_kernel": 4,
+    "tcn_dropout": 0.3,
+    "activation": "ELU",
+    "adaptations": [
+      "PyTorch port of author sample_train configuration",
+      "21 channels / 3 classes / 1920 samples",
+      "logits replace final softmax for CE"
+    ],
+    "initialization": "Glorot uniform front/classifier/skip; Keras depthwise fan-in/out; He uniform TCN"
+  },
+  "ctnet": {
+    "paper": "https://doi.org/10.1038/s41598-024-71118-7",
+    "repository": "https://github.com/snailpt/CTNet.git",
+    "commit": "fb83814abc55bafaea6e71cc18475bf331c8d28b",
+    "F1": 8,
+    "D": 2,
+    "emb_size": 16,
+    "heads": 2,
+    "depth": 6,
+    "temporal_kernel": 64,
+    "pool": [
+      8,
+      8
+    ],
+    "cnn_dropout": 0.25,
+    "tokens": 30,
+    "adaptations": [
+      "author LOSO main-script settings",
+      "21 channels / 3 classes / flatten480",
+      "device-neutral positional encoding; no training-script import side effects",
+      "no author S&R augmentation, as approved"
+    ]
+  },
+  "eegnex": {
+    "paper": "https://doi.org/10.1016/j.bspc.2023.105475",
+    "repository": "https://github.com/chenxiachan/EEGNeX.git",
+    "commit": "044d7fb2a5b953c7004f30fe45db40d1ce57af5c",
+    "filters": [
+      8,
+      32,
+      64,
+      32,
+      8
+    ],
+    "temporal_kernels": [
+      64,
+      64,
+      16,
+      16
+    ],
+    "dilation": [
+      1,
+      1,
+      2,
+      4
+    ],
+    "pool": [
+      4,
+      4
+    ],
+    "dropout": 0.5,
+    "bn_epsilon": 0.001,
+    "bn_pytorch_momentum": 0.01,
+    "adaptations": [
+      "PyTorch learned-feature-channel BN; NOT literal Keras channels_first + default last-axis time BN",
+      "author pool4/4 and omitted ELU after blocks2/4 retained",
+      "21 channels / 3 classes / logits for CE"
+    ],
+    "initialization": "Glorot uniform; Keras depthwise fan-in/out"
+  },
+  "eegsimpleconv": {
+    "paper": "https://doi.org/10.1109/TNSRE.2024.3451010",
+    "repository": "https://github.com/elouayas/EEGSimpleConv.git",
+    "commit": "a732d9a3758ede6f31ddd5de1fece2e790ef4d0f",
+    "fm": 109,
+    "n_convs": 4,
+    "kernel": 8,
+    "resampling_hz": 128,
+    "subject_regularization": false,
+    "adaptations": [
+      "author cross-subject notebook W109/K4/k8 architecture; no unique dataset-independent default",
+      "identity resampling at approved128Hz, outside author recommended50-80Hz cross-subject range",
+      "no author subject auxiliary objective or optimizer recipe"
+    ]
+  },
+  "eegitnet": {
+    "paper": "https://doi.org/10.1109/ACCESS.2022.3161489",
+    "repository": "https://github.com/braindecode/braindecode",
+    "commit": "d19b024aa37a334f783b4873285b1b52044721d5",
+    "filters": [
+      2,
+      4,
+      8
+    ],
+    "kernels": [
+      16,
+      32,
+      64
+    ],
+    "tcn_width": 14,
+    "tcn_dilations": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "tcn_kernel": 4,
+    "dropout": 0.2,
+    "dimension_reduction_width": 14,
+    "adaptations": [
+      "independent BSD Braindecode implementation as reference; author restricted notebook not copied",
+      "cross-subject dropout0.2 override to Braindecode default0.4",
+      "temporal depthwise Conv1d with equivalent singleton spatial axis",
+      "21 channels / 1920 samples / 3 logits; flatten1680"
+    ]
+  },
+  "tsception": {
+    "paper": "https://doi.org/10.1109/TAFFC.2022.3169001",
+    "repository": "https://github.com/yi-ding-cs/TSception.git",
+    "commit": "9efd666b618d006e32e6da1d30dbc79b1d190604",
+    "temporal_filters": 15,
+    "spatial_filters": 15,
+    "hidden": 32,
+    "dropout": 0.5,
+    "temporal_kernels": [
+      64,
+      32,
+      16
+    ],
+    "adaptations": [
+      "all21 channels retained in global spatial branch",
+      "left indices[0,2,4,6,8,10,12,14,16], right[1,3,5,7,9,11,13,15,17], including M1/M2 pair",
+      "Fz/Cz/Pz only enter global branch; hemispheric kernel/stride9",
+      "global/left/right fusion unchanged; explicit 21-channel layout adaptation"
+    ]
+  },
+  "eegdeformer": {
+    "paper": "https://doi.org/10.1109/JBHI.2024.3504604",
+    "repository": "https://github.com/yi-ding-cs/EEG-Deformer.git",
+    "commit": "47df1c4d8ce375ae21117f84e81e969041d907f6",
+    "kernels": 64,
+    "temporal_kernel": 51,
+    "depth": 4,
+    "heads": 16,
+    "dim_head": 16,
+    "mlp_hidden": 16,
+    "dropout": 0.25,
+    "adaptations": [
+      "MWL author configuration, 21-channel and1920-sample task dimensions",
+      "DIP log(mean-square) clamped at1e-7 for finite zero-input behavior",
+      "no Lightning dependency; same architecture equations"
+    ]
+  }
+}
